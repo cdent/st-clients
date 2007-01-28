@@ -1,0 +1,84 @@
+<?xml version="1.0" ?>
+
+<project default="compile">
+
+    <property name="axis.home" location="/Users/cdent/src/axis-1_4/lib" />
+    <property name="xerces.home" location="/Users/cdent/src/xerces-2_8_0" />
+    <property
+        name="wsdl"
+        value="https://www.socialtext.net/static/wsdl/0.9.wsdl" />
+    <property name="workspace" value="st-soap-test" />
+    <property name="username" value="soap.test@socialtext.com" />
+    <property name="password" value="bubbles" />
+    <property name="page_name" value="Soap Test" />
+    <property name="act_as_user" value="devnull9@socialtext.com" />
+    <!-- This tells the application to use whatever Java uses as your
+        'default encoding' -->
+    <property name="stdout_encoding" value="" />
+    <!-- Uncomment the below to get UTF-8 output from the application. -->
+    <!--
+    <property name="stdout_encoding" value="UTF-8" />
+    -->
+
+    <path id="classpath">
+        <fileset dir="${axis.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+        <fileset dir="${xerces.home}">
+            <include name="**/*.jar"/>
+        </fileset>
+    </path>
+
+
+    <taskdef name="wsdl2java"
+        classname="org.apache.axis.tools.ant.wsdl.Wsdl2javaAntTask"
+        loaderref="axis" >
+        <classpath refid="classpath"/>
+    </taskdef>
+
+    <target name="compile" depends="wsdl">
+        <javac srcdir=".">
+            <classpath refid="classpath"/>
+            <include name="**/*.java"/>
+        </javac>
+            
+
+    </target>
+
+    <target name="wsdl">
+        <wsdl2java url="${wsdl}"
+               deployscope="session"
+               serverSide="yes"
+               skeletonDeploy="yes"
+               noimports="no"
+               verbose="no"
+               typeMappingVersion="1.1"
+               testcase="no">
+            <mapping namespace="urn:NLWSoap" package="samples.addr"/>
+        </wsdl2java>
+    </target>
+
+    <target name="run" depends="compile">
+        <java classname="Main" classpathref="classpath" classpath=".">
+            <arg value="${workspace}" />
+            <arg value="${username}" />
+            <arg value="${password}" />
+            <arg value="${page_name}" />
+            <arg value="${act_as_user}" />
+            <sysproperty key="stdout_encoding" value="${stdout_encoding}" />
+        </java>
+    </target>
+
+    <target name="clean">
+        <delete>
+            <fileset dir=".">
+                <include name="**/*.class" />
+            </fileset>
+        </delete>
+    </target>
+
+    <target name="realclean" depends="clean">
+        <delete dir="NLWSOAP" />
+    </target>
+
+</project>

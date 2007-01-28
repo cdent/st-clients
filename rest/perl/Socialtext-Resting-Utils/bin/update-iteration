@@ -1,0 +1,44 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+use Socialtext::Resting::DefaultRester;
+use Socialtext::WikiObject::IterationPlan;
+
+my %opts;
+GetOptions(
+    \%opts,
+    'username|u=s',
+    'password|p=s',
+    'server|s=s',
+    'workspace|w=s',
+    'o|output=s',
+    'i|input=s',
+    'dryrun',
+    'page=s',
+);
+
+my $rester = Socialtext::Resting::DefaultRester->new(%opts);
+
+# for all pages tagged 'iteration'
+# look for tables and update their total lines
+
+print "workspace=" . $rester->workspace . "\n";
+
+my @iteration_pages = $rester->get_taggedpages('iteration');
+@iteration_pages = ($opts{page}) if $opts{page};
+for my $p (@iteration_pages) {
+    warn "page $p";
+    my %iter_opts = (
+        page => $p,
+        rester => $rester,
+        dryrun => $opts{dryrun},
+    );
+    my $iteration = Socialtext::WikiObject::IterationPlan->new(%iter_opts);
+
+#    use Data::Dumper;
+#    print Dumper $iteration->{table};
+    $iteration->update_estimates;
+}
+
+

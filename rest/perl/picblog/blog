@@ -1,0 +1,22 @@
+#!/bin/sh
+
+# BLOG_TAG will be appended to the default tags of "Daily Blog" and 
+# "Daily Dev Blog"
+BLOG_TAG=Something
+PASSWORD=password
+WORKSPACE=something
+SERVER=http://localhost:20501/
+USER=somebody
+NAME="Some name"
+
+# if you use vim, and i'm sure you do this will be useful while you edit
+export VIMINIT="set linebreak|set fileencoding=utf-8"
+
+./picblog \
+    --tag "$BLOG_TAG" \
+    --name "$NAME" \
+    --pass "$PASSWORD" \
+    --workspace "$WORKSPACE" \
+    --server "$SERVER" \
+    --user "$USER" \
+    --flickr "$FLICKR"

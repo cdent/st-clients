@@ -1,0 +1,131 @@
+#!/usr/bin/env perl
+# -*- coding: utf-8 -*- vim:fileencoding=utf-8:
+use strict;
+use warnings;
+use Data::Dumper;
+#use SOAP::Lite +trace => 'all';
+use SOAP::Lite;
+use utf8;
+binmode STDOUT, ':utf8';
+
+# Note that Perl pays no attention to the encoding set in your locale, and
+# neither do we.  We assume here that your terminal expects UTF-8.
+my $NEW_PAGE_NAME = "99¢ Cheeseburger";
+my $NEW_PAGE_BODY = <<'EOF';
+At McSOAPie's™, you can get a Cheeseburger™ for only 99¢.
+EOF
+
+use Getopt::Long;
+
+my %opts;
+GetOptions(
+    'wsdl:s'       => \$opts{wsdl},
+    'username:s'   => \$opts{username},
+    'workspace:s'  => \$opts{workspace},
+    'other-user:s' => \$opts{other_user},
+    'page_name:s'  => \$opts{page_name},
+    'password:s'   => \$opts{password},
+    'h|help'       => \$opts{help},
+    )
+    or $opts{help} = 1;
+
+help() if $opts{help};
+help()
+    unless ( $opts{username}
+    && $opts{password}
+    && $opts{workspace} );
+
+$opts{wsdl} ||= 'https://www.socialtext.net/static/wsdl/0.9.wsdl';
+
+# Create the SOAP Service object
+my $soap = SOAP::Lite->service( $opts{wsdl} )->on_fault(
+    sub {
+        my ( $soap, $res ) = @_;
+        die ref $res ? $res->faultstring : $soap->transport->status, "\n";
+    }
+);
+
+my $response;
+my $item;
+
+# Heartbeat
+print "=== HEARTBEAT ===\n";
+print $soap->heartBeat(), "\n";
+
+# Create a session token, impersonating user $other_user if provided
+my $token = $soap->getAuth(
+    $opts{username},
+    $opts{password},
+    $opts{workspace},
+    $opts{other_user} ? $opts{other_user} : ''
+);
+
+# Get page
+print "=== GET PAGE ", $opts{page_name}, " ===\n";
+$response = $soap->getPage( $token, $opts{ page_name }, 'wikitext' );
+print $response->{pageContent}, "\n";
+
+# Set page
+print "=== SET PAGE ", $opts{ page_name }, " ===\n";
+$response = $soap->setPage(
+    $token,
+    $opts{ page_name },
+    'this is tensegrity',
+);
+print $response->{pageContent}, "\n";
+sleep 10; # Give time for the ceqlotron to index
+
+# Search for the changes we just added
+print "=== SEARCH tensegrity ===\n";
+$response = $soap->getSearch(
+    $token,
+    'tensegrity',
+);
+foreach $item (@$response) {
+    printf "%s - %s - %s\n", $item->{subject}, $item->{author}, $item->{date};
+}
+
+print "=== RECENT CHANGES ===\n";
+$response = $soap->getChanges(
+    $token,
+    'recent changes',
+    4
+);
+foreach $item (@$response) {
+    printf "%s - %s - %s\n", $item->{subject}, $item->{author}, $item->{date};
+}
+
+print "=== MAKE $NEW_PAGE_NAME ===\n";
+$response = $soap->setPage(
+    $token,
+    $NEW_PAGE_NAME,
+    $NEW_PAGE_BODY
+);
+print $response->{pageContent}, "\n";
+
+
+sub help {
+    print<<"...";
+
+Demonstrate SOAP Service 0.9 from Socialtext. By default the WSDL provided
+is the home WSDL: https://www.socialtext.net/wsdl/0.9.wsdl
+
+Arguments:
+
+--username    The username accessing the Service
+--password    The password of the username
+--workspace   The name of the workspace being accessed
+--page_name   A page to be retrieved and updated
+
+Options
+
+--help        This
+--wsdl        The location of some other wsdl file.
+--other-user  The username of a user to impersonate when accessing
+              the workspace. For this to work, username must be an
+              admin in the workspace and the Admin Role in workspace
+              must have the impersonate permission.
+
+...
+    exit;
+}

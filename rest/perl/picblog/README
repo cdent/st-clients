@@ -1,0 +1,6 @@
+
+picblog is the perl script that does the Socialtext::Resting and 
+Flickr::API handling for you.
+
+blog is a shell script that let's you wrap the necessary options, for
+sticking in your $HOME/bin

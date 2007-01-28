@@ -1,0 +1,34 @@
+
+body {
+    font-family: Garamond, serif;
+    margin: 2em;
+    border-top: thin solid black;
+    border-left: thin solid black;
+    padding: 1em;
+}
+.container {
+    color: black;
+    padding: 1em;
+}
+
+#mypage {
+    background: yellow;
+    border: thin solid black;
+    padding: 1em;
+    width: 70%;
+}
+
+#mypage h1 {
+    border-bottom: thin solid black;
+}
+
+#mymeta {
+    float: right;
+    width: 25%;
+    font-family: Helvetica, sans-serif;
+    font-size: small;
+}
+
+.infobox {
+    font-size: large;
+}

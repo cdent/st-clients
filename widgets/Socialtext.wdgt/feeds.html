@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+    <head>
+        <style>
+            @import "feeds.css";
+            @import "Scroller.css";
+        </style>
+
+        <script type='text/javascript' src='feeds.js'></script>
+        <script type='text/javascript' src='FeedItem.js'></script>
+        <script type='text/javascript' src='Model.js'></script>
+        <script type='text/javascript' src='Fetcher.js'></script>
+        <script type='text/javascript' src='FrontView.js'></script>
+        <script type='text/javascript' src='BackView.js'></script>
+        <script type='text/javascript' src='Workspace.js'></script>
+        <script type='text/javascript' src='WorkspaceView.js'></script>
+        <script type='text/javascript' src='WorkspaceFeed.js'></script>
+        <script type='text/javascript' src='flip.js'></script>
+        <script type='text/javascript' src='Scroller.js'></script>
+        <script
+            type='text/javascript'
+            src='/System/Library/WidgetResources/button/genericButton.js'>
+        </script>
+    </head>
+    <body>
+        <div
+          id='front'
+          onmousemove='mousemove(event);'
+          onmouseout='mouseexit(event);'>
+            <div id='header'>
+                <span class='title'>Workspace Feeds</span>
+                <img
+                    id='logo'
+                    onclick='open_url("http://www.socialtext.com/")'
+                    src='logo-bar-12.png'/>
+            </div>
+            <div id='scroll_container'>
+                <div id='front_scrolled'><table id='listing'></table></div>
+                <div id='front_scrollbar'>
+                    <div id='front_scrolltrack'>
+                        <div class='scrollTrackTop' id='front_scrollTrackTop'>
+                        </div>
+                        <div class='scrollTrackMid' id='front_scrollTrackMid'>
+                        </div>
+                        <div class='scrollTrackBot' id='front_scrollTrackBot'>
+                        </div>
+                    </div>
+                    <div id='front_scrollthumb'>
+                        <div class='scrollThumbTop' id='front_scrollThumbTop'>
+                        </div>
+                        <div class='scrollThumbMid' id='front_scrollThumbMid'>
+                        </div>
+                        <div class='scrollThumbBot' id='front_scrollThumbBot'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div
+              class='flip'
+              id='flip'
+              onclick='showBack(event);'
+              onmouseover='enterflip(event);'
+              onmouseout='exitflip(event);'></div>
+            <div class='flip' id='fliprollie'></div>
+        </div>
+        <div id='back'>
+            <div id='tabs'>
+                <a href='#'
+                  id='servers_tab'
+                  onclick='selectPane("servers")'>Servers</a>
+                <a href='#'
+                  id='workspaces_tab'
+                  onclick='selectPane("workspaces")'>Workspaces</a>
+                <a href='#'
+                  id='filters_tab'
+                  onclick='selectPane("filters")'>Filters</a>
+            </div>
+            <div id='servers_pane'>
+                <div id='servers_list'>
+                </div>
+                <div id='new_server_form'>
+                    <input
+                      type='text'
+                      id='new_server_input'
+                      length='30'/>
+                    <span id='add_server'></span>
+                </div>
+            </div>
+            <div id='workspaces_pane'>
+                <select
+                  id='server_selector'
+                  onchange='serverChanged()'>
+                    <option>Loading...</option>
+                </select>
+                <div id='workspaces_list'>
+                </div>
+                <div id='new_workspace_form'>
+                    <input
+                      type='text'
+                      id='new_workspace_input'
+                      length='30'/>
+                    <span id='add_workspace'></span>
+                </div>
+            </div>
+            <div id='filters_pane'></div>
+            <div id='done' class='doneButton'></div>
+        </div>
+        <div id='debugDiv'></div>
+    </body>
+</html>

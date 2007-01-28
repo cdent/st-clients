@@ -1,0 +1,8 @@
+0.12 - Thu Jan 25 11:14:35 PST 2007
+0.11 - (failed to upload to cpan)
+ - Added etag caching support to allow for collision detection
+   - etags are cached on all get_page() calls, and sent to server
+     in put_page() calls in the 'If-Match' header.  If the etags
+     don't match, the server will return 412.
+ - Added unit tests using mocked LWP packages.  
+   - ~92X faster and they already have better coverage

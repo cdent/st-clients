@@ -1,0 +1,101 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+
+=head1 NAME
+
+st-batch-delete - A simple script for deleting multiple pages in a workspace
+
+=head1 SYNOPSIS
+
+   st-batch-delete --help
+
+=head1 DESCRIPTION
+
+Sometimes it is useful to delete many pages in a socialtext workspace.
+This script lets you do it remotely, but presents some (small) 
+security concerns.
+
+=cut
+
+use FindBin;
+use Getopt::Long;
+use lib "$FindBin::Bin/../lib";
+use Socialtext::RemotelySimple;
+
+my %opts;
+GetOptions(
+    'user:s' => \$opts{user},
+    'password:s' => \$opts{password},
+    'workspace:s' => \$opts{workspace},
+    'server:s' => \$opts{server},
+    'help' => \$opts{help},
+    'verbose' => \$opts{verbose},
+);
+
+show_help() if $opts{help} or ! (
+    $opts{user} && $opts{password} && $opts{workspace} && $opts{server}
+);
+
+# If we construct the hash now and pass it by reference
+# we should be able to auth only once for multiple deletions.
+my %userInfo = (
+    username  => $opts{user},
+    workspace => $opts{workspace},
+    password  => $opts{password},
+    server    => $opts{server},
+);
+
+while (my $page = <>) {
+    my $return = Socialtext::RemotelySimple::deletePage(
+        \%userInfo,
+        $page,
+    );
+    warn "unable to delete $page\n" unless $return;
+    print "deleted $page\n" if $opts{verbose} and $return;
+}
+
+sub show_help {
+    print <<"EOF";
+
+  st-batch-delete --user=<username> --password=<password> --workspace=<workspace --server=<server> [page name] [page name] [page name] [file with page names] [ < file with page names]
+
+  Delete one or more pages in a workspace based on page names passed in 
+  via STDIN or a file named on the command line.
+
+  This script requires the following options:
+
+  --user       The username to authenticate to the workspace.
+
+  --password   The password of the user.
+
+  --workspace  The workspace where the pages live.
+
+  --server     The URL of the server (e.g https://www.socialtext.net/)
+
+  Optional arguments:
+
+  --help       See this information.
+
+  --verbose    Report on each page deleted.
+
+
+EOF
+    exit;
+}
+
+=head1 AUTHOR
+
+Chris Dent C<< <chris.dent@socialtext.com> >>
+Socialtext, Inc. C<< <code@socialtext.com> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2006 Socialtext, Inc., all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+

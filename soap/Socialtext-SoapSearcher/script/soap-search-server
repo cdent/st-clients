@@ -1,0 +1,122 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+
+use lib 'lib';
+
+my $server = SoapSearch::Server->new(3001);
+$server->run();
+
+package SoapSearch::Server;
+use base qw(HTTP::Server::Simple::CGI);
+use Data::Dumper;
+use Socialtext::SoapSearcher;
+
+sub handle_request {
+    my ($self, $cgi) = @_;
+
+    my $method = $cgi->request_method;
+    
+    if ($method ne 'GET') {
+        print "HTTP/1.0 415\n\n";
+        return;
+    }
+
+    my $output = $self->GET($cgi);
+    $output = "HTTP/1.0 200 OK\nExpires: now\n\n" . $output;
+    print $output;
+}
+
+sub GET {
+    my $self = shift;
+    my $cgi  = shift;
+
+    my $query = $cgi->param('query');
+    my @workspaces = $cgi->param('workspaces');
+
+    my @destinations;
+    foreach my $thing (@workspaces) {
+        my ($server, $workspace) = split(':', $thing);
+        push @destinations, [$server => $workspace];
+    }
+
+    if (!$query and !@workspaces) {
+        return $self->_form();
+    }
+
+    my $searcher = Socialtext::SoapSearcher->new(
+        username => 'chris.dent@socialtext.com',
+        password => 'xxxxx',
+        destinations => \@destinations,
+    );
+
+    my $results = $searcher->query($query);
+
+    my $output = $self->_format_results($results, $query);
+
+    return $output;
+}
+
+sub _form {
+    return<<"EOF";
+<html>
+<head>
+<title>Search</title>
+</head>
+<body>
+<form method="GET">
+Query: <input name="query" size="50"/> <br/>
+Workspaces: <select multiple name="workspaces">
+<option selected>www2.socialtext.net:corp</option>
+<option>www2.socialtext.net:dev-tasks</option>
+<option>www2.socialtext.net:st-soap-test</option>
+<option>www.socialtext.net:st-soap-test</option>
+<option>www.socialtext.net:dev-guide</option>
+<option>www.socialtext.net:sale</option>
+<option>www.socialtext.net:exchange</option>
+</select>
+<input type="submit" value="submit" />
+</form>
+</body>
+</html>
+EOF
+}
+
+sub _format_results {
+    my $self    = shift;
+    my $results = shift;
+    my $query   = shift;
+
+    my $header=<<"EOF";
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="http://talc.socialtext.net/soapsearch/screen.css" />
+<title>Search Results for $query</title>
+</head>
+<body>
+<ul>
+EOF
+    my $footer=<<"EOF";
+</ul>
+</body>
+</html>
+EOF
+
+    my $output = '';
+    foreach my $entry (@$results) {
+        $output .=<<"EOF";
+<li><span class="workspace-name">$entry->{workspace}</span>
+    <span class="workspace-separator">:</span> <a
+href="https://$entry->{server}/$entry->{workspace}/index.cgi?$entry->{page_uri}">
+$entry->{subject}</a>
+</li>
+EOF
+    }
+
+    return $header . $output . $footer;
+}
+
+
+
+

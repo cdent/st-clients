@@ -1,0 +1,7 @@
+This is the debian package for the Socialtext-Resting module.  It was created
+by Matthew O'Connor <matthew.oconnor@socialtext.com> using dh-make-perl.
+
+The upstream authors are: 
+
+Chris Dent, <chris.dent@socialtext.com>
+Kirsten Jones <kirsten.jones@socialtext.com>

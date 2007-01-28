@@ -1,0 +1,13 @@
+A sample client of the Socialtext SOAP Service.
+
+The canonical location of the WSDL file will be 
+https://www.socialtext.net/static/wsdl/0.9.wsdl
+
+Requirements:
+
+* Ruby 1.8.4 is required (for mature soap4r handling)
+
+TODO
+
+* get rid of devnull1 exposure with some getoptions like the other
+  clients

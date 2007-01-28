@@ -1,0 +1,360 @@
+#!/usr/local/bin/perl
+
+use strict;
+use warnings;
+
+=head1 NAME
+
+socialtexter - A simple text based interface to editing pages in a Socialtext workspace
+
+=head1 DESCRIPTION
+
+C<socialtexter> is an interactive command line tool that uses
+L<Socialtext::RemotelySimple> to retrieve and edit wikitext
+content in a Socialtext workspace. When it is run the user
+is presented with a series of options. Once username, password,
+workspace and server url are set, wikitext can be retrieved
+and edited in $ENV{EDITOR}.
+
+=head1 OPTIONS
+
+C<socialtexter> accepts some command line arguments of the --name
+form.
+
+=load
+
+Load saved username, login cookie, server, and workspace settings.
+
+=head2 read_page page_name
+
+Retrieve and display the page named page_name.
+
+=head2 edit_page page_name
+
+Retrieve and edit the page named page_name.
+
+=cut
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use Socialtext::RemotelySimple;
+use Getopt::Long;
+use File::Temp;
+use YAML::Syck;
+$YAML::Syck::ImplicitTyping = 1;
+
+# actions
+my %Actions = (
+    read => {
+        message  => "Read a page",
+        nextstep => [\&getPageName, \&getPage, \&showPage],
+    },
+    edit => {
+        message  => "Edit a page",
+        nextstep =>
+            [ \&getPageName, \&getPage, \&editPage, \&getPage, \&showPage ],
+    },
+    delete => {
+        message  => "Delete a page",
+        nextstep => [ \&getPageName, \&deletePage ],
+    },
+#    changes => {
+#        message => "See Recent Changes",
+#        nextstep => [\&getChanges, \&showChanges],
+#    },
+    workspace => {
+        message => "Change or Enter Workspace",
+        nextstep => [\&changeWorkspace],
+    },
+    user => {
+        message => "Change or Choose User",
+        nextstep => [\&changeUser],
+    },
+    password => {
+        message => "Change or Choose Password",
+        nextstep => [\&changePassword],
+    },
+    server => {
+        message => "Change or Choose Server",
+        nextstep => [\&changeServer],
+    },
+    info => {
+        message => "Show current info",
+        nextstep => [\&showInfo],
+    },
+    saveinfo => {
+        message => "Save current info",
+        nextstep => [\&saveInfo],
+    },
+    loadinfo => {
+        message => "Load current info",
+        nextstep => [\&loadInfo, \&showInfo],
+    },
+    quit => {
+        message => "Quit The System",
+        nextstep => [\&leave],
+    },
+);
+
+my %Logged = (
+    username  => '',
+    workspace => '',
+    password  => '',
+    server    => '',
+    cookie    => '',
+);
+
+# residual text
+my $More = [];
+my $Thing;
+my $CurrentPage;
+my $CurrentContent;
+
+my %opts;
+GetOptions(
+    'edit_page:s'    => \$opts{edit_page},
+    'read_page:s'    => \$opts{read_page},
+    'load'      => \$opts{load},
+);
+
+# Main!
+loadInfo() if $opts{load};
+if ($opts{edit_page}) {
+    $CurrentPage = $opts{edit_page};
+    &getPage; &editPage; &getPage; &showPage;
+}
+if ($opts{read_page}) {
+    $CurrentPage = $opts{read_page};
+    &getPage; &showPage;
+}
+while (1) {
+    inquire() and doOur($Thing) unless @$More;
+    show($More) if @$More;
+}
+# that's it
+
+sub showInfo {
+    push @$More, 
+        "Username:     " . $Logged{username},
+        "Workspace:    " . $Logged{workspace},
+        "Server:       " . $Logged{server},
+        "Current Page: " . $CurrentPage;
+}
+
+sub saveInfo {
+    umask(0077);
+    my $file = _stateFile();
+    warn $file, "\n";
+    my %data = %Logged;
+    delete $data{password};
+    DumpFile( $file, \%data )
+        || warn "unable to write state to $file: $!\n";
+}
+
+# we should enable reading and writing different files for different
+# workspaces
+sub loadInfo {
+    return
+        if ( $Logged{username}
+        or $Logged{cookie}
+        or $Logged{password}
+        or $Logged{workspace}
+        or $Logged{server} );
+
+    my $file = _stateFile();
+    if ( -r $file) {
+        %Logged = %{ LoadFile( _stateFile() ) };
+    }
+}
+
+sub change {
+    my $element = shift;
+
+    chomp(my $go = <>);
+    $Logged{$element} = $go if $go =~ /\w+/;
+}
+
+sub changeServer {
+    print "What server would you like to work with? ";
+    change('server');
+}
+
+sub changeWorkspace {
+    print "What workspace would you like to work with? ";
+    change('workspace');
+}
+
+sub changeUser {
+    print "What username should we use? ";
+    change('username');
+}
+
+sub changePassword {
+    print "What password should we use? ";
+    change('password');
+}
+
+sub getPageName {
+    print "What page would you like to work with? ";
+
+    chomp(my $go = <>);
+    $CurrentPage = $go if $go =~ /\w+/;
+}
+
+sub getPage {
+
+    confirmTravel();
+
+    $CurrentContent = eval {
+        Socialtext::RemotelySimple::getPage( \%Logged, $CurrentPage );
+    };
+    if ( $@ =~ /Reset username and password/ ) {
+        delete $Logged{cookie};
+        delete $Logged{username};
+        delete $Logged{password};
+        push( @$More, split( "\n", $@ ) );
+        return
+    }
+    elsif ($@) {
+        die $@;
+    }
+    push( @$More, split( "\n", $CurrentContent ) );
+}
+
+sub showPage {
+    # noop $More takes care of it.
+}
+
+sub confirmTravel {
+    loadInfo();
+    changeServer() unless $Logged{server};
+    changeWorkspace() unless $Logged{workspace};
+    return if $Logged{cookie};
+    changeUser() unless $Logged{username};
+    changePassword unless $Logged{password};
+}
+
+sub deletePage {
+    confirmTravel();
+
+    eval { Socialtext::RemotelySimple::deletePage( \%Logged, $CurrentPage ); };
+    if ( $@ =~ /Reset username and password/ ) {
+        delete $Logged{cookie};
+        delete $Logged{username};
+        delete $Logged{password};
+        push( @$More, split( "\n", $@ ) );
+        return;
+    }
+    elsif ($@) {
+        die $@;
+    }
+}
+
+sub editPage {
+    my $tmp = new File::Temp();
+    print $tmp join( "\n", @$More );
+    close($tmp);
+    $More = [];
+    system($ENV{EDITOR}, $tmp->filename);
+    open my $fh, $tmp->filename or die "unable to open tempfile: $!\n";
+
+
+    my $content;
+    while (<$fh>) {
+        $content .= $_;
+    }
+
+    close $fh;
+
+    confirmTravel();
+
+    eval {
+        Socialtext::RemotelySimple::savePage( \%Logged, $CurrentPage,
+            $content );
+    };
+    if ( $@ =~ /Reset username and password/ ) {
+        delete $Logged{cookie};
+        delete $Logged{username};
+        delete $Logged{password};
+        push( @$More, split( "\n", $@ ) );
+        return;
+    }
+    elsif ($@) {
+        die $@;
+    }
+}
+
+#sub getChanges {
+#    changeUser() unless $Logged{username};
+#    changeWorkspace() unless $Logged{workspace};
+#
+#    @$More = @{Socialtext::RemotelySimple::getChanges( \%Logged )};
+#}
+#
+#sub showChanges {
+#    # no op, @More handles it
+#}
+
+sub doOur {
+    my $action = shift;
+
+    $More = [];
+    $CurrentPage = '';
+    $CurrentContent = '';
+
+    foreach my $step (@{$action->{nextstep}}) {
+        $step->();
+    }
+}
+
+sub inquire {
+    print "What would you like to do?\n";
+    my %input;
+    my $count = 1;
+
+    foreach my $key (
+        sort { $Actions{$a}->{message} cmp $Actions{$b}->{message} }
+        keys(%Actions) ) {
+        print $Actions{$key}->{message}, " ($count)\n";
+        $input{$count} = $key;
+        $count++;
+    }
+
+    my $go = <>;
+    chomp $go;
+    $Thing = $Actions{$input{$go}};
+    return defined($Thing);
+}
+
+sub show {
+    my @lines = splice(@$More, 0, 20);
+    if (@lines) {
+        print join( "\n", @lines), "\n";
+    }
+    if (@$More) {
+        print "Hit Return to Continue";
+        my $go = <>;
+    }
+}
+
+sub leave {
+    exit(0);
+}
+
+sub _stateFile {
+    return $ENV{HOME} . '/.socialtexter';
+}
+
+=head1 AUTHOR
+
+Chris Dent C<< <chris.dent@socialtext.com> >>
+Socialtext, Inc. C<< <code@socialtext.com> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2006 Socialtext, Inc., all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+

@@ -1,0 +1,16 @@
+0.03 - 
+ - fixed st-admin when called with no verify option
+
+0.02 - Fri Dec 29 15:09:10 PST 2006
+ - added a bunch more Socialtext fixture commands
+ - use click_and_wait more
+ - option description for click_and_wait
+ - enhanced qr// support for most fields
+ - Added mock rester support for local testing from file
+ - Add variable support to selenium commands
+ - Added st-admin fixture command
+ - Added st-force-confirmation command
+
+0.01 - Wed Dec 20 11:43:02 PST 2006
+ - first release
+ - extra awesome

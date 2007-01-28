@@ -1,0 +1,21 @@
+<% @hide_rc = true %>
+
+<table id="st-recent_changes-content" class="query-results-content">
+    <tr id="st-recent_changes-header-row" class="query-results-header-row">
+        <th id="st-recent_changes-header-title" class="query-results-header-title">Title</th>
+        <th id="st-recent_changes-header-last-edited-by" class="query-results-header-last-edited-by">Last Edited By</th>
+        <th id="st-recent_changes-header-date" class="query-results-header-date">Date</th>
+        <th id="st-recent_changes-header-revisions" class="query-results-header-revisions">Revisions</th>
+    </tr>
+
+    <% @results.each_with_index do |page, index| %>
+    <tr class="st-recent_changes-row query-results-row w-st-<%= %w(even odd)[index%2] %>-row">
+        <td class="st-recent_changes-row-title query-results-row-title">
+            <%= link_page page, :subject, {:class => "st-recent_changes-row-title-link query-results-row-title-link"} %>
+        </td>
+        <td class="st-recent_changes-row-last-edited-by query-results-row-last-edited-by"><%= h(page.author) %></td>
+        <td class="st-recent_changes-row-date query-results-row-date"><%= h(page.date) %></td>
+        <td class="st-recent_changes-row-revisions query-results-row-revisions"><%= h(page.revisions) %></td>
+    </tr>
+    <% end %>
+</table>

@@ -1,0 +1,64 @@
+#!/usr/local/bin/perl
+use strict;
+use warnings;
+
+use Term::ReadLine;
+use Term::ReadKey;
+use WWW::Mechanize;
+use DateTime;
+
+use constant URL => 'https://www2.socialtext.net/corp/index.cgi';
+
+my $day  = DateTime->now->ymd;
+my $mech = WWW::Mechanize->new(
+    cookie_jar => {
+        file => "$ENV{HOME}/.worklog.cookies.txt",
+        autosave => 1,
+    },
+);
+
+$mech->get(URL);
+
+if ($mech->title eq 'Login') {
+    print 'username> ';
+    chomp(my $user = <STDIN>);
+    print 'password> ';
+    ReadMode 2;
+    chomp(my $pass = <STDIN>);
+    ReadMode 0;
+    print "\n";
+
+    $mech->set_fields(
+        username => $user,
+        password => $pass,
+    );
+    $mech->tick(remember => 1);
+    $mech->click;
+}
+
+my ($name) = $mech->content =~ /Welcome, (.+)\./;
+
+my $page = "$name, $day Work Log";
+my $page_url = URL . "?$page";
+
+$mech->get($page_url);
+$mech->form_name('editform');
+my $page_body = $mech->value('page_body');
+
+$page_body = '' if $page_body =~ /^Replace this text/;
+
+my ($section, @log) = @ARGV;
+
+if ($page_body !~ /\^ $section\n/) {
+    $page_body .= "\n^ $section\n";
+}
+
+$page_body =~ s/(\^ $section\n+(?:\* [^\n]+\n)*)/$1* $_\n/ for @log;
+
+$mech->field(page_body => $page_body);
+$mech->submit;
+print $page_body;
+
+
+
+

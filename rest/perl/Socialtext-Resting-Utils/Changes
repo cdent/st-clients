@@ -1,0 +1,38 @@
+Revision history for Socialtext-Utils
+
+0.07 - Thu Jan 25 11:20:12 PST 2007
+  - Include DefaultRester.pm in the MANIFEST and a unit test
+  - bump version dependencies
+
+0.06 - Tue Jan 23 21:05:35 PST 2007
+  - Added --pull-includes feature
+  - Added extraclude support
+  - Added collision detection when PUTting edits
+  - all unit tests now use Socialtext::Resting::Mock
+  - Added --output option to wikedit
+  - Introduced Socialtext::Resting::DefaultRester class
+    to handle storing user/pass/server/workspace info in one place
+
+0.05 - Tue Jan  9 17:31:52 PST 2007
+  - fixed typo in usage
+
+0.04 - Tue Jan  9 15:58:50 PST 2007
+ - Added Socialtext::Resting::Mock for faking the interface by reading from
+   a file
+ - wikedit now uses .wiki extension for temp files
+
+0.03 - Fri Dec 29 17:10:18 PST 2006
+ - added simple table support
+ - refactored code
+
+0.02 - Sat Dec  9 21:25:05 PST 2006
+ - Removed dependency on Test::Exception
+ - Fixed infinite loop when a smaller heading (^^^^) is seen before a bigger
+   heading (^^)
+ - Fixed handling of mixed list/text in a section
+
+0.01 - Sat Dec  2 19:49:17 PST 2006
+ - wikedit - Edit a wiki page with $EDITOR
+ - Socaltext::EditPage
+   - added callback for further munging
+   - added tag list

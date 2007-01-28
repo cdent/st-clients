@@ -1,0 +1,15 @@
+Source: libsocialtext-wikitest-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7)
+Maintainer: Matthew O'Connor <matthew@canyon.socialtext.net>
+Standards-Version: 3.6.1
+
+Package: libsocialtext-wikitest-perl
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, libsocialtext-resting-perl, libsocialtext-resting-utils-perl (>= 0.04), libtest-exception-perl, libtest-www-selenium-perl
+Description:  Base class for tests specified on a wiki page
+ .
+ .
+ This description was automagically extracted from the module by dh-make-perl.

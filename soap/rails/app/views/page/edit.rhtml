@@ -1,0 +1,12 @@
+<% @hide_edit = true %>
+<div class="edit_form">
+    <%= start_form_tag :controller => 'page', 
+                       :action => 'update', 
+                       :pname => @page.page_uri %>
+    <%= link_to "Cancel Edit", :action => 'view' %> | <%= submit_tag %> <br/>
+    <%= text_area_tag "page_body", h(@page.pageContent), 
+            {:cols => 70, :rows => 20, :wrap => 'soft', 
+             :id => 'content-edit-body-textarea'} %> <br/>
+    <%= link_to "Cancel Edit", :action => 'view' %> | <%= submit_tag %> <br/>
+    <%= end_form_tag %>
+</div>

@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Socialtext::SuiteTwo::Mash;
+use Data::Dumper;
+
+die "Usage: $0 base workspace user pass query\n" unless @ARGV == 5;
+my ($base, $workspace, $user, $pass, $query) = @ARGV;
+
+my $st = Socialtext::SuiteTwo::Mash->new({
+    base        => $base,
+    workspace   => $workspace,
+    user        => $user,
+    pass        => $pass,
+});
+
+print Dumper $st->get_search_results($query);

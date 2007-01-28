@@ -1,0 +1,14 @@
+Source: libsocialtext-resting-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7)
+Maintainer: Matthew O'Connor <matthew.oconnor@socialtext.com>
+Standards-Version: 3.6.1
+
+Package: libsocialtext-resting-perl
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, liburi-perl, libwww-perl, libclass-field-perl, libreadonly-perl, libapp-options-perl, libipc-run-perl
+Description:  A Module for accessing Socialtext REST APIs.
+ Socialtext::Resting is a module designed to allow remote access
+ to the Socialtext REST APIs for use in perl programs.

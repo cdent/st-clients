@@ -1,0 +1,162 @@
+#!/usr/bin/env perl
+
+# stiddle - Diddle around in Socialtext via rest
+
+use strict;
+use warnings;
+use lib 'lib';
+
+use Readonly;
+use LWP::UserAgent;
+use Socialtext::Resting;
+use File::Temp;
+
+binmode STDOUT, 'utf8';
+
+Readonly my $BASE_URI => '/data/workspaces';
+
+# Globals Rool!
+our $User;
+our $Password;
+our $Server;
+our @Workspaces;
+our $Workspace;
+our @Pages;
+our $Page;
+our $Content;
+our @Tags;
+
+our $Diddler = Socialtext::Resting->new(
+    username => get_user(),
+    password => get_password(),
+    server   => get_server_url(),
+);
+
+while (1) {
+    @Workspaces = list_workspaces();
+    $Workspace  = pick_workspace();
+    next unless $Workspace;
+    @Pages = list_pages();
+    $Page  = pick_page();
+    if ($Page) {
+        $Content = get_page();
+        @Tags    = list_tags() if $Content;
+                   edit_page();
+                   edit_tags();
+        $Content = get_page();
+        @Tags    = list_tags() if $Content;
+        print $Content;
+        print "\nTags: ", join( ', ', @Tags ), "\n";
+    }
+    last if quit();
+}
+
+sub edit_page {
+    my $new_page_content = _edit_string($Content);
+
+    $Diddler->put_page( $Page, $new_page_content );
+}
+
+sub edit_tags {
+    my @new_tags = grep defined,
+        ( split "\n", _edit_string( join "\n", @Tags ) );
+
+    my %tag_map     = map { $_ => $_ } @Tags;
+    my %new_tag_map = map { $_ => $_ } @new_tags;
+    foreach my $tag (@new_tags) {
+        $Diddler->put_pagetag( $Page, $tag ) unless $tag_map{$tag};
+    }
+    foreach my $tag (@Tags) {
+        $Diddler->delete_pagetag( $Page, $tag ) unless $new_tag_map{$tag};
+    }
+}
+
+sub _edit_string {
+    my $content = shift;
+
+    my $tmp     = new File::Temp();
+    print $tmp $content;
+    close $tmp;
+
+    system( $ENV{EDITOR}, $tmp->filename );
+
+    open my $fh, $tmp->filename or die "unable to open tempfile: $!\n";
+
+    my $new_content;
+    while (<$fh>) {
+        $new_content .= $_;
+    }
+    close $fh;
+
+    return $new_content;
+}
+
+sub quit {
+    print "Do you want to quit? y/n\n";
+    my $response = <>;
+    return $response =~ /^y/i;
+}
+
+sub get_page {
+    $Diddler->get_page($Page);
+}
+
+sub pick_page {
+    my $page = _pick_thing( 'Page', \@Pages );
+    unless ($page) {
+        print "You picked no page. Enter a name if you want to create one.\n";
+        $page = <>;
+        chomp($page);
+    }
+    return $page;
+}
+
+sub pick_workspace {
+    $Diddler->workspace( _pick_thing( 'Workspace', \@Workspaces ) );
+}
+
+sub list_tags {
+    $Diddler->get_pagetags($Page);
+}
+
+sub list_pages {
+    $Diddler->get_pages();
+}
+
+sub list_workspaces {
+    $Diddler->get_workspaces();
+}
+
+sub get_user {
+    return 'devnull1@socialtext.com';
+}
+
+sub get_password {
+    return 'd3vnu11l';
+}
+
+sub get_server_url {
+    return 'http://0.0.0.0:22501';
+}
+
+sub _pick_thing {
+    my $name      = shift;
+    my $array_ref = shift;
+    my $count     = 0;
+
+    print "Select a $name\n";
+
+    foreach my $thing (@$array_ref) {
+        print $count++, "\t$thing\n";
+    }
+
+    my $index = <>;
+    chomp($index);
+
+    if ( length $index ) {
+        return $array_ref->[$index];
+    }
+
+    return undef;
+}
+

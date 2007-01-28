@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <title><%= @title %></title>
+        <%= stylesheet_link_tag "socialtext" %>
+    </head>
+    <body>
+        <div id="st-wiki-nav">
+            <div id="st-wiki-nav-right">
+                <div id="st-wiki-nav-left">
+                    <div id="st-wiki-nav-content">
+                        <div id="st-wiki-nav-actions">
+                            <a href="http://www.socialtext.com">Socialtext</a> |
+                            <a href="http://www.socialtext.net/help">Help</a>
+                        </div>
+                        <div id="st-home">
+                            <%= link_home 'Home', :id => 'st-home-link' %> |
+                            <%= link_rc 'Changes', :id => 'st-home-link' %>
+                        </div>
+                        <%= start_form_tag({:controller => 'page_lists', :action => 'search'}, 
+                                           {:id => 'st-search-form', :method => 'get'}) %>
+                            <%= text_field_tag 'q', 'New search', :id => 'st-search-term' %>
+        
+                            <table class="button-table">
+                                <tr><td>
+                                    <div class="button-straight">
+                                        <div class="button-straight-right-top">
+                                            <div class="button-straight-left-bottom">
+                                                <div class="button-straight-right-bottom">
+                                                    <div class="button-content">
+                                                        <a href='#' onclick='javascript:submit()'
+                                                           id='st-search-submit'>Search</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td></tr>
+                            </table>
+                        <%= end_form_tag %>
+                        <br clear="both" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="st-actions-bar">
+            <div id="st-editing-tools">
+                <table id="st-edit-button" class="st-page-action-button">
+                    <tr><td>
+                        <div id="st-edit-button-border-left-middle">
+                            <div id="st-edit-button-border-right-middle">
+                                <div id="st-edit-button-border-left-top">
+                                    <div id="st-edit-button-border-right-top">
+                                        <div id="st-edit-button-border-left-bottom">
+                                            <div id="st-edit-button-border-right-bottom">
+                                            <% if @page and not @hide_edit %>
+                                                <%= link_to("Edit", {:controller => 'page', 
+                                                                     :action => 'edit', 
+                                                                     :pname => @page.page_uri}, 
+                                                                    {:id => 'st-edit-button-link', 
+                                                                     :class => 'st-page-action-button-link'}) %>
+                                            <% end %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                     </td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div id="st-content-border">
+            <div id="st-content-border-left">
+                <div id="st-content-border-right">
+                    <div id="st-content-border-top">
+                        <div id="st-content-border-bottom">
+                            <div id="st-content-border-left-top">
+                                <div id="st-content-border-right-top">
+                                    <div id="st-content-border-left-bottom">
+                                        <div id="st-content-border-right-bottom">
+                                            <div id="" class="st-content">
+                                                <div id="st-page-boxes">
+                                                    <% unless @hide_rc %>
+                                                    <div id="st-incoming-links" class="st-page-box">
+                                                        <div id="st-incoming-links-title" class="st-page-box-title">
+                                                            Recent Changes
+                                                        </div>
+                                                        <ul id="st-incoming-links-listing" class="st-page-box-listing">
+                                                            <% @changes_box.each do |page| %>
+                                                                <li class="st-incoming-links-entry st-page-box-listing-entry">
+                                                                    <%= link_page(page) %>
+                                                                </li>
+                                                            <% end %>
+                                                        </ul>
+                                                    </div>
+                                                    <% end %>
+                                                </div>
+                                                <span id="st-page-title"><%= @title %></span><br />
+                                                <div id="st-page-content">
+                                                    <%= @content_for_layout %>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <% if @page %>
+        <div id="st-footer">
+            <div id="st-page-details">
+                <div id="st-page-stats">
+                    <b><%= @page.revisions %> <%= @page.revisions == 1 ? 'revision' : 'revisions' %></b>
+                </div>
+
+                <div id="st-attribution">
+                    <span id="st-update">
+                        Last edited by <b><%= h(@page.author) %></b></a> on <b><%= h(@page.date) %></b>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <% end %>
+    </body>
+</html>

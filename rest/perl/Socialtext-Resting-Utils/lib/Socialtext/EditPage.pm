@@ -1,0 +1,303 @@
+package Socialtext::EditPage;
+use warnings;
+use strict;
+use Carp qw/croak/;
+use File::Temp;
+
+=head1 NAME
+
+Socialtext::EditPage - Edit a wiki page using your favourite EDITOR.
+
+=cut
+
+our $VERSION = '0.02';
+
+=head1 SYNOPSIS
+
+Fetch a page, edit it, and then post it.
+
+    use Socialtext::EditPage;
+
+    # The rester is set with the server and workspace
+    my $rester = Socialtext::Resting->new(%opts);
+
+    my $s = Socialtext::EditPage->new(rester => $rester);
+    $s->edit_page('Snakes on a Plane');
+
+=head1 FUNCTIONS
+
+=head2 new( %opts )
+
+Arguments:
+
+=over 4
+
+=item rester
+
+Users must provide a Socialtext::Resting object setup to use the desired 
+workspace and server.
+
+=item pull_includes
+
+If true, C<include> wafls will be inlined into the page as extraclude
+blocks.
+
+=back
+
+=cut
+
+sub new {
+    my ($class, %opts) = @_;
+    $opts{rester} ||= Socialtext::Resting::DefaultRester->new(%opts);
+    my $self = { %opts };
+    bless $self, $class;
+    return $self;
+}
+
+=head2 C<edit_page( %opts )>
+
+This method will fetch the page content, and then run $EDITOR on the file.
+After the file has been edited, it will be put back on the wiki server.
+
+Arguments:
+
+=over 4
+
+=item page
+
+The name of the page you wish to edit.
+
+=item callback
+
+If supplied, callback will be called after the page has been edited.  This
+function will be passed the edited content, and should return the content to
+be put onto the server.
+
+=item tags 
+
+If supplied, these tags will be applied to the page after it is updated.
+
+=item output
+
+If supplied, the page will be saved to the given file instead of edited. 
+The page will not be uploaded to the server.
+
+=back
+
+=cut
+
+sub edit_page {
+    my $self = shift;
+    my %args = @_;
+    my $page = delete $args{page};
+    croak "page is mandatory" unless $page;
+
+    my $rester = $self->{rester};
+    my $content = $self->_get_page($page);
+
+    if ($args{output}) {
+        _write_file($args{output}, $content);
+        print "Wrote $page content to $args{output}\n";
+        return;
+    }
+
+    my $orig_content = $content;
+    while (1) {
+        my $new_content = $content;
+        $new_content = $self->_pre_process_special_wafls($new_content);
+        $new_content = $self->_edit_content($new_content);
+
+        if ($orig_content eq $new_content) {
+            print "$page did not change.\n";
+            return;
+        }
+
+        $new_content = $args{callback}->($new_content) if $args{callback};
+
+        $new_content = $self->_process_special_wafls($new_content);
+
+        eval { 
+            $rester->put_page($page, $new_content);
+        };
+        last unless $@;
+        if ($@ =~ /412/) { # collision detected!
+            print "A collision was detected.  I will merge the changes and "
+                  . "re-open your editor.\nHit enter.\n";
+            <>;
+            print "Merging...\n";
+            $orig_content = $self->_get_page($page);
+            my $updated_file = _write_file(undef, $orig_content);
+            my $orig_file = _write_file(undef, $content);
+            my $our_file  = _write_file(undef, $new_content);
+            # merge the content and re-edit
+            system("merge -L yours -L original -L 'new edit' $our_file "
+                   . "$orig_file $updated_file 2> /dev/null");
+            $content = _read_file($our_file);
+        }
+        else {
+            die $@;
+        }
+    }
+
+    if (my $tags = delete $args{tags}) {
+        $tags = [$tags] unless ref($tags) eq 'ARRAY';
+        for my $tag (@$tags) {
+            $rester->put_pagetag($page, $tag);
+        }
+    }
+
+    print "Updated page $page\n";
+}
+
+sub _get_page {
+    my $self = shift;
+    my $page_name = shift;
+    my $rester = $self->{rester};
+
+    my $page = $rester->get_page($page_name);
+
+    if ($self->{pull_includes}) {
+        while ($page =~ m/({include:?\s+\[([^\]]+)\]\s*}\n)/smg) {
+            my $included_page = $2;
+            my ($match_start, $match_size) = ($-[0], $+[0] - $-[0]);
+            print "Pulling include in [$page_name] - [$included_page]\n";
+            my $pulled_content = $self->_get_page($included_page);
+            chomp $pulled_content;
+            my $included_content = ".pulled-extraclude [$included_page]\n"
+                                   . "$pulled_content\n"
+                                   . ".pulled-extraclude\n";
+
+            substr($page, $match_start, $match_size) = $included_content;
+        }
+    }
+
+    return $page;
+}
+
+sub _edit_content {
+    my $self = shift;
+    my $content = shift;
+
+    my $filename = _write_file(undef, $content);
+
+    system( "$ENV{EDITOR} $filename" );
+
+    return _read_file($filename);
+}
+
+{
+    my @special_wafls = (
+        [ '.extraclude' => '.e-x-t-r-a-c-l-u-d-e' ],
+        [ '.pulled-extraclude' => '.extraclude', 'pre-only' ],
+    );
+
+    sub _pre_process_special_wafls {
+        my $self = shift;
+        my $text = shift;
+
+        # Escape special wafls
+        for my $w (@special_wafls) {
+            my $wafl = $w->[0];
+            my $expanded = $w->[1];
+            $text =~ s/\Q$wafl\E\b/$expanded/g;
+        }
+        return $text;
+    }
+
+    sub _process_special_wafls {
+        my $self = shift;
+        my $text = shift;
+        my $rester = $self->{rester};
+
+        while ($text =~ s/\.extraclude \[([^\]]+)\]\n(.+?)\.extraclude\n/{include: [$1]}\n/ism) {
+            my ($page, $new_content) = ($1, $2);
+            print "Putting extraclude '$page'\n";
+            $rester->put_page($page, $new_content);
+        }
+
+        # Unescape special wafls
+        for my $w (@special_wafls) {
+            next if $w->[2];
+            my $wafl = $w->[0];
+            my $expanded = $w->[1];
+            $text =~ s/\Q$expanded\E\b/$wafl/ig;
+        }
+
+        return $text;
+    }
+
+}
+
+sub _write_file {
+    my ($filename, $content) = @_;
+    $filename ||= File::Temp->new( SUFFIX => '.wiki' );
+    open(my $fh, ">$filename") or die "Can't open $filename: $!";
+    print $fh $content;
+    close $fh or die "Can't write $filename: $!";
+    return $filename;
+}
+
+sub _read_file {
+    my $filename = shift;
+    open(my $fh, $filename) or die "unable to open $filename $!\n";
+    my $new_content;
+    {
+        local $/;
+        $new_content = <$fh>;
+    }
+    close $fh;
+    return $new_content;
+}
+
+=head1 AUTHOR
+
+Luke Closs, C<< <luke.closs at socialtext.com> >>
+
+=head1 BUGS
+
+Please report any bugs or feature requests to
+C<bug-socialtext-editpage at rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Socialtext-Resting-Utils>.
+I will be notified, and then you'll automatically be notified of progress on
+your bug as I make changes.
+
+=head1 SUPPORT
+
+You can find documentation for this module with the perldoc command.
+
+    perldoc Socialtext::EditPage
+
+You can also look for information at:
+
+=over 4
+
+=item * AnnoCPAN: Annotated CPAN documentation
+
+L<http://annocpan.org/dist/Socialtext-Resting-Utils>
+
+=item * CPAN Ratings
+
+L<http://cpanratings.perl.org/d/Socialtext-Resting-Utils>
+
+=item * RT: CPAN's request tracker
+
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Socialtext-Resting-Utils>
+
+=item * Search CPAN
+
+L<http://search.cpan.org/dist/Socialtext-Resting-Utils>
+
+=back
+
+=head1 ACKNOWLEDGEMENTS
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2006 Luke Closs, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
+
+1;

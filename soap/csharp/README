@@ -1,0 +1,39 @@
+A basic tester in C#.  This will only run on a system with the .NET framework
+installed (available for free from Microsoft, will run on Windows XP).
+
+See
+
+  https://www.socialtext.net/st-soap-docs/index.cgi?c_soap_client
+
+for additional information.
+
+In order to use this program:
+
+* Create a proxy file:
+
+  wsdl.exe <wsdl_location>
+
+  At this time the best location is
+  
+  https://www.socialtext.net/static/wsdl/0.9.wsdl
+
+* Compile the client
+
+  csc client.cs NLWSOAPService.cs
+
+* Run the program
+
+  client.exe <user> <password> <workspace> <pagename>
+
+The URL above links to information containing a suitable username,
+password and workspace to attach to.
+
+When run, it will go through several actions against the specified target.
+
+This program will output UTF8 characters. If you want to see them correctly
+you will need to adjust your codepage in the windows command line tool.
+This page has some information that may be useful in figuring out how
+to do this:
+
+  http://www.digitalmars.com/d/archives/digitalmars/D/13971.html
+

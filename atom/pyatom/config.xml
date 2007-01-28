@@ -1,0 +1,5 @@
+<config>
+    <feeduri>http://localhost:20501/noauth/feed/workspace/public?type=Atom</feeduri>
+    <username></username>
+    <password></password>
+</config>

@@ -1,0 +1,157 @@
+#!/usr/local/bin/perl
+use strict;
+use warnings;
+
+use File::Slurp;
+use File::Temp;
+use Getopt::Long;
+use Socialtext::Resting;
+use Socialtext::EditPage;
+use XML::Parser::Lite::Tree::XPath;
+use Readonly;
+
+# cdent's key, may wish to get your own
+Readonly my $KEY => '63b4bcb2266ce295acbf2f54121defd3';
+
+# The name to go in the blog posting title, along with timestamp
+my $NAME      = 'Fix me';
+# The username to access socialtext
+my $USER      = 'Use a real username';
+# The password at Socialtext
+my $PASS      = 'password';
+# The workpace where you blog
+my $WORKSPACE = 'corp';
+# The server url at socialtext
+my $SERVER    = 'http://www2.socialtext.net/';
+# Default Tags for the blog posting
+my $TAGS      = ['Daily Blog', 'Daily Dev Blog']; # --tag _adds_ to this list
+# The flickr username from whom to take picks.
+my $FLICKR    = 'cdent';
+# Should we use html for showing flickr pics
+my $HTML      = 0;
+
+GetOptions(
+    'name=s'      => \$NAME,
+    'user=s'      => \$USER,
+    'pass=s'      => \$PASS,
+    'workspace=s' => \$WORKSPACE,
+    'server=s'    => \$SERVER,
+    'tag=s@'      => $TAGS,
+    'flickr=s'    => \$FLICKR,
+    'html'        => \$HTML,
+);
+
+my $API;
+my $Rester;
+
+getRester();
+my $photoUri = getFlick();
+my $pageName = getName();
+
+my $ep = Socialtext::EditPage->new(rester => $Rester);
+my $edit_callback = sub {
+    my $content = shift;
+    return $content unless $FLICKR;
+    $content =~ s{^(?:\.html\n<a href.*flickr.*</a>\n\.html\n|http://.*flickr.*jpg\nhttp://.*flickr.*\n)}{}m;
+    return "$photoUri\n\n$content";
+};
+$ep->edit_page(
+    page => $pageName,
+    callback => $edit_callback,
+    tags => $TAGS,
+);
+
+exit;
+
+
+sub getRester {
+    $Rester = Socialtext::Resting->new(
+        username => $USER,
+        password => $PASS,
+        server   => $SERVER,
+    );
+    $Rester->workspace($WORKSPACE);
+}
+
+sub getName {
+    my ($year, $month, $date) = (localtime(time))[5,4,3];
+    $year += 1900;
+    $month++;
+
+    return sprintf("%s, %4d-%02d-%02d", $NAME, $year, $month, $date);
+}
+
+sub getFlick {
+    return undef unless $FLICKR;
+
+    require Flickr::API;
+    $API  = new Flickr::API( { 'key' => $KEY } );
+
+    my $response;
+
+    my $user = flickrFindUser($FLICKR);
+    $response = $API->execute_method(
+        'flickr.people.getPublicPhotos',
+        {
+            'user_id' => $user, 'per_page' => 1,
+            'page' => int( rand() * 1000 )
+        }
+    );
+
+    if ( $response->{success} == 0 ) {
+        die
+            "things did not work with flickr:\nError $response->{error_code}: $response->{error_message}\n";
+    }
+
+    my $photolist = new XML::Parser::Lite::Tree::XPath($response->{tree});
+    my @bphoto = $photolist->select_nodes('/photos/photo');
+    my $photoUri;
+    my $photoPage;
+
+    foreach (@bphoto) {
+        $photoPage = "http://www.flickr.com/photos"
+            . "/" . $FLICKR . "/"
+            . $_->{attributes}->{id}. "/";
+        $photoUri = "http://static.flickr.com/" 
+            . $_->{attributes}->{server} . "/"
+            . $_->{attributes}->{id} . "_"
+            . $_->{attributes}->{secret} . "_m.jpg";
+    }
+
+    if ($HTML) {
+        return qq(.html\n<a href="$photoPage"><img src="$photoUri"></a>\n.html);
+    }
+    return "$photoUri\n$photoPage\n";
+}
+
+sub flickrFindUser {
+    my $fuser = shift;
+    my $response;
+    my ( $xpath, @username, $userid );
+    if ( $fuser =~ m!http://!i ) {
+        $response = $API->execute_method(
+            'flickr.urls.lookupUser',
+            {
+                'url' => $fuser,
+            }
+        );
+
+        $xpath    = new XML::Parser::Lite::Tree::XPath( $response->{tree} );
+        @username = $xpath->select_nodes('/user');
+        $userid   = $username[0]->{attributes}->{id};
+    }
+    else {
+        $response = $API->execute_method(
+            'flickr.people.findByUsername',
+            {
+                'username' => $fuser,
+            }
+        );
+
+        $xpath    = new XML::Parser::Lite::Tree::XPath( $response->{tree} );
+        @username = $xpath->select_nodes('/user');
+        $userid   = $username[0]->{attributes}->{nsid};
+    }
+    return $userid;
+}
+

@@ -1,0 +1,49 @@
+
+This is a simple sample client of the Socialtext SOAP service,
+version 0.9 using Apache Axis.
+
+The client has been tested with:
+
+  java version "1.5.0_06"
+  Axis 1.4
+  Xerces 2.8.0.
+
+Edit build.xml to adjust the the following properties:
+
+  axis.home:   The directory in which the axis lib dir
+               (containing many jar files) is found.
+  xerces.home: The directory in which the xerces jar files are found.
+  wsdl:        The URL of the WSDL file for the SOAP service.
+  workspace:   The name of the Socialtext workspace being addressed.
+  username:    The username to authenticate as.
+  password:    The password to authentictate with.
+  page_name:   The name of the page to retrieve and edit.
+  act_as_user: The name of the user to impersonate when accessing the
+               workspace. For this to work, username above must be an
+               admin in the workspace and the Admin Role in workspace
+               must have the impersonate permission.
+
+  stdout_encoding: See Encodings below.
+
+Ant Targets:
+
+  wsdl:      Call wsdl2java on the wsdl file
+  compile:   Compile Main.java and the NLWSOAP/*.java files
+  run:       Run the test client
+
+  'ant run' will do all three.
+
+  clean:     Delete all class files
+  realclean: Run 'clean' and delete the wsdl2java generated files
+
+Encodings:
+
+  By default, the application will print its output on standard output using
+  Java's 'default encoding' for your platform.  See
+  http://www.jorendorff.com/articles/unicode/java.html for more details.
+
+  Java often gets this wrong.  For example, regardless of locale
+  settings on OS X, the default encoding is MacRoman.  If you set the
+  property 'stdout_encoding' in build.xml to, e.g., UTF-8, this will be passed
+  as a system property to the applications, strings will be thus encoded on
+  stdout.

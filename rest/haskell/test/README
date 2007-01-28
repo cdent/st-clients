@@ -1,0 +1,8 @@
+
+This simple script uses the Haskell HTTP package from
+http://www.haskell.org/http/
+
+Install the debian package libghc6-http-dev to get these HTTP libraries.
+
+It is based on the sample script found at that URL.
+

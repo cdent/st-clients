@@ -1,0 +1,6 @@
+---
+wsdl: 'https://www.socialtext.net/static/wsdl/0.9.wsdl'
+username: 'soap.test@socialtext.com'
+password: 'bubbles'
+workspace: 'st-soap-test'
+act_as:  ''

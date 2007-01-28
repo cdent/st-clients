@@ -1,0 +1,21 @@
+Tips and/or state for the next poor hacker to use to try to figure this out.
+
+What's broken:
+
+- Accessing stuff via __ptr seems broken.
+  - It is broken.  We encode stuff base64 because we're worried about wide
+    characters.  Accessing __ptr works fine if our string was ASCII, but if
+    not, then we're accessing binary data as if it were a 'char *'.
+
+    Encoding our strings as base64 is the right SOAP thing to do on the server
+    side.  On the client side, we can't really call our clients "finished"
+    until we figure out how to decode and print the unicode characters to
+    stdout.
+
+    In fact, we should probably fetch that horrible Internationalization page
+    as a test.
+
+Debugging ideas:
+
+- Uncomment '#define DEBUG' in stdsoap2.h to get debugging output in SENT.log,
+  RECV.log, and TEST.log.

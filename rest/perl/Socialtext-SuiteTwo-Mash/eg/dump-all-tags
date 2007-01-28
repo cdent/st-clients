@@ -1,0 +1,18 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
+use Socialtext::SuiteTwo::Mash;
+use Data::Dumper;
+
+die "Usage: $0 base workspace user pass\n" unless @ARGV == 4;
+my ($base, $workspace, $user, $pass) = @ARGV;
+
+my $st = Socialtext::SuiteTwo::Mash->new({
+    base        => $base,
+    workspace   => $workspace,
+    user        => $user,
+    pass        => $pass,
+});
+
+print Dumper $st->get_all_tags;

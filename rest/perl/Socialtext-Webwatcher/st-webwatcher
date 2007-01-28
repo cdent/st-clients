@@ -1,0 +1,150 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Getopt::Long;
+use JSON;
+use Socialtext::Resting;
+use Time::Local;
+
+my %opts;
+GetOptions(
+    'email|e=s'    => \$opts{email},
+    'password|p=s' => \$opts{password},
+    'server|s=s'   => \$opts{server},
+    'verbose|v'    => \$opts{verbose},
+    'help|h'       => \$opts{help},
+) || ($opts{help} = 1);
+my @workspaces = @ARGV;
+
+my @opts = grep { defined $opts{$_} } keys(%opts);
+die_with_usage() if $opts{help};
+die_with_usage() unless @opts >= 3 and @workspaces;
+
+my $rest = Socialtext::Resting->new(
+    username => $opts{email},
+    password => $opts{password},
+    server   => $opts{server},
+);
+
+for my $workspace (@workspaces) {
+    check_workspace($workspace);
+}
+
+sub check_workspace {
+    my $workspace = shift;
+    msg("Checking $workspace for watched pages.");
+
+    $rest->workspace($workspace);
+    for my $pname ( get_watched_pages() ) {
+        msg("$pname is being watched");
+        my $page = get_page($pname);
+        if ($page) {
+            msg("$pname has expiry $page->{wexpire}");
+            msg("$pname is owned by $page->{wowner}");
+            process_page($page) if $page;
+        }
+    }
+}
+
+sub process_page {
+    my $page = shift;
+    if ( has_expired($page) ) {
+        msg("$page->{name} has expired");
+        notify_owner($page);
+    }
+    else {
+        msg("$page->{name} has NOT expired");
+    }
+}
+
+sub notify_owner {
+    my $page    = shift;
+    my $comment = <<COMMENT;
+This page has expired and requires review.
+The specified document owner is {user $page->{wowner}}
+COMMENT
+    msg("Posting expiry comment to $page->{name}");
+    $rest->post_comment( $page->{name}, $comment );
+}
+
+sub has_expired {
+    my $page = shift;
+    my $time;
+
+    if ( $page->{wexpire} =~ /^\+(\d+)$/ ) {
+        $time = ( $1 * 24 * 60 * 60 );
+        $time = $page->{modified_time} + $time;
+    }
+    elsif ( $page->{wexpire} =~ /^(\d{4})(\d{2})(\d{2})$/ ) {
+        eval { $time = timelocal( 0, 0, 0, $3, $2 - 1, $1 - 1900 ); };
+        return if $@;
+    }
+    else {
+        return;  # bad wexpire format just give up
+    }
+
+    return $time < time;
+}
+
+sub get_watched_pages {
+    $rest->accept('text/plain');
+    return $rest->get_taggedpages('watch');
+}
+
+sub get_page {
+    my $pname = shift;
+    $rest->accept('application/json');
+    my $page = from_json( $rest->get_page($pname) );
+    $page->{tags} = get_tags_for_page($pname);
+    extract_watcher_metadata($page);
+    return has_metadata($page) ? $page : undef;
+}
+
+sub extract_watcher_metadata {
+    my $page = shift;
+    for my $meta (qw(wowner wexpire)) {
+        for my $tag ( @{ $page->{tags} } ) {
+            if ( $tag =~ /$meta:([\w\d\@\.\+]+)$/ ) {
+                $page->{$meta} = $1;
+            }
+        }
+    }
+}
+
+sub has_metadata {
+    my $page = shift;
+    return $page->{wowner} && $page->{wexpire};
+}
+
+sub get_tags_for_page {
+    my $pname = shift;
+    $rest->accept('text/plain');
+    return [ $rest->get_pagetags($pname) ];
+}
+
+sub from_json {
+    my $json = shift;
+    return JSON->new->jsonToObj($json);
+}
+
+sub msg {
+    my $msg = shift || "no message";
+    return unless $opts{verbose};
+    local $| = 1;
+    print "$msg\n";
+}
+
+sub die_with_usage {
+    die <<USAGE;
+Usage: $0 options workspace [workspace2 ...]
+
+    -e --email
+        Email address to connect to REST API.
+
+    -p --password
+        Password for above email address.
+
+    -s --server
+        Server hosting the REST API we use.
+USAGE
+}

@@ -1,0 +1,8 @@
+[% IF pages.size %]
+<ul>
+[% FOR page = pages %]
+<li><a href="#[% workspace | uri %]/[% page.name | uri %]"
+       onclick="ST.LoadPage(this);return false"
+>[% page.name %]</a></li>
+[% END %]
+[% END %]

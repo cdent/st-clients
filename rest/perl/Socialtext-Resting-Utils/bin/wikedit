@@ -1,0 +1,51 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Socialtext::Resting::DefaultRester;
+use Socialtext::EditPage;
+use Getopt::Long;
+
+my %opts;
+GetOptions(
+    'username|u=s' => \$opts{username},
+    'password|p=s' => \$opts{password},
+    'server|s=s'   => \$opts{server},
+    'workspace|w=s'=> \$opts{workspace},
+    'o|output=s'   => \$opts{output},
+    'pull-includes'=> \$opts{pull_includes},
+) or usage();
+
+my $page = shift || usage();
+
+my $edit = Socialtext::EditPage->new(%opts);
+$edit->edit_page(page => $page, output => $opts{output});
+
+exit;
+
+
+sub usage {
+    my $rc_file = $Socialtext::Resting::DefaultRester::CONFIG_FILE;
+    die <<EOT;
+$0 page_name
+
+Required options:
+ --username      Specify the username to connect with
+ --password      Specify the password to connect with
+ --server        Which Socialtext server to connect to
+ --workspace     Which workspace to post to
+
+Other options:
+ --pull-includes Inline content from {include} wafls in the 
+                 page and then extraclude it when saving
+
+Config:
+Put the above options into $rc_file like this:
+
+  username = some_user\@foobar.com
+  password = your_pass
+  workpace = corp
+  server   = https://www2.socialtext.net/
+EOT
+}
+
+

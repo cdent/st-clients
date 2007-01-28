@@ -1,0 +1,66 @@
+libsocialtext-resting-perl (0.10) unstable; urgency=low
+
+  * New upstream
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Thu, 18 Jan 2007 09:22:30 -0800
+
+libsocialtext-resting-perl (0.09-3) unstable; urgency=low
+
+  * Added libipc-run-perl dependency
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Sat, 13 Jan 2007 18:15:40 -0800
+
+libsocialtext-resting-perl (0.09-2) unstable; urgency=low
+
+  * New upstream version
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Sat, 13 Jan 2007 18:11:39 -0800
+
+libsocialtext-resting-perl (0.09-1) unstable; urgency=low
+
+  * New Upstream Version
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Mon, 27 Nov 2006 15:44:41 -0800
+
+libsocialtext-resting-perl (0.08-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Sun, 26 Nov 2006 21:08:43 -0800
+
+libsocialtext-resting-perl (0.05-3) unstable; urgency=low
+
+  * New upstream version
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Sun, 26 Nov 2006 21:07:25 -0800
+
+libsocialtext-resting-perl (0.05-2) unstable; urgency=low
+
+  * New  upstream version
+
+ -- Matthew O'Connor <matthew@canyon.socialtext.net>  Tue, 21 Nov 2006 09:38:47 -0800
+
+libsocialtext-resting-perl (0.05-1) unstable; urgency=low
+
+  * New upstream versino.
+
+ -- Matthew O'Connor <matthew@canyon>  Tue,  3 Oct 2006 10:36:25 -0700
+
+libsocialtext-resting-perl (0.01-3) unstable; urgency=low
+
+  * Removed dependency that is part of core perl.  Not awake yet.
+
+ -- Matthew O'Connor <matthew@canyon>  Thu,  7 Sep 2006 11:17:38 -0700
+
+libsocialtext-resting-perl (0.01-2) unstable; urgency=low
+
+  * Updated dependencies for Socialtext::Resting
+
+ -- Matthew O'Connor <matthew@canyon>  Thu,  7 Sep 2006 11:06:12 -0700
+
+libsocialtext-resting-perl (0.01-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Matthew O'Connor <matthew@canyon>  Thu,  7 Sep 2006 10:50:38 -0700
+

@@ -1,0 +1,23 @@
+Socialtext-RemotelySimple
+
+Socialtext-RemotelySimple is a very simple script and module for
+retrieving and editing pages in a (remote) Socialtext workspace.
+It could be extended to perform other interactions with a workspace.
+
+It is intended as a simple experiment and demonstration.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+    perl Build.PL
+    ./Build
+    ./Build test
+    ./Build install
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2006 Socialtext, Inc
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
