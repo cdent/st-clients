@@ -1,3 +1,5 @@
+0.14 -
+ - Added support for breadcrumbs, backlinks, frontlinks
 0.13 - 
  - Added docs for accept()
 

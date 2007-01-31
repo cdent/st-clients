@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 =head1 NAME
 
@@ -39,6 +39,9 @@ to the Socialtext REST APIs for use in perl programs.
 
 Readonly my $BASE_URI => '/data/workspaces';
 Readonly my %ROUTES   => (
+    backlinks      => $BASE_URI . '/:ws/pages/:pname/backlinks',
+    breadcrumbs    => $BASE_URI . '/:ws/breadcrumbs',
+    frontlinks     => $BASE_URI . '/:ws/pages/:pname/frontlinks',
     page           => $BASE_URI . '/:ws/pages/:pname',
     pages          => $BASE_URI . '/:ws/pages',
     pagetag        => $BASE_URI . '/:ws/pages/:pname/tags/:tag',
@@ -502,6 +505,38 @@ sub get_workspace_tags {
     return $self->_get_things( 'workspacetags' )
 }
 
+=head2 get_backlinks
+
+    $Rester->workspace('wikiname');
+    $Rester->get_backlinks('page_name');
+
+List all backlinks to the specified page 
+
+=cut
+
+sub get_backlinks {
+    my $self  = shift;
+    my $pname = shift;
+    $pname = _name_to_id($pname);
+    return $self->_get_things( 'backlinks', pname => $pname );
+}
+
+=head2 get_frontlinks
+
+    $Rester->workspace('wikiname');
+    $Rester->get_frontlinks('page_name');
+
+List all 'frontlinks' on the specified page 
+
+=cut
+
+sub get_frontlinks {
+    my $self  = shift;
+    my $pname = shift;
+    $pname = _name_to_id($pname);
+    return $self->_get_things( 'frontlinks', pname => $pname );
+}
+
 =head2 get_pagetags
 
     $Rester->workspace('wikiname');
@@ -532,6 +567,20 @@ sub get_taggedpages {
     return $self->_get_things( 'taggedpages', tag => $tag );
 }
 
+=head2 get_breadcrumbs
+
+    $Rester->get_breadcrumbs('workspace')
+
+    Get breadcrumbs for current user in this workspace
+
+=cut
+
+sub get_breadcrumbs {
+    my $self = shift;
+
+    return $self->_get_things('breadcrumbs');
+}
+    
 =head2 get_workspaces
 
     $Rester->get_workspaces();
@@ -556,7 +605,6 @@ sub _request {
     }
     my $request = HTTP::Request->new( $p{method}, $uri );
     $request->authorization_basic( $self->username, $self->password );
-
     $request->header( 'Accept'       => $p{accept} )   if $p{accept};
     $request->header( 'Content-Type' => $p{type} )     if $p{type};
     $request->header( 'If-Match'     => $p{if_match} ) if $p{if_match};

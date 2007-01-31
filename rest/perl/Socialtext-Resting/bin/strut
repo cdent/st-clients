@@ -87,13 +87,18 @@ Socialtext REST services
    strut set_page <workspace> <pagename> <filename>
 
    strut list_tags <workspace> <pagename>
-   strut set_tags <workspace> <pagename>
+   strut put_tag <workspace> <pagename> <tag>
+   strut set_tags <workspace> <pagename> <tags>
 
    strut list_tagged_pages <workspace> <tag>
 
    strut list_attachments <workspace> <pagename>
    strut get_attachment <workspace> <pagename> <attachment>
    strut add_attachment <workspace> <pagename> <filename>
+
+   strut show_breadcrumbs <workspace>
+   strut show_backlinks <workspace> <pagename>
+   strut show_frontlinks <workspace> <pagename>
 
    All list operations can further be controlled with the following operations:
    --query (search term for within the results)
@@ -180,10 +185,14 @@ sub init_commands {
 			set_page                  => sub {set_page()},
 			list_tags		  => sub {list_tags()},
 			set_tags		  => sub {set_tags()},
+                        put_tag                   => sub {put_tag()},
 			list_attachments	  => sub {list_attachments()},
 			get_attachment		  => sub {get_attachment()},
 			add_attachment		  => sub {add_attachment()},
 			configure		  => sub {configure()},
+                        show_breadcrumbs          => sub {show_breadcrumbs()},
+                        show_backlinks            => sub {show_backlinks()},
+                        show_frontlinks           => sub {show_frontlinks()},
 			);
 }
 =head1 COMMANDS
@@ -233,8 +242,25 @@ sub configure {
 # list_pages
 # list_tagged_pages
 # list_workspace_tags
+# show_breadcrumbs
 # 
 ##################################################
+
+=head2 show_breadcrumbs
+
+Get the breadcrumbs for the current user in this workspace.
+
+=cut
+
+sub show_breadcrumbs {
+    use_positional( "workspace" => 0 );
+    _pick_workspace( $opts{workspace} );
+    printemout(_show_breadcrumbs());
+}
+
+sub _show_breadcrumbs {
+    $Strutter->get_breadcrumbs();
+}
 
 =head2 list_workspaces
 
@@ -318,6 +344,8 @@ sub list_tagged_pages {
 # list_attachments
 # get_attachment
 # set_tags
+# show_frontlinks
+# show_backlinks
 # 
 ##################################################
 
@@ -436,6 +464,72 @@ sub _list_tags {
     $Strutter->get_pagetags($Page);
 }
 
+=head2 show_backlinks <workspace> <page_name>
+
+Show backlinks to the specified page name.
+
+=cut
+
+sub show_backlinks {
+    use_positional(
+        "workspace" => 0,
+        "page"      => 1,
+    );
+    if ( !$opts{page} ) {
+        usage(    "show_backlinks needs a workspace and page name.\n\n"
+                . "You can pass these in via the command line:\n\t"
+                . "show_backlinks <workspace> <page_name> <tag>\n" );
+    }
+    my $Page = pick_page( $opts{workspace}, $opts{page} );
+    printemout($Strutter->get_backlinks( $Page ));
+
+}
+
+=head2 show_frontlinks <workspace> <page_name>
+
+Show frontlinks to the specified page name.
+
+=cut
+
+sub show_frontlinks {
+    use_positional(
+        "workspace" => 0,
+        "page"      => 1,
+    );
+    if ( !$opts{page} ) {
+        usage(    "show_frontlinks needs a workspace and page name.\n\n"
+                . "You can pass these in via the command line:\n\t"
+                . "show_frontlinks <workspace> <page_name> <tag>\n" );
+    }
+    my $Page = pick_page( $opts{workspace}, $opts{page} );
+    printemout($Strutter->get_frontlinks( $Page ));
+
+}
+
+=head2 put_tag <workspace> <page_name> <tag>
+
+Add the specified tag to the specified page name.
+
+=cut
+
+sub put_tag {
+    use_positional(
+        "workspace" => 0,
+        "page"      => 1,
+        "tag"       => 2
+    );
+    if ( !$opts{tag} ) {
+        usage(    "put_tag needs a workspace, page name, and a tag name.\n\n"
+                . "You can pass these in via the command line:\n\t"
+                . "put_tag <workspace> <page_name> <tag>\n" );
+    }
+    my $Page = pick_page( $opts{workspace}, $opts{page} );
+    $Strutter->put_pagetag( $Page, $opts{tag} );
+
+    my @now_tags = $Strutter->get_pagetags($Page);
+    print "Page now has @now_tags\n";
+}
+         
 =head2 set_tags <workspace> <page_name> <tags>
 
 Set the tags for the specified page name.
