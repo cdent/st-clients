@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 =head1 NAME
 
@@ -92,6 +92,16 @@ sub new {
     my $self     = {@_};
     return bless $self, $class;
 }
+
+=head2 accept
+
+    $Rester->accept($mime_type);
+
+Sets the HTTP Accept header to ask the server for a specific
+representation in future requests.
+
+Standard representations:
+http://www.socialtext.net/st-rest-docs/index.cgi?standard_representations
 
 =head2 get_page 
 
