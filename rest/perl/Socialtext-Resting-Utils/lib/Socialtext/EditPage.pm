@@ -3,6 +3,8 @@ use warnings;
 use strict;
 use Carp qw/croak/;
 use File::Temp;
+use Socialtext::Resting::DefaultRester;
+use JSON;
 
 =head1 NAME
 
@@ -10,7 +12,7 @@ Socialtext::EditPage - Edit a wiki page using your favourite EDITOR.
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -149,10 +151,46 @@ sub edit_page {
     print "Updated page $page\n";
 }
 
+=head2 C<edit_last_page( %opts )>
+
+This method will retrieve a last of all pages tagged with the supplied
+tag, and then open the latest one for edit.
+
+Arguments are passed through to edit_page(), accept for:
+
+=over 4
+
+=item tag
+
+The name of the tag you wish to edit.
+
+=back
+
+=cut
+
+sub edit_last_page {
+    my $self = shift;
+    my %opts = @_;
+
+    my $tag = delete $opts{tag} || croak "tag is mandatory";
+    my $rester = $self->{rester};
+    $rester->accept('application/json');
+    my $pages = jsonToObj($rester->get_taggedpages($tag));
+    unless (@$pages) {
+        die "No pages found tagged '$tag'\n";
+    }
+    my @pages = sort { $b->{modified_time} <=> $a->{modified_time} }
+                @$pages;
+    my $newest_page = shift @pages;
+    print "Editing '$newest_page->{name}'\n";
+    $self->edit_page(page => $newest_page->{page_id}, %opts);
+}
+
 sub _get_page {
     my $self = shift;
     my $page_name = shift;
     my $rester = $self->{rester};
+    $rester->accept('text/x.socialtext-wiki');
 
     my $page = $rester->get_page($page_name);
 

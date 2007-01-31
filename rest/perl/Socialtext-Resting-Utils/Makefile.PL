@@ -11,6 +11,7 @@ WriteMakefile(
     PREREQ_PM => {
         'Socialtext::Resting' => '0.12',
         'Test::More' => 0,
+        'JSON' => 0,
     },
     EXE_FILES           => ['bin/wikedit'],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },

@@ -112,6 +112,42 @@ sub die_on_put {
     $self->{die_on_put} = $rc;
 }
 
+=head2 accept( $mime_type )
+
+Stores the requested mime type.
+
+=cut
+
+sub accept {
+    my $self = shift;
+    $self->{accept} = shift;
+}
+
+=head2 get_taggedpages( $tag )
+
+Retrieves the taggedpages stored in the object.
+
+=cut
+
+sub get_taggedpages {
+    my $self = shift;
+    my $tag = shift;
+
+    return $self->{taggedpages}{$tag} || [];
+}
+
+=head2 set_taggedpages( $tag, $return )
+
+Store the taggedpages return value in the object.
+
+=cut
+
+sub set_taggedpages {
+    my $self = shift;
+    my $tag = shift;
+    $self->{taggedpages}{$tag} = shift;
+}
+
 =head1 AUTHOR
 
 Luke Closs, C<< <luke.closs at socialtext.com> >>

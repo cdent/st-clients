@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Socialtext::Resting::DefaultRester;
 use Socialtext::EditPage;
 use Getopt::Long;
 
@@ -13,12 +12,23 @@ GetOptions(
     'workspace|w=s'=> \$opts{workspace},
     'o|output=s'   => \$opts{output},
     'pull-includes'=> \$opts{pull_includes},
+    'latest-tag=s' => \$opts{latest_tag},
 ) or usage();
 
-my $page = shift || usage();
-
+my $page = shift;
 my $edit = Socialtext::EditPage->new(%opts);
-$edit->edit_page(page => $page, output => $opts{output});
+if ($page) {
+    $edit->edit_page(page => $page, output => $opts{output});
+}
+elsif ($opts{latest_tag}) {
+    $edit->edit_last_page(
+        tag    => $opts{latest_tag},
+        output => $opts{output},
+    );
+}
+else {
+    usage();
+}
 
 exit;
 
@@ -37,6 +47,7 @@ Required options:
 Other options:
  --pull-includes Inline content from {include} wafls in the 
                  page and then extraclude it when saving
+ --latest-tag    Opens the newest page tagged with <tag>
 
 Config:
 Put the above options into $rc_file like this:

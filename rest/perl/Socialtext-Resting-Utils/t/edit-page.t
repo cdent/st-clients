@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 20;
 use lib 'lib';
+use JSON;
 
 BEGIN {
     use_ok 'Socialtext::EditPage';
@@ -145,4 +146,28 @@ THIS AND
 EOT
     is $rester->get_page('BAR'), "BAR PAGE\n";
     is $rester->get_page('BAZ DEFRENS'), "BAZ PAGE\n";
+}
+
+Edit_last_page: {
+    my @tagged_pages = (
+        { 
+            modified_time => 3,
+            name => 'Newer',
+            page_id => 'Newer',
+        },
+        {
+            modified_time => 1,
+            name => 'Older',
+            page_id => 'Older',
+        },
+    );
+    $rester->set_taggedpages('coffee', objToJson(\@tagged_pages));
+    $rester->put_page('Newer', 'Newer');
+    $rester->put_page('Older', 'Older');
+    my $ep = Socialtext::EditPage->new(rester => $rester);
+    $ep->edit_last_page(tag => 'coffee');
+
+    # $EDITOR will uc() everything
+    is $rester->get_page('Newer'), 'NEWER';
+    is $rester->get_page('Older'), 'Older';
 }
