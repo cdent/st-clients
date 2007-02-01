@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 20;
+use Test::More tests => 22;
 use lib 'lib';
 use JSON;
 
@@ -170,4 +170,30 @@ Edit_last_page: {
     # $EDITOR will uc() everything
     is $rester->get_page('Newer'), 'NEWER';
     is $rester->get_page('Older'), 'Older';
+}
+
+Edit_from_template: {
+    $rester->put_page('Empty', 'Empty not found');
+    $rester->put_page('Pookie', 'Template page');
+
+    my $ep = Socialtext::EditPage->new(rester => $rester);
+    $ep->edit_page(
+        page => 'Empty',
+        template => 'Pookie',
+    );
+
+    is $rester->get_page('Empty'), 'TEMPLATE PAGE';
+}
+
+Template_when_page_already_exists: {
+    $rester->put_page('Foo', 'Monkey');
+    $rester->put_page('Pookie', 'Template page');
+
+    my $ep = Socialtext::EditPage->new(rester => $rester);
+    $ep->edit_page(
+        page => 'Foo',
+        template => 'Pookie',
+    );
+
+    is $rester->get_page('Foo'), 'MONKEY';
 }

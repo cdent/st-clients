@@ -84,6 +84,10 @@ If supplied, these tags will be applied to the page after it is updated.
 If supplied, the page will be saved to the given file instead of edited. 
 The page will not be uploaded to the server.
 
+=item template
+
+If specified, this page will be used as the template for a new page.
+
 =back
 
 =cut
@@ -96,6 +100,16 @@ sub edit_page {
 
     my $rester = $self->{rester};
     my $content = $self->_get_page($page);
+
+    if ($args{template}) {
+        if ($content =~ /^\S+ not found$/) {
+            $content = $self->_get_page($args{template});
+        }
+        else {
+            print "Not using template '$args{template}' - page already "
+                 . "exists.\n($content)";
+        }
+    }
 
     if ($args{output}) {
         _write_file($args{output}, $content);

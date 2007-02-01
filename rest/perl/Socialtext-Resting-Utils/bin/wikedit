@@ -5,26 +5,25 @@ use Socialtext::EditPage;
 use Getopt::Long;
 
 my %opts;
+my %edit_opts;
 GetOptions(
     'username|u=s' => \$opts{username},
     'password|p=s' => \$opts{password},
     'server|s=s'   => \$opts{server},
     'workspace|w=s'=> \$opts{workspace},
-    'o|output=s'   => \$opts{output},
     'pull-includes'=> \$opts{pull_includes},
     'latest-tag=s' => \$opts{latest_tag},
+    'o|output=s'   => \$edit_opts{output},
+    'template=s'   => \$edit_opts{template},
 ) or usage();
 
 my $page = shift;
 my $edit = Socialtext::EditPage->new(%opts);
 if ($page) {
-    $edit->edit_page(page => $page, output => $opts{output});
+    $edit->edit_page( page => $page, %edit_opts );
 }
 elsif ($opts{latest_tag}) {
-    $edit->edit_last_page(
-        tag    => $opts{latest_tag},
-        output => $opts{output},
-    );
+    $edit->edit_last_page( tag => $opts{latest_tag}, %edit_opts );
 }
 else {
     usage();
@@ -48,6 +47,8 @@ Other options:
  --pull-includes Inline content from {include} wafls in the 
                  page and then extraclude it when saving
  --latest-tag    Opens the newest page tagged with <tag>
+ --template=foo  Uses content from page 'foo' as a template
+                 for new pages.
 
 Config:
 Put the above options into $rc_file like this:
