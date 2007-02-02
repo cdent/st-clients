@@ -107,7 +107,7 @@ sub edit_page {
         }
         else {
             print "Not using template '$args{template}' - page already "
-                 . "exists.\n($content)";
+                 . "exists.\n";
         }
     }
 
