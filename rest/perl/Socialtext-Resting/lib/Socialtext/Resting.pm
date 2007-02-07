@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 =head1 NAME
 
@@ -482,6 +482,21 @@ sub _get_things {
         { ws => $self->workspace, %replacements }
     );
     $uri = $self->_extend_uri($uri);
+
+    # Add query parameters from a
+    if ( exists $replacements{_query} ) {
+        my @params;
+        for my $q ( keys %{ $replacements{_query} } ) {
+            push @params, "$q=" . $replacements{_query}->{$q};
+        }
+        my $query = join( ';', @params );
+        if ( $uri =~ /\?/ ) {
+            $uri .= ";$query";
+        }
+        else {
+            $uri .= "?$query";
+        }
+    }
        
     my ( $status, $content ) = $self->_request(
         uri    => $uri,
@@ -531,10 +546,14 @@ List all 'frontlinks' on the specified page
 =cut
 
 sub get_frontlinks {
-    my $self  = shift;
-    my $pname = shift;
+    my $self       = shift;
+    my $pname      = shift;
+    my $incipients = shift || 0;
     $pname = _name_to_id($pname);
-    return $self->_get_things( 'frontlinks', pname => $pname );
+    return $self->_get_things(
+        'frontlinks', pname => $pname,
+        ( $incipients ? ( _query => { incipient => 1 } ) : () )
+    );
 }
 
 =head2 get_pagetags
