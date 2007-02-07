@@ -1,0 +1,32 @@
+name: Socialtext-Resting
+version: 0.1
+license: OtherLicense
+copyright:
+maintainer:
+stability:
+homepage:
+package-url:
+description:
+category:
+author: Matthew O'Connor <matthew.oconnor@socialtext.com>
+exposed: True
+exposed-modules: Socialtext.Resting Socialtext.Resting.Control
+                 Socialtext.Resting.HTTP Socialtext.Resting.MimeTypes
+                 Socialtext.Resting.Page Socialtext.Resting.Templates
+                 Socialtext.Resting.Types Socialtext.Resting.User
+                 Socialtext.Resting.Workspace
+hidden-modules:
+import-dirs: /usr/local/lib/Socialtext-Resting-0.1/ghc-6.4.1
+library-dirs: /usr/local/lib/Socialtext-Resting-0.1/ghc-6.4.1
+hs-libraries: HSSocialtext-Resting-0.1
+extra-libraries:
+include-dirs:
+includes:
+depends: base-1.0 haskell98-1.0 HTTP-0.4 mtl-1.0 network-1.0
+hugs-options:
+cc-options:
+ld-options:
+framework-dirs:
+frameworks:
+haddock-interfaces:
+haddock-html:

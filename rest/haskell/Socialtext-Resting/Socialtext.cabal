@@ -1,0 +1,22 @@
+Name: Socialtext-Resting
+Version: 0.1
+License: OtherLicense
+License-File: LICENSE
+Author: Matthew O'Connor <matthew.oconnor@socialtext.com>
+Synopsis: Library to access Socialtext REST API.
+Build-Depends:
+    base,
+    haskell98,
+    HTTP == 0.4,
+    mtl,
+    network
+Exposed-modules:
+    Socialtext.Resting,
+    Socialtext.Resting.Control,
+    Socialtext.Resting.HTTP,
+    Socialtext.Resting.MimeTypes,
+    Socialtext.Resting.Page,
+    Socialtext.Resting.Templates,
+    Socialtext.Resting.Types,
+    Socialtext.Resting.User,
+    Socialtext.Resting.Workspace
