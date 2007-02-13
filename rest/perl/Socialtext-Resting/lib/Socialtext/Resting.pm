@@ -75,6 +75,7 @@ field 'count';
 field 'query';
 field 'etag_cache' => {};
 field 'http_header_debug';
+field 'response';
 
 =head2 new
 
@@ -590,7 +591,7 @@ sub get_taggedpages {
 
     $Rester->get_breadcrumbs('workspace')
 
-    Get breadcrumbs for current user in this workspace
+Get breadcrumbs for current user in this workspace
 
 =cut
 
@@ -628,15 +629,25 @@ sub _request {
     $request->header( 'Content-Type' => $p{type} )     if $p{type};
     $request->header( 'If-Match'     => $p{if_match} ) if $p{if_match};
     $request->content( $p{content} ) if $p{content};
-    my $response = $ua->simple_request($request);
+    $self->response( $ua->simple_request($request) );
 
-    if ($self->http_header_debug) {
+    if ( $self->http_header_debug ) {
         use Data::Dumper;
-        warn "Code: " . $response->code . "\n" . Dumper $response->headers;
+        warn "Code: "
+            . $self->response->code . "\n"
+            . Dumper $self->response->headers;
     }
 
-    return ( $response->code, $response->content, $response );
+    # We should refactor to not return these response things
+    return ( $self->response->code, $self->response->content,
+        $self->response );
 }
+
+=head2 response
+
+    my $resp = $Rester->response;
+
+Return the HTTP::Response object from the last request.
 
 =head1 AUTHORS / MAINTAINERS
 

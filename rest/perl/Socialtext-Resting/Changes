@@ -1,6 +1,6 @@
-0.14 -
+0.15 - Mon Feb 12 17:16:27 PST 2007
+ - Added method to return previous HTTP::Response object
  - Added support for breadcrumbs, backlinks, frontlinks
-0.13 - 
  - Added docs for accept()
 
 0.12 - Thu Jan 25 11:14:35 PST 2007
