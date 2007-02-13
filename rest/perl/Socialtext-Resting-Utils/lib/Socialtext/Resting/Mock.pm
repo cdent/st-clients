@@ -15,7 +15,7 @@ Socialtext::Resting::Mock - Fake rester
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 FUNCTIONS
 
@@ -146,6 +146,30 @@ sub set_taggedpages {
     my $self = shift;
     my $tag = shift;
     $self->{taggedpages}{$tag} = shift;
+}
+
+=head2 response
+
+Retrieve a fake response object.
+
+=cut
+
+# hack so we don't need to create a new fake class
+sub response {
+    return $_[0];
+}
+
+=head2 code
+
+Get/set the response code.
+
+=cut
+
+sub code {
+    my $self = shift;
+    my $new_code = shift;
+    $self->{_code} = $new_code if $new_code;
+    return $self->{_code};
 }
 
 =head1 AUTHOR
