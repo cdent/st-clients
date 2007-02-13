@@ -17,3 +17,4 @@ t/object.t
 t/pod-coverage.t
 t/pod.t
 t/wikedit.t
+META.yml                                 Module meta-data (added by MakeMaker)
