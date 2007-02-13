@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Socialtext::Resting;
+use Socialtext::MailArchive;
+use Getopt::Long;
+
+my $workspace;
+GetOptions(
+    'workspace=s' => \$workspace,
+) or usage();
+
+my $r = Socialtext::Resting->new(
+    server => 'http://localhost:21000',
+    username => 'devnull1@socialtext.com',
+    password => 'd3vnu11l',
+    workspace => $workspace,
+);
+
+my $message;
+{
+    local $/;
+    $message = <STDIN>;
+}
+
+Socialtext::MailArchive->new( rester => $r )->archive_mail($message);
