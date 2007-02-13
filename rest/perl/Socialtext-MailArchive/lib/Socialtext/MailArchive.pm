@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
+our $VERSION = '0.01';
+
 sub new {
     my $class = shift;
     my $self = {
