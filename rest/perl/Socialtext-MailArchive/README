@@ -1,0 +1,11 @@
+Socialtext::MailArchive - Archive mail into a workspace
+
+Socialtext::MailArchive provides an easy way to archive mailing lists into a workspace.  Each message will be put on a separate page (and tagged 'message'), and messages will also be included from a thread page named after the message subject (tagged 'thread').
+
+This module is at this point an experiment to see how email and wikis can integrate.  Whether it's a good idea or not is left up to the reader.
+
+Hook st-archive-mail into your /etc/aliases file on your mailserver like this:
+
+user-on-a-mailing-list: |/usr/bin/st-archive-mail \
+  --server <your socialtext server> --username <username> \
+  --password <password> --workspace <workspace>

@@ -3,7 +3,39 @@ use strict;
 use warnings;
 use Carp qw/croak/;
 
+=head1 NAME
+
+Socialtext::MailArchive - Archive mail into a workspace
+
+=cut
+
 our $VERSION = '0.01';
+
+=head1 SYNOPSIS
+
+  use Socialtext::MailArchive;
+  my $ma = Socialtext::MailArchive->new( rester => $r );
+  $ma->archive_mail( $mail_message );
+
+=head1 DESCRIPTION
+
+Socialtext::MailArchive provides an easy way to archive mailing lists into a workspace.  Each message will be put on a separate page (and tagged 'message'), and messages will also be included from a thread page named after the message subject (tagged 'thread').
+
+This module is at this point an experiment to see how email and wikis can integrate.  Whether it's a good idea or not is left up to the reader.
+
+=head1 METHODS
+
+=head2 new
+
+Create a new mail archiver object.  Options are provided as a hash:
+
+=over 4
+
+=item * B<rester> - a Socialtext::Resting object
+
+=back
+
+=cut
 
 sub new {
     my $class = shift;
@@ -16,6 +48,12 @@ sub new {
     return $self;
 }
 
+=head2 archive_mail
+
+Archive a mail message.  A mail message should be passed as a scalar into this method.
+
+=cut
+
 sub archive_mail {
     my $self = shift;
     my $message = shift;
@@ -26,10 +64,10 @@ sub archive_mail {
     $r->put_page($msg_id, $message);
     $r->put_pagetag($msg_id, 'message');
 
-    $self->update_thread($subj, $msg_id);
+    $self->_update_thread($subj, $msg_id);
 }
 
-sub update_thread {
+sub _update_thread {
     my $self = shift;
     my $subj = shift;
     my $msg_id = shift;
@@ -66,5 +104,20 @@ sub _parse_message {
     }
     return ("$from - $subj - $date", $subj);
 }
+
+=head1 AUTHOR
+
+Luke Closs, C<< <luke.closs at socialtext.com> >>
+
+=head1 ACKNOWLEDGEMENTS
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2006 Luke Closs, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
 
 1;

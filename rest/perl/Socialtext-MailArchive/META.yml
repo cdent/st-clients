@@ -6,7 +6,7 @@ version_from: lib/Socialtext/MailArchive.pm
 installdirs:  site
 requires:
     Socialtext::Resting:           0.15
-    Socialtext::Resting::Utils:    0.08
+    Socialtext::Resting::Utils:    0.09
     Test::More:                    0
 
 distribution_type: module
