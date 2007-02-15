@@ -63,6 +63,7 @@ sub archive_mail {
 
     $r->put_page($msg_id, $lean_msg);
     $r->put_pagetag($msg_id, 'message');
+    $r->put_pagetag($msg_id, "Subject: $subj");
 
     $self->_update_thread($subj, $msg_id);
 }
@@ -111,6 +112,7 @@ sub _parse_message {
         if ($in_headers) {
             for my $header (qw(Date To Subject From)) {
                 next unless $l =~ /^$header: /m;
+                $l =~ s/@/ at /;
                 push @lean_message, $l;
             }
             if ($l eq '') {

@@ -19,6 +19,8 @@ New_message: {
 {include [$msg{page}]}
 EOT
     is $r->get_page($msg{page}), $msg{lean};
+    is_deeply $r->get_pagetags($msg{page}), 
+              ['message', 'Subject: Test Mail'];
 }
 
 Reply_message: {
@@ -28,6 +30,8 @@ Reply_message: {
     isa_ok $ma, 'Socialtext::MailArchive';
     my %msg = fake_mail();
     $ma->archive_mail( $msg{raw} );
+    is_deeply $r->get_pagetags($msg{page}), 
+              ['message', 'Subject: Test Mail'];
 
     # hack message into a reply
     my $reply = $msg{raw};
@@ -41,6 +45,8 @@ Reply_message: {
 ----
 {include [$reply_page]}
 EOT
+    is_deeply $r->get_pagetags($reply_page), 
+              ['message', 'Subject: Test Mail'];
 }
 
 Reply_message_with_list_header: {
@@ -102,9 +108,9 @@ awe
 EOT
         lean => <<'EOT',
 Date: Mon, 5 Feb 2007 13:14:19 -0800
-To: append@ruby
+To: append at ruby
 Subject: Test Mail
-From: Luke Closs <lukec@ruby>
+From: Luke Closs <lukec at ruby>
 
 awe
 EOT
