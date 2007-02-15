@@ -5,17 +5,18 @@ use Socialtext::Resting;
 use Socialtext::MailArchive;
 use Getopt::Long;
 
-my $workspace;
+my %opts;
+my @rest_opts = qw(server username password workspace);
 GetOptions(
-    'workspace=s' => \$workspace,
+    \%opts,
+    map { "$_=s" } @rest_opts,
 ) or usage();
 
-my $r = Socialtext::Resting->new(
-    server => 'http://localhost:21000',
-    username => 'devnull1@socialtext.com',
-    password => 'd3vnu11l',
-    workspace => $workspace,
-);
+for (@rest_opts) {
+    usage("$_ is mandatory") unless $opts{$_};
+}
+
+my $r = Socialtext::Resting->new(%opts);
 
 my $message;
 {
@@ -24,3 +25,16 @@ my $message;
 }
 
 Socialtext::MailArchive->new( rester => $r )->archive_mail($message);
+exit;
+
+sub usage {
+    die <<EOT;
+USAGE: $0 [options]
+
+REST API Options:
+  --server      Socialtext server to archive mail to
+  --username    User to login as
+  --password    User password
+  --workspace   Workspace to archive mail to
+EOT
+}
