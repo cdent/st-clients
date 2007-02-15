@@ -1,5 +1,8 @@
 Revision history for Socialtext-Utils
 
+0.09 - 
+  - Fixed t/wikedit.t when a ~/.wikeditrc isn't there
+
 0.08 - Sun Feb 11 11:18:28 PST 2007
   - Add edit_last_page(), which opens the most recently
     edited page tagged with the given tag.
