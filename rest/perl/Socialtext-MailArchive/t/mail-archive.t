@@ -8,7 +8,6 @@ BEGIN {
     use_ok 'Socialtext::MailArchive';
 }
 
-
 New_message: {
     my $r = Socialtext::Resting::Mock->new;
     $r->response->code(404);
@@ -39,6 +38,30 @@ Reply_message: {
     $ma->archive_mail( $reply );
     is $r->get_page('Test Mail'), <<EOT;
 {include [$msg{page}]}
+----
+{include [$reply_page]}
+EOT
+}
+
+Reply_message_with_list_header: {
+    my $r = Socialtext::Resting::Mock->new;
+    $r->response->code(404);
+    my $ma = Socialtext::MailArchive->new(rester => $r);
+    isa_ok $ma, 'Socialtext::MailArchive';
+    my %msg = fake_mail();
+    $msg{raw} =~ s/^Subject: .+$/Subject: [Foo] Bar/m;
+    $ma->archive_mail( $msg{raw} );
+    (my $page_title = $msg{page}) =~ s/Test Mail/Bar/;
+
+    # hack message into a reply
+    my $reply = $msg{raw};
+    $reply =~ s/^Subject: /Subject: re: /m;
+    my $reply_page = $page_title;
+    s/Mon, 5 Feb/Tue, 6 Feb/ for ($reply, $reply_page);
+    $r->response->code(200);
+    $ma->archive_mail( $reply );
+    is $r->get_page('Bar'), <<EOT;
+{include [$page_title]}
 ----
 {include [$reply_page]}
 EOT

@@ -95,6 +95,7 @@ sub _parse_message {
     for my $l (@lines) {
         if ($msg =~ /^Subject: (.+)$/m) {
             $subj = $1;
+            $subj =~ s/^Re: //i;
             $subj =~ s/^\[[^\]]+\]\s+//;
             $subj =~ s/^Re: //i;
         }
