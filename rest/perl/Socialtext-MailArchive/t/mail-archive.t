@@ -14,13 +14,12 @@ New_message: {
     $r->response->code(404);
     my $ma = Socialtext::MailArchive->new(rester => $r);
     isa_ok $ma, 'Socialtext::MailArchive';
-    my $msg = fake_mail();
-    $ma->archive_mail( $msg );
-    my $mail_page = 'Luke Closs - Test Mail - Mon, 5 Feb 2007 13:14:19 -0800';
+    my %msg = fake_mail();
+    $ma->archive_mail( $msg{raw} );
     is $r->get_page('Test Mail'), <<EOT;
-{include [$mail_page]}
+{include [$msg{page}]}
 EOT
-    is $r->get_page($mail_page), $msg;
+    is $r->get_page($msg{page}), $msg{lean};
 }
 
 Reply_message: {
@@ -28,21 +27,20 @@ Reply_message: {
     $r->response->code(404);
     my $ma = Socialtext::MailArchive->new(rester => $r);
     isa_ok $ma, 'Socialtext::MailArchive';
-    my $msg = fake_mail();
-    $ma->archive_mail( $msg );
+    my %msg = fake_mail();
+    $ma->archive_mail( $msg{raw} );
 
     # hack message into a reply
-    my $reply = $msg;
+    my $reply = $msg{raw};
     $reply =~ s/^Subject: /Subject: re: /m;
-    $reply =~ s/Mon, 5 Feb/Tue, 6 Feb/;
+    my $reply_page = $msg{page};
+    s/Mon, 5 Feb/Tue, 6 Feb/ for ($reply, $reply_page);
     $r->response->code(200);
     $ma->archive_mail( $reply );
-    my $initial_mail = 'Luke Closs - Test Mail - Mon, 5 Feb 2007 13:14:19 -0800';
-    my $second_mail = 'Luke Closs - Test Mail - Tue, 6 Feb 2007 13:14:19 -0800';
     is $r->get_page('Test Mail'), <<EOT;
-{include [$initial_mail]}
+{include [$msg{page}]}
 ----
-{include [$second_mail]}
+{include [$reply_page]}
 EOT
 }
 
@@ -60,7 +58,8 @@ Hide_signature: {
 }
 
 sub fake_mail {
-    return <<'EOT';
+    return ( 
+        raw => <<'EOT',
 From lukec@ruby Mon Feb 05 13:14:39 2007
 Received: from lukec by ruby with local (Exim 4.60)
 	(envelope-from <lukec@ruby>)
@@ -78,4 +77,14 @@ From: Luke Closs <lukec@ruby>
 
 awe
 EOT
+        lean => <<'EOT',
+Date: Mon, 5 Feb 2007 13:14:19 -0800
+To: append@ruby
+Subject: Test Mail
+From: Luke Closs <lukec@ruby>
+
+awe
+EOT
+        page => 'Luke Closs - Test Mail - Mon, 5 Feb 2007 13:14:19 -0800',
+    );
 }

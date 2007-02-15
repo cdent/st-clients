@@ -59,9 +59,9 @@ sub archive_mail {
     my $message = shift;
     my $r = $self->{rester};
 
-    my ($msg_id, $subj) = $self->_parse_message($message);
+    my ($msg_id, $subj, $lean_msg) = $self->_parse_message($message);
 
-    $r->put_page($msg_id, $message);
+    $r->put_page($msg_id, $lean_msg);
     $r->put_pagetag($msg_id, 'message');
 
     $self->_update_thread($subj, $msg_id);
@@ -87,22 +87,46 @@ sub _parse_message {
     my $msg = shift;
 
     my $subj = 'No subject - ' . localtime;
-    if ($msg =~ /^Subject: (.+)$/m) {
-        $subj = $1;
-        $subj =~ s/^\[[^\]]+\]\s+//;
-        $subj =~ s/^Re: //i;
+    my ($from, $date) = ('Unknown', scalar localtime);
+
+    my @lines = split /\n/, $msg;
+    my @lean_message;
+    my $in_headers = 1;
+    for my $l (@lines) {
+        if ($msg =~ /^Subject: (.+)$/m) {
+            $subj = $1;
+            $subj =~ s/^\[[^\]]+\]\s+//;
+            $subj =~ s/^Re: //i;
+        }
+        # eg: Luke Closs - Test Mail - Mon, 5 Feb 2007 13:14:19
+        if ($msg =~ /^From: (.+)$/m) {
+            $from = $1;
+            $from =~ s/\s+<.+//;
+        }
+        if ($msg =~ /^Date: (.+)$/m) {
+            $date = $1;
+        }
+
+        if ($in_headers) {
+            for my $header (qw(Date To Subject From)) {
+                next unless $l =~ /^$header: /m;
+                push @lean_message, $l;
+            }
+            if ($l eq '') {
+                $in_headers = 0;
+                push @lean_message, $l;
+            }
+        }
+        else {
+            push @lean_message, $l;
+        }
     }
 
-    my ($from, $date) = ('Unknown', scalar localtime);
-    # Luke Closs - Test Mail - Mon, 5 Feb 2007 13:14:19
-    if ($msg =~ /^From: (.+)$/m) {
-        $from = $1;
-        $from =~ s/\s+<.+//;
-    }
-    if ($msg =~ /^Date: (.+)$/m) {
-        $date = $1;
-    }
-    return ("$from - $subj - $date", $subj);
+    return ( 
+        "$from - $subj - $date", 
+        $subj,
+        join( "\n", @lean_message ) . "\n",
+    );
 }
 
 =head1 AUTHOR
