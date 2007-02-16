@@ -4,7 +4,7 @@ use warnings;
 use base 'Exporter';
 use Socialtext::Resting::DefaultRester;
 use Getopt::Long qw/:config pass_through/;
-our @EXPORT_OK = qw/get_rester/;
+our @EXPORT_OK = qw/get_rester rester_usage/;
 
 =head1 NAME
 
@@ -38,6 +38,32 @@ sub get_rester {
         'rester-config=s',
     );
     return Socialtext::Resting::DefaultRester->new(%opts);
+}
+
+=head2 rester_usage
+
+Return usage text for the arguments accepted by this module.
+
+=cut
+
+sub rester_usage {
+    my $rc_file = $Socialtext::Resting::DefaultRester::CONFIG_FILE;
+    return <<EOT;
+REST API Options:
+ --server      Socialtext server to archive mail to
+ --username    User to login as
+ --password    User password
+ --workspace   Workspace to archive mail to
+ --rester-config   Config file containing 'key = value'
+
+Rester Config:
+Put the above options into $rc_file like this:
+
+  username = some_user\@foobar.com
+  password = your_pass
+  workpace = your_workspace
+  server   = https://www.socialtext.net/
+EOT
 }
 
 =head1 AUTHOR

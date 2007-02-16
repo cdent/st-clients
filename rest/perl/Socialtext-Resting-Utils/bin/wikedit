@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 use Socialtext::EditPage;
-use Socialtext::Resting::Getopt qw/get_rester/;
+use Socialtext::Resting::Getopt qw/get_rester rester_usage/;
 use Getopt::Long;
 
 my %opts = ( rester => get_rester() );
@@ -30,30 +30,18 @@ exit;
 
 
 sub usage {
-    my $rc_file = $Socialtext::Resting::DefaultRester::CONFIG_FILE;
+    my $rester_usage = rester_usage();
     die <<EOT;
 $0 page_name
 
-Required options:
- --username      Specify the username to connect with
- --password      Specify the password to connect with
- --server        Which Socialtext server to connect to
- --workspace     Which workspace to post to
-
-Other options:
+Wikedit options:
  --pull-includes Inline content from {include} wafls in the 
                  page and then extraclude it when saving
  --latest-tag    Opens the newest page tagged with <tag>
  --template=foo  Uses content from page 'foo' as a template
                  for new pages.
 
-Config:
-Put the above options into $rc_file like this:
-
-  username = some_user\@foobar.com
-  password = your_pass
-  workpace = corp
-  server   = https://www2.socialtext.net/
+$rester_usage
 EOT
 }
 
