@@ -1,22 +1,13 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Socialtext::Resting;
+use Socialtext::Resting::Getopt qw/get_rester rester_usage/;
 use Socialtext::MailArchive;
 use Getopt::Long;
 
-my %opts;
-my @rest_opts = qw(server username password workspace);
-GetOptions(
-    \%opts,
-    map { "$_=s" } @rest_opts,
-) or usage();
+my $r = get_rester();
 
-for (@rest_opts) {
-    usage("$_ is mandatory") unless $opts{$_};
-}
-
-my $r = Socialtext::Resting->new(%opts);
+GetOptions('help' => \&usage) or usage();
 
 my $message;
 {
@@ -28,13 +19,11 @@ Socialtext::MailArchive->new( rester => $r )->archive_mail($message);
 exit;
 
 sub usage {
-    die <<EOT;
+    my $rester_usage = rester_usage();
+    print <<EOT;
 USAGE: $0 [options]
 
-REST API Options:
-  --server      Socialtext server to archive mail to
-  --username    User to login as
-  --password    User password
-  --workspace   Workspace to archive mail to
+$rester_usage
 EOT
+    exit 1;
 }
