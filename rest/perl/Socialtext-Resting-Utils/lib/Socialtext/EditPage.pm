@@ -288,7 +288,7 @@ sub _write_file {
     my ($filename, $content) = @_;
     $filename ||= File::Temp->new( SUFFIX => '.wiki' );
     open(my $fh, ">$filename") or die "Can't open $filename: $!";
-    print $fh $content;
+    print $fh $content || '';
     close $fh or die "Can't write $filename: $!";
     return $filename;
 }

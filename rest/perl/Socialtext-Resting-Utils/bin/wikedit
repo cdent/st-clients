@@ -2,15 +2,12 @@
 use strict;
 use warnings;
 use Socialtext::EditPage;
+use Socialtext::Resting::Getopt qw/get_rester/;
 use Getopt::Long;
 
-my %opts;
+my %opts = ( rester => get_rester() );
 my %edit_opts;
 GetOptions(
-    'username|u=s' => \$opts{username},
-    'password|p=s' => \$opts{password},
-    'server|s=s'   => \$opts{server},
-    'workspace|w=s'=> \$opts{workspace},
     'pull-includes'=> \$opts{pull_includes},
     'latest-tag=s' => \$opts{latest_tag},
     'o|output=s'   => \$edit_opts{output},
