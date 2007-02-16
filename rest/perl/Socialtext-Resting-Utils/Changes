@@ -1,6 +1,9 @@
 Revision history for Socialtext-Utils
 
-0.09 - 
+0.10 - not released yet
+  - Copy tags from template pages when they're used
+
+0.09 - Wed Feb 14 17:03:59 PST 2007
   - Fixed t/wikedit.t when a ~/.wikeditrc isn't there
 
 0.08 - Sun Feb 11 11:18:28 PST 2007

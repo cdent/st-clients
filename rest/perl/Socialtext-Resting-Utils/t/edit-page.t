@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use lib 'lib';
 use JSON;
 
@@ -175,6 +175,7 @@ Edit_last_page: {
 Edit_from_template: {
     $rester->put_page('Empty', 'Empty not found');
     $rester->put_page('Pookie', 'Template page');
+    $rester->put_pagetag('Pookie', 'Pumpkin');
 
     my $ep = Socialtext::EditPage->new(rester => $rester);
     $ep->edit_page(
@@ -183,6 +184,7 @@ Edit_from_template: {
     );
 
     is $rester->get_page('Empty'), 'TEMPLATE PAGE';
+    is_deeply $rester->get_pagetags('Empty'), ['Pumpkin'];
 }
 
 Template_when_page_already_exists: {

@@ -101,6 +101,7 @@ sub edit_page {
     my $rester = $self->{rester};
     my $content = $self->_get_page($page);
 
+    my $tags = delete $args{tags} || [];
     if ($args{template}) {
         if ($content =~ /^\S+ not found$/) {
             $content = $self->_get_page($args{template});
@@ -109,6 +110,9 @@ sub edit_page {
             print "Not using template '$args{template}' - page already "
                  . "exists.\n";
         }
+        $rester->accept('text/plain');
+        my $tmpl_tags = $rester->get_pagetags($args{template});
+        push @$tags, @$tmpl_tags if $tmpl_tags;
     }
 
     if ($args{output}) {
@@ -155,7 +159,7 @@ sub edit_page {
         }
     }
 
-    if (my $tags = delete $args{tags}) {
+    if ($tags) {
         $tags = [$tags] unless ref($tags) eq 'ARRAY';
         for my $tag (@$tags) {
             $rester->put_pagetag($page, $tag);
