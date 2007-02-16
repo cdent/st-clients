@@ -45,11 +45,15 @@ sub new {
         delete $args{$k} unless defined $args{$k};
     }
 
+    my $config_file = delete $args{'rester-config'} || $CONFIG_FILE;
     my %opts = (
-        _load_config($CONFIG_FILE),
+        _load_config($config_file),
         %args,
     );
-    return Socialtext::Resting->new(%opts);
+    my $rest_class = delete $opts{class} || 'Socialtext::Resting';
+    eval "require $rest_class";
+    die if $@;
+    return $rest_class->new(%opts);
 }
 
 sub _load_config {

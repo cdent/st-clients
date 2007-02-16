@@ -43,6 +43,58 @@ sub new {
     return $self;
 }
 
+=head2 server( $new_server )
+
+Get or set the server.
+
+=cut
+
+sub server {
+    my $self = shift;
+    my $server = shift;
+    $self->{server} = $server if $server;
+    return $self->{server};
+}
+
+=head2 username( $new_username )
+
+Get or set the username.
+
+=cut
+
+sub username {
+    my $self = shift;
+    my $username = shift;
+    $self->{username} = $username if $username;
+    return $self->{username};
+}
+
+=head2 password( $new_password )
+
+Get or set the password.
+
+=cut
+
+sub password {
+    my $self = shift;
+    my $password = shift;
+    $self->{password} = $password if $password;
+    return $self->{password};
+}
+
+=head2 workspace( $new_workspace )
+
+Get or set the workspace.
+
+=cut
+
+sub workspace {
+    my $self = shift;
+    my $workspace = shift;
+    $self->{workspace} = $workspace if $workspace;
+    return $self->{workspace};
+}
+
 =head2 get_page( $page_name )
 
 Returns the content of the specified file or the page stored 
@@ -184,4 +236,5 @@ This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
 =cut
+
 1;
