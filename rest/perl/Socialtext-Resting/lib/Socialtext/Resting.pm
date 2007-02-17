@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 =head1 NAME
 
@@ -505,8 +505,11 @@ sub _get_things {
         accept => $accept,
     );
 
-    if ( $status == 200 ) {
+    if ( $status == 200 and wantarray ) {
         return ( grep defined, ( split "\n", $content ) );
+    }
+    elsif ( $status == 200 ) {
+        return $content;
     }
     elsif ( $status == 404 ) {
         return ();

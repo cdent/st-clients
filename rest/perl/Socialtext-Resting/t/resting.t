@@ -5,7 +5,7 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 5;
+plan tests => 6;
 
 my $Strutter = Socialtext::Resting->new(
         username => 'rest-tester@socialtext.com',
@@ -51,6 +51,10 @@ SKIP: {
     my @tagged_pages = $Strutter->get_taggedpages('Taggy');
     is( $tagged_pages[0], 'Test page',
         'Test pages is listed in Taggy pages' );
+
+    my $tagged_pages = $Strutter->get_taggedpages('Taggy');
+    like( $tagged_pages, qr/^Test page/,
+        "Collection methods behave smart in scalar context" );
 }
 
 sub readfile {
