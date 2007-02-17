@@ -519,6 +519,15 @@ sub _get_things {
     }
 }
 
+=head2 get_workspace_tags
+
+    $Rester->workspace('foo');
+    $Rester->get_workspace_tags()
+
+List all the tags in workspace foo.
+
+=cut
+
 sub get_workspace_tags {
     my $self = shift;
     return $self->_get_things( 'workspacetags' )
