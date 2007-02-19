@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 
@@ -84,7 +84,7 @@ field 'response';
         password => $opts{password},
         server   => $opts{server},
     );
-    
+
 Creates a Socialtext::Resting object for the specified
 server/user/password combination.
 
@@ -107,13 +107,13 @@ representation in future requests.
 Standard representations:
 http://www.socialtext.net/st-rest-docs/index.cgi?standard_representations
 
-=head2 get_page 
+=head2 get_page
 
     $Rester->workspace('wikiname');
     $Rester->get_page('page_name');
 
-Retrieves the content of the specified page.  Note that 
-the workspace method needs to be called first to specify 
+Retrieves the content of the specified page.  Note that
+the workspace method needs to be called first to specify
 which workspace to operate on.
 
 =cut
@@ -149,8 +149,8 @@ sub get_page {
     $Rester->workspace('wikiname');
     $Rester->get_attachment('attachment_id');
 
-Retrieves the specified attachment from the workspace.  
-Note that the workspace method needs to be called first 
+Retrieves the specified attachment from the workspace.
+Note that the workspace method needs to be called first
 to specify which workspace to operate on.
 
 =cut
@@ -171,6 +171,37 @@ sub get_attachment {
     );
 
     if ( $status == 200 || $status == 404 ) {
+        return $content;
+    }
+    else {
+        die "$status: $content\n";
+    }
+}
+
+=head2 put_workspacetag
+
+    $Rester->workspace('wikiname');
+    $Rester->put_workspacetag('tag');
+
+Add the specified tag to the workspace.
+
+=cut
+
+sub put_workspacetag {
+    my $self  = shift;
+    my $tag   = shift;
+
+    my $uri = $self->_make_uri(
+        'workspacetag',
+        { ws => $self->workspace, tag => $tag }
+    );
+
+    my ( $status, $content ) = $self->_request(
+        uri    => $uri,
+        method => 'PUT',
+    );
+
+    if ( $status == 204 || $status == 201 ) {
         return $content;
     }
     else {
@@ -204,6 +235,37 @@ sub put_pagetag {
     );
 
     if ( $status == 204 || $status == 201 ) {
+        return $content;
+    }
+    else {
+        die "$status: $content\n";
+    }
+}
+
+=head2 delete_workspacetag
+
+    $Rester->workspace('wikiname');
+    $Rester->delete_workspacetag('tag');
+
+Delete the specified tag from the workspace.
+
+=cut
+
+sub delete_workspacetag {
+    my $self  = shift;
+    my $tag   = shift;
+
+    my $uri = $self->_make_uri(
+        'workspacetag',
+        { ws => $self->workspace, tag => $tag }
+    );
+
+    my ( $status, $content ) = $self->_request(
+        uri    => $uri,
+        method => 'DELETE',
+    );
+
+    if ( $status == 204 ) {
         return $content;
     }
     else {
@@ -323,7 +385,7 @@ sub post_comment {
     die "$status: $content\n" unless $status == 204;
 }
 
-=head2 put_page 
+=head2 put_page
 
     $Rester->workspace('wikiname');
     $Rester->put_page('page_name',$content);
@@ -391,7 +453,7 @@ sub put_page {
 # apache web servers. This code effectively translate a Page->uri
 # to a Page->id. By so doing the troublesome characters are factored
 # out, getting us past a bug. This change should _not_ be maintained
-# any longer than strictly necessary, primarily because it 
+# any longer than strictly necessary, primarily because it
 # creates an informational dependency between client and server
 # code by representing name_to_id translation code on both sides
 # of the system. Since it is not used for page PUT, new pages
@@ -427,7 +489,7 @@ sub _make_uri {
     return $uri;
 }
 
-=head2 get_pages 
+=head2 get_pages
 
     $Rester->workspace('wikiname');
     $Rester->get_pages();
@@ -445,7 +507,7 @@ sub get_pages {
 sub get_page_attachments {
     my $self = shift;
     my $pname = shift;
-    
+
     return $self->_get_things( 'pageattachments', pname => $pname );
 }
 
@@ -498,7 +560,7 @@ sub _get_things {
             $uri .= "?$query";
         }
     }
-       
+
     my ( $status, $content ) = $self->_request(
         uri    => $uri,
         method => 'GET',
@@ -538,7 +600,7 @@ sub get_workspace_tags {
     $Rester->workspace('wikiname');
     $Rester->get_backlinks('page_name');
 
-List all backlinks to the specified page 
+List all backlinks to the specified page
 
 =cut
 
@@ -554,7 +616,7 @@ sub get_backlinks {
     $Rester->workspace('wikiname');
     $Rester->get_frontlinks('page_name');
 
-List all 'frontlinks' on the specified page 
+List all 'frontlinks' on the specified page
 
 =cut
 
@@ -574,7 +636,7 @@ sub get_frontlinks {
     $Rester->workspace('wikiname');
     $Rester->get_pagetags('page_name');
 
-List all pagetags on the specified page 
+List all pagetags on the specified page
 
 =cut
 
@@ -612,7 +674,7 @@ sub get_breadcrumbs {
 
     return $self->_get_things('breadcrumbs');
 }
-    
+
 =head2 get_workspaces
 
     $Rester->get_workspaces();
@@ -666,6 +728,7 @@ Return the HTTP::Response object from the last request.
 Chris Dent, C<< <chris.dent@socialtext.com> >>
 Kirsten Jones C<< <kirsten.jones@socialtext.com> >>
 Luke Closs C<< <luke.closs@socialtext.com> >>
+Shawn Devlin C<< <shawn.devlin@socialtext.com> >>
 
 =cut
 
