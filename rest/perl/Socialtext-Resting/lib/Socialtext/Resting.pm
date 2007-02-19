@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 =head1 NAME
 
@@ -659,6 +659,43 @@ sub get_taggedpages {
     my $self  = shift;
     my $tag = shift;
     return $self->_get_things( 'taggedpages', tag => $tag );
+}
+
+=head2 get_tag
+
+    $Rester->workspace('wikiname');
+    $Rester->get_tag('tag');
+
+Retrieves the specified tag from the workspace.
+Note that the workspace method needs to be called first
+to specify which workspace to operate on.
+
+=cut
+
+# REVIEW: dup with above, some
+sub get_tag {
+    my $self = shift;
+    my $tag  = shift;
+
+    my $accept = $self->accept || 'text/html';
+
+    my $uri = $self->_make_uri(
+        'workspacetag',
+        { tag => $tag, ws => $self->workspace, }
+    );
+
+    my ( $status, $content ) = $self->_request(
+        uri    => $uri,
+        accept => $accept,
+        method => 'GET',
+    );
+
+    if ( $status == 200 || $status == 404 ) {
+        return $content;
+    }
+    else {
+        die "$status: $content\n";
+    }
 }
 
 =head2 get_breadcrumbs
