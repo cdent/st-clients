@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More qw/no_plan/;
+use Test::More tests => 32;
 
 BEGIN {
     use_ok 'Socialtext::Resting::Getopt', 'get_rester';

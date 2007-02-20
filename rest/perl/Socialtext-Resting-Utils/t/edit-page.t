@@ -176,6 +176,7 @@ Edit_from_template: {
     $rester->put_page('Empty', 'Empty not found');
     $rester->put_page('Pookie', 'Template page');
     $rester->put_pagetag('Pookie', 'Pumpkin');
+    $rester->response->code(404);
 
     my $ep = Socialtext::EditPage->new(rester => $rester);
     $ep->edit_page(
@@ -190,6 +191,7 @@ Edit_from_template: {
 Template_when_page_already_exists: {
     $rester->put_page('Foo', 'Monkey');
     $rester->put_page('Pookie', 'Template page');
+    $rester->response->code(200);
 
     my $ep = Socialtext::EditPage->new(rester => $rester);
     $ep->edit_page(
