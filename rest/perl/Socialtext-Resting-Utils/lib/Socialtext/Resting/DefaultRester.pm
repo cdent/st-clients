@@ -36,7 +36,8 @@ The config file is expected to be in the following format:
 
 =cut
 
-our $CONFIG_FILE = "$ENV{HOME}/.wikeditrc";
+my $home = $ENV{HOME} || "~";
+our $CONFIG_FILE = "$home/.wikeditrc";
 
 sub new {
     my $class = shift;
