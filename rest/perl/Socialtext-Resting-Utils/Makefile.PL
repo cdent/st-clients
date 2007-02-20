@@ -9,9 +9,10 @@ WriteMakefile(
     ABSTRACT_FROM       => 'lib/Socialtext/Resting/Utils.pm',
     PL_FILES            => {},
     PREREQ_PM => {
-        'Socialtext::Resting' => '0.12',
+        'Socialtext::Resting' => '0.15',
         'Test::More' => 0,
         'JSON' => 0,
+        'YAML' => 0,
     },
     EXE_FILES           => ['bin/wikedit'],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
