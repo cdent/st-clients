@@ -28,7 +28,7 @@ Create a new rester from command line args.
 =cut
 
 sub get_rester {
-    my %opts;
+    my %opts = @_;
     GetOptions(
         \%opts,
         'server=s',
