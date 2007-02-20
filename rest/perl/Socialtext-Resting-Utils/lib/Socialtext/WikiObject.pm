@@ -10,7 +10,7 @@ Socialtext::WikiObject - Represent wiki markup as a data structure and object
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -86,6 +86,19 @@ sub load_page {
     my $rester = $self->{rester};
     my $wikitext = $rester->get_page($page);
     return unless $wikitext;
+
+    $self->parse_wikitext($wikitext);
+}
+
+=head2 parse_wikitext( $wikitext )
+
+Parse the wikitext into a data structure.
+
+=cut
+
+sub parse_wikitext {
+    my $self = shift;
+    my $wikitext = shift;
 
     $self->_find_smallest_heading($wikitext);
     $self->{parent_stack} = [];
