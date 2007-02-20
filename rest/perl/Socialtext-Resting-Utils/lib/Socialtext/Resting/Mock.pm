@@ -15,7 +15,7 @@ Socialtext::Resting::Mock - Fake rester
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 FUNCTIONS
 
@@ -148,7 +148,7 @@ Retrieves page tags stored in the object.
 
 sub get_pagetags {
     my ($self, $page) = @_;
-    return delete $self->{page_tags}{$page};
+    return @{ delete($self->{page_tags}{$page}) || [] };
 }
 
 =head2 die_on_put( $rc )

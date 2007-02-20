@@ -51,7 +51,7 @@ Edit_with_tag: {
     $ep->edit_page(page => 'Foo', tags => 'Chimp');
 
     is $rester->get_page('Foo'), 'MONKEY';
-    is_deeply $rester->get_pagetags('Foo'), ['Chimp'];
+    is_deeply [$rester->get_pagetags('Foo')], ['Chimp'];
 }
 
 Edit_with_tags: {
@@ -184,7 +184,7 @@ Edit_from_template: {
     );
 
     is $rester->get_page('Empty'), 'TEMPLATE PAGE';
-    is_deeply $rester->get_pagetags('Empty'), ['Pumpkin'];
+    is_deeply [$rester->get_pagetags('Empty')], ['Pumpkin'];
 }
 
 Template_when_page_already_exists: {
