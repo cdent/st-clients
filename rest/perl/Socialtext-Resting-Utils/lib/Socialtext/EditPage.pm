@@ -103,7 +103,7 @@ sub edit_page {
 
     my $tags = delete $args{tags} || [];
     if ($args{template}) {
-        if ($content =~ /^\S+ not found$/) {
+        if ($rester->response->code eq '404') {
             $content = $self->_get_page($args{template});
         }
         else {
