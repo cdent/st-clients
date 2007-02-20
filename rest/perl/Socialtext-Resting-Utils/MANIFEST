@@ -2,9 +2,12 @@ bin/wikedit
 Changes
 lib/Socialtext/EditPage.pm
 lib/Socialtext/WikiObject.pm
+lib/Socialtext/WikiObject/YAML.pm
+lib/Socialtext/WikiObject/Factory.pm
 lib/Socialtext/Resting/DefaultRester.pm
 lib/Socialtext/Resting/Utils.pm
 lib/Socialtext/Resting/Mock.pm
+lib/Socialtext/Resting/Getopt.pm
 Makefile.PL
 MANIFEST
 README
@@ -17,4 +20,9 @@ t/object.t
 t/pod-coverage.t
 t/pod.t
 t/wikedit.t
+t/getopt.t
+t/factory.t
+t/yaml-object.t
+t/rester.conf
+t/getopt-test.pl
 META.yml                                 Module meta-data (added by MakeMaker)
