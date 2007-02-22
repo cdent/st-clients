@@ -70,9 +70,7 @@ EOT
 
 Luke Closs, C<< <luke.closs at socialtext.com> >>
 
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2006 Luke Closs, all rights reserved.
+=head1 LICENSE
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

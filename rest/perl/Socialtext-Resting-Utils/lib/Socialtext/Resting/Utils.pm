@@ -8,7 +8,7 @@ Socialtext::Resting::Utils - Utilities for Socialtext REST APIs
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
