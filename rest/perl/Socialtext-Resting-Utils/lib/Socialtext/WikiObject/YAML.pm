@@ -25,7 +25,7 @@ sub parse_wikitext {
     my $wikitext = shift;
 
     # Load the YAML
-    $wikitext =~ s/^\.pre\n(.+)\.pre$/$1/s;
+    $wikitext =~ s/^\.pre\n(.+)\.pre.+$/$1/s;
     my $data = Load($wikitext);
     $self->{_hash} = $data;
 
