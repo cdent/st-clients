@@ -27,6 +27,26 @@ specify that for every program using Socialtext::Resting.
 
 Create a new Default Rester by using values from ~/.wikeditrc.
 
+=head3 Options:
+
+=over 4
+
+=item rester-config
+
+File to use as the config file.  Defaults to $ENV{HOME}/.wikeditrc.
+
+=item class
+
+Specifies the rester class to use.  Defaults to L<Socialtext::Resting>.
+
+=item *
+
+All other args are passed through to the rester class's new().
+
+=back
+
+=head3 Rester Config File
+
 The config file is expected to be in the following format:
 
   server = your-server
