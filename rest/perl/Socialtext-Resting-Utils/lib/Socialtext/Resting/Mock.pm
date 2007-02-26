@@ -1,6 +1,7 @@
 package Socialtext::Resting::Mock;
 use strict;
 use warnings;
+use Test::Mock::LWP;
 
 =head1 NAME
 
@@ -185,7 +186,9 @@ sub get_taggedpages {
     my $self = shift;
     my $tag = shift;
 
-    return $self->{taggedpages}{$tag} || [];
+    my $tp = $self->{taggedpages}{$tag};
+    return @$tp if ref($tp) eq 'ARRAY';
+    return $tp || '';
 }
 
 =head2 set_taggedpages( $tag, $return )
@@ -208,20 +211,10 @@ Retrieve a fake response object.
 
 # hack so we don't need to create a new fake class
 sub response {
-    return $_[0];
-}
-
-=head2 code
-
-Get/set the response code.
-
-=cut
-
-sub code {
     my $self = shift;
-    my $new_code = shift;
-    $self->{_code} = $new_code if $new_code;
-    return $self->{_code};
+    $self->{response} = shift if $@;
+    $self->{response} ||= HTTP::Response->new;
+    return $self->{response};
 }
 
 =head1 AUTHOR
