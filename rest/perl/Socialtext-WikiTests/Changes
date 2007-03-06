@@ -1,4 +1,5 @@
 0.03 - 
+ - test plans that die shouldn't stop all testing
  - fixed st-admin when called with no verify option
 
 0.02 - Fri Dec 29 15:09:10 PST 2006

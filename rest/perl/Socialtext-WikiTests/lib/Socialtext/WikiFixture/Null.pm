@@ -20,6 +20,12 @@ sub get_num_calls {
     return $num;
 }
 
-sub handle_command { $CALLS++ }
+sub handle_command { 
+    my $self = shift;
+    my $command = shift;
+    $CALLS++;
+    die if $command eq 'die';
+
+}
 
 1;

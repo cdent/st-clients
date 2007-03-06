@@ -114,14 +114,16 @@ sub _recurse_testplans {
 
     for my $i (@{ $self->{items} }) {
         next unless $i =~ /^\[([^\]]+)\]/;
-        warn "# Loading test plan $1...\n";
+        my $page = $1;
+        warn "# Loading test plan $page...\n";
         my $plan = Socialtext::WikiObject::TestPlan->new(
-            page => $1,
+            page => $page,
             rester => $self->{rester},
             default_fixture => $self->{default_fixture},
             fixture_args => $self->{fixture_args},
         );
-        $plan->run_tests;
+        eval { $plan->run_tests };
+        warn "Error during test plan $page: $@\n" if $@;
     }
 }
 
