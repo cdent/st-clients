@@ -272,19 +272,3 @@ class RESTClient:
         response = connection.getresponse()
 
         return response.status, response.read(), response
-
-
-client = RESTClient(server='http://www.socialtext.net',
-    username='zac.bir@socialtext.com',
-    password='wsbwnl')
-
-if __name__ == '__main__':
-    client = RESTClient(server='http://www.socialtext.net',
-            username='zac.bir@socialtext.com',
-            password='wsbwnl')
-
-    client.workspace = 'stoss'
-    try:
-        print client.get_pages()
-    except ClientError, e:
-        print e
