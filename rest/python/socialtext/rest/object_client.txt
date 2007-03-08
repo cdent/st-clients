@@ -1,0 +1,45 @@
+Server
+======
+
+A server is a entry point to a set of workspaces.
+
+>>> import object_client
+>>> client = object_client.Server('http://talc.socialtext.net:21024', 'devnull1@socialtext.net', 'd3vnu11l')
+>>> len(client.workspaces)
+7
+>>> sorted(client.workspaces.keys())
+['admin', 'help' ...]
+>>> client.workspaces['new_workspace'] = Workspace(title='My Workspace Title')
+>>> len(client.workspaces)
+8
+>>> client.workspaces['non-existent']
+
+Workspace
+=========
+
+>>> client.workspaces['admin']
+<Workspace: Admin hoozit>
+>>> ws = _
+>>> len(ws.tags)
+>>> len(ws.pages)
+31
+
+Page
+====
+
+>>> ws['Admin Wiki'] == ws['admin_wiki']
+True
+>>> ws['Admin Wiki'] # /data/workspaces/admin/pages/Admin Wiki
+<Page: Admin Wiki>
+>>> page = _
+>>> page.tags
+[<Tag: foo>, <Tag: bar>, <Tag: baz>]
+
+Tag
+===
+
+>>> page.tags[0]
+<Tag: foo>
+>>> tag = _
+>>> ws.tags[0]
+<Tag: foo>
