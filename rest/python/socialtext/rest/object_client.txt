@@ -1,45 +1,51 @@
 Server
 ======
 
-A server is a entry point to a set of workspaces.
+A server is a entry point to a set of workspaces. It has two navigable
+sub-objects: `users` and `workspaces`. `workspaces` offers a mapping
+interface to the workspaces found on a server, keyed by workspace
+name.
 
 >>> import object_client
->>> client = object_client.Server('http://talc.socialtext.net:21024', 'devnull1@socialtext.net', 'd3vnu11l')
+>>> client = object_client.Client('http://talc.socialtext.net:21024', 'devnull1@socialtext.com', 'd3vnu11l')
+>>> client
+<Client talc.socialtext.net:21024 as devnull1@socialtext.com>
 >>> len(client.workspaces)
 7
 >>> sorted(client.workspaces.keys())
-['admin', 'help' ...]
->>> client.workspaces['new_workspace'] = Workspace(title='My Workspace Title')
->>> len(client.workspaces)
-8
->>> client.workspaces['non-existent']
+[u'admin', u'auth-to-edit', u'exchange', u'foobar', u'help', u'public', u'sale']
+>>> client.workspaces[u'non-existent']
+Traceback (most recent call last):
+ ...
+KeyError: u'non-existent'
 
 Workspace
 =========
 
->>> client.workspaces['admin']
-<Workspace: Admin hoozit>
+>>> client.workspaces[u'admin']
+<Workspace Admin Wiki>
 >>> ws = _
->>> len(ws.tags)
 >>> len(ws.pages)
 31
 
 Page
 ====
 
->>> ws['Admin Wiki'] == ws['admin_wiki']
+>>> ws.pages[u'Admin Wiki'] == ws.pages[u'admin_wiki']
 True
->>> ws['Admin Wiki'] # /data/workspaces/admin/pages/Admin Wiki
-<Page: Admin Wiki>
+>>> ws.pages[u'Admin Wiki']
+<Page Admin Wiki>
 >>> page = _
->>> page.tags
-[<Tag: foo>, <Tag: bar>, <Tag: baz>]
 
-Tag
-===
-
->>> page.tags[0]
-<Tag: foo>
->>> tag = _
->>> ws.tags[0]
-<Tag: foo>
+# >>> page.tags
+# [<Tag: foo>, <Tag: bar>, <Tag: baz>]
+# 
+# Tag
+# ===
+# 
+# >>> page.tags[0]
+# <Tag: foo>
+# >>> tag = _
+# >>> ws.tags[0]
+# <Tag: foo>
+# 
