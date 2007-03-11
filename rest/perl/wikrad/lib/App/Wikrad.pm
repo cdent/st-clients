@@ -36,22 +36,35 @@ sub run {
 sub set_page {
     my $self = shift;
     my $page = shift;
+    my $workspace = shift;
     my $no_history = shift;
 
-    croak "no window!" unless $self->{win};
     my $pb = $self->{win}{page_box};
-    croak "no pagebox!" unless $pb;
+    my $wksp = $self->{win}{wksp};
 
-    push @{ $self->{history} }, $pb->text unless $no_history;
+    unless ($no_history) {
+        push @{ $self->{history} }, {
+            page => $pb->text,
+            wksp => $wksp->text,
+        };
+    }
     $pb->text($page);
+    $self->set_workspace($workspace) if $workspace;
     $self->load_page;
+}
+
+sub set_workspace {
+    my $self = shift;
+    my $wksp = shift;
+    $self->{win}{wksp}->text($wksp);
+    $self->{rester}->workspace($wksp);
 }
 
 sub go_back {
     my $self = shift;
-    my $prev_page = pop @{ $self->{history} };
-    if ($prev_page) {
-        $self->set_page($prev_page, 1);
+    my $prev = pop @{ $self->{history} };
+    if ($prev) {
+        $self->set_page($prev->{page}, $prev->{wksp}, 1);
     }
 }
 
@@ -76,6 +89,7 @@ sub load_page {
     }
     $page_text = colorize_text($page_text);
     $self->{win}{viewer}->text($page_text);
+    $self->{win}{viewer}->cursor_to_home;
     $self->{cui}->nostatus;
 }
 

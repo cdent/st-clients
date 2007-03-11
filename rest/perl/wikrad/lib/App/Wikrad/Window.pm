@@ -12,28 +12,29 @@ sub new {
     #######################################
     # Create the Workspace label and field
     #######################################
+    my $wksp_cb = sub { toggle_editable( shift, \&workspace_change ) };
     my $w = $self->{wksp} = $self->add_field('Workspace:', $wksp_cb,
         -text => $App->{rester}->workspace,
-        -width => 15,
-        -x => 12,
+        -width => 18,
+        -x => 1,
     );
 
     #######################################
     # Create the Page label and field
     #######################################
-    my $page_cb = sub { toggle_editable( $p, sub { $App->load_page } ) };
+    my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
     my $p = $self->{page_box} = $self->add_field('Page:', $page_cb,
         -width => 45,
-        -x => 34,
+        -x => 32,
     );
 
     #######################################
     # Create the Tag label and field
     #######################################
-    my $tag_cb = sub { toggle_editable( $t, \&tag_change ) };
-    my $t = $self->{tag} = $self->add_field('Tag', $tag_cb,
+    my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
+    my $t = $self->{tag} = $self->add_field('Tag:', $tag_cb,
         -width => 15,
-        -x => 90,
+        -x => 85,
     );
 
     #######################################
@@ -47,13 +48,15 @@ sub new {
 
     $v->focus;
     $v->set_binding( \&editor, 'e');
-    $v->set_binding( \&choose_link, 'g');
+    $v->set_binding( \&choose_frontlink, 'g');
+    $v->set_binding( \&choose_backlink, 'B');
     $v->set_binding( \&show_help, '?');
     $v->set_binding( \&recently_changed, 'r');
+    $v->set_binding( \&show_uri, 'u');
     $v->set_binding( sub { $v->focus }, 'v' );
-    $v->set_binding( sub { $p->focus; $page_cb->() }, 'p' );
-    $v->set_binding( sub { $w->focus; $wksp_cb->() }, 'w' );
-    $v->set_binding( sub { $t->focus; $tag_cb->() }, 't' );
+    $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p' );
+    $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w' );
+    $v->set_binding( sub { $t->focus; $tag_cb->($t) }, 't' );
     $v->set_binding( sub { $App->go_back }, 'b' );
 
     return $self;
@@ -67,10 +70,12 @@ Help:
  p - set page
  t - show tagged pages
  r - show recently changed pages
+ u - show the uri for the current page
 
  ENTER - jump to page [under cursor]
  e - edit page
- g - go to link on page
+ g - choose a frontlink
+ B - choose a backlink
  b - go back
 
  Ctrl-q / Ctrl-c / q - quit
@@ -101,8 +106,15 @@ sub add_field {
         -readonly => 1,
         %args,
     );
-    $w->set_binding( $cb, KEY_ENTER );
+    $w->set_binding( sub { $cb->($w) }, KEY_ENTER );
     return $w;
+}
+
+sub show_uri {
+    my $r = $App->{rester};
+    my $uri = $r->server . '/' . $r->workspace 
+              . '/index.cgi?' . $App->get_page;
+    $App->{cui}->dialog( -title => "Current page:", -message => $uri );
 }
 
 sub recently_changed {
@@ -120,19 +132,22 @@ sub recently_changed {
     );
 }
 
-sub choose_link {
-    my $text = $App->{win}{viewer}->text;
-    my %links;
-    while ($text =~ m/\[([^\]]+)\]/g) {
-        my $link = $1;
-        next if grep { m/^\Q$link\E$/i } keys %links;
-        $links{$1}++;
-    }
+sub choose_frontlink {
+    choose_link('get_frontlinks', 'Choose a page link');
+}
 
-    my @links = keys %links;
+sub choose_backlink {
+    choose_link('get_backlinks', 'Choose a backlink');
+}
+
+sub choose_link {
+    my $method = shift;
+    my $text = shift;
+    my $page = $App->get_page;
+    my @links = $App->{rester}->$method($page);
     if (@links) {
         $App->{win}->listbox(
-            -title => 'Choose a page link',
+            -title => $text,
             -values => \@links,
             change_cb => sub {
                 my $link = shift;
@@ -158,8 +173,7 @@ sub workspace_change {
     my $new_wksp = $App->{win}{wksp}->text;
     my $r = $App->{rester};
     if ($new_wksp) {
-        $r->workspace($new_wksp);
-        $App->set_page($r->get_homepage);
+        $App->set_page($r->get_homepage, $new_wksp);
     }
     else {
         my @workspaces = $r->get_workspaces;
@@ -168,8 +182,7 @@ sub workspace_change {
             -values => \@workspaces,
             change_cb => sub {
                 my $wksp = shift;
-                $r->workspace($wksp);
-                $App->set_page($r->get_homepage);
+                $App->set_page($r->get_homepage, $wksp);
             },
         );
     }
@@ -201,7 +214,7 @@ sub toggle_editable {
     $w->text($new_text);
 
     if ($readonly) {
-        $w->cursor_to_end;
+        $w->cursor_to_home;
         $w->focus;
     }
     else {
