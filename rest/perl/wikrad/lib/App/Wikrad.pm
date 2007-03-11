@@ -23,7 +23,12 @@ sub new {
 
 sub run {
     my $self = shift;
-    $self->{cui}->set_binding( \&quitter, "\cq");
+
+    my $quitter = sub { $App->quit };
+    $self->{cui}->set_binding( $quitter, "\cq");
+    $self->{cui}->set_binding( $quitter, "\cc");
+    $self->{win}{viewer}->set_binding( $quitter, 'q');
+
     $self->{cui}->reset_curses;
     $self->{cui}->mainloop;
 }

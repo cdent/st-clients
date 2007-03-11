@@ -9,14 +9,17 @@ sub new {
     my $class = shift;
     my $self  = $class->SUPER::new(@_);
 
+    #######################################
+    # Create the Workspace label and field
+    #######################################
     $self->add(undef, 'Label',
         -bold => 1,
         -text => 'Workspace:',
     );
-
     my $w = $self->{wksp} = $self->add('workspace', 'TextEntry', 
         -text => $App->{rester}->workspace,
         -singleline => 1,
+        -sbborder => 1,
         -width => 15,
         -x => 12,
         -readonly => 1,
@@ -24,6 +27,9 @@ sub new {
     my $wksp_cb = sub { toggle_editable( $w, \&workspace_change ) };
     $w->set_binding( $wksp_cb, KEY_ENTER );
 
+    #######################################
+    # Create the Page label and field
+    #######################################
     $self->add( undef, 'Label',
         -bold => 1, 
         -text => 'Page:', 
@@ -31,6 +37,7 @@ sub new {
     );
     my $p = $self->{page_box} = $self->add('page', 'TextEntry', 
         -singleline => 1,
+        -sbborder => 1,
         -width => 45,
         -x => 40,
         -readonly => 1,
@@ -38,6 +45,9 @@ sub new {
     my $page_cb = sub { toggle_editable( $p, sub { $App->load_page } ) };
     $p->set_binding( $page_cb, KEY_ENTER );
 
+    #######################################
+    # Create the Tag label and field
+    #######################################
     $self->add(undef, 'Label',
         -bold => 1,
         -text => 'Tag:',
@@ -45,6 +55,7 @@ sub new {
     );
     my $t = $self->{tag} = $self->add('tag', 'TextEntry', 
         -singleline => 1,
+        -sbborder => 1,
         -width => 15,
         -x => 95,
         -readonly => 1,
@@ -52,6 +63,9 @@ sub new {
     my $tag_cb = sub { toggle_editable( $t, \&tag_change ) };
     $t->set_binding( $tag_cb, KEY_ENTER );
 
+    #######################################
+    # Create the page Viewer
+    #######################################
     my $v = $self->{viewer} = $self->add(
         'viewer', 'App::Wikrad::PageViewer',
         -border => 1,
@@ -59,16 +73,14 @@ sub new {
     );
 
     $v->focus;
-    $v->set_binding( \&quitter, 'q');
     $v->set_binding( \&editor, 'e');
     $v->set_binding( \&choose_link, 'g');
     $v->set_binding( \&show_help, '?');
+    $v->set_binding( \&recently_changed, 'r');
     $v->set_binding( sub { $v->focus }, 'v' );
     $v->set_binding( sub { $p->focus; $page_cb->() }, 'p' );
     $v->set_binding( sub { $w->focus; $wksp_cb->() }, 'w' );
     $v->set_binding( sub { $t->focus; $tag_cb->() }, 't' );
-
-    # Navigation
     $v->set_binding( sub { $App->go_back }, 'b' );
 
     return $self;
@@ -80,11 +92,36 @@ Help:
  ? - show this help
  w - set workspace
  p - set page
+ t - show tagged pages
+ r - show recently changed pages
+
+ ENTER - jump to page [under cursor]
  e - edit page
  g - go to link on page
  b - go back
- Ctrl-q - quit
+
+ Ctrl-q / Ctrl-c / q - quit
 EOT
+}
+
+sub recently_changed {
+    my $r = $App->{rester};
+    $App->{cui}->status('Fetching recent changes ...');
+    my @recent = $r->get_taggedpages('Recent changes');
+    $App->{cui}->nostatus;
+    $App->{win}->listbox(
+        -title => 'Choose a page link',
+        -values => \@recent,
+        change_cb => sub {
+            my $link = shift;
+            $App->set_page($link) if $link;
+        },
+    );
+}
+
+sub listbox {
+    my $self = shift;
+    $App->{win}->add('listbox', 'App::Wikrad::Listbox', @_)->focus;
 }
 
 sub choose_link {
@@ -98,20 +135,14 @@ sub choose_link {
 
     my @links = keys %links;
     if (@links) {
-        my $popup = $App->{win}->add('link_popup', 'Listbox',
+        $App->{win}->listbox(
             -title => 'Choose a page link',
-            -border => 1,
             -values => \@links,
-            -modal => 1,
-            -onchange => sub {
-                my $w = shift;
-                my $link = $w->get;
-                $App->{win}->delete('link_popup');
-                $App->{win}->draw;
+            change_cb => sub {
+                my $link = shift;
                 $App->set_page($link) if $link;
             },
         );
-        $popup->focus;
     }
 }
 
@@ -136,22 +167,15 @@ sub workspace_change {
     }
     else {
         my @workspaces = $r->get_workspaces;
-        my $popup = $App->{win}->add('wksp_popup', 'Listbox',
+        $App->{win}->listbox(
             -title => 'Choose a workspace',
-            -border => 1,
             -values => \@workspaces,
-            -modal => 1,
-            -onchange => sub {
-                my $w = shift;
-                my $wksp = $w->get;
+            change_cb => sub {
+                my $wksp = shift;
                 $r->workspace($wksp);
-
-                $App->{win}->delete('wksp_popup');
-                $App->{win}->draw;
                 $App->set_page($r->get_homepage);
             },
         );
-        $popup->focus;
     }
 }
 
@@ -160,21 +184,14 @@ sub tag_change {
     my $r = $App->{rester};
     if ($tag) {
         my @pages = $r->get_taggedpages($tag);
-        my $popup = $App->{win}->add('tag_popup', 'Listbox',
+        $App->{win}->listbox(
             -title => 'Choose a tagged page',
-            -border => 1,
             -values => \@pages,
-            -modal => 1,
-            -onchange => sub {
-                my $w = shift;
-                my $page = $w->get;
-
-                $App->{win}->delete('tag_popup');
-                $App->{win}->draw;
+            change_cb => sub {
+                my $page = shift;
                 $App->set_page($page) if $page;
             },
         );
-        $popup->focus;
     }
 }
 
