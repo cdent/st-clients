@@ -12,56 +12,29 @@ sub new {
     #######################################
     # Create the Workspace label and field
     #######################################
-    $self->add(undef, 'Label',
-        -bold => 1,
-        -text => 'Workspace:',
-    );
-    my $w = $self->{wksp} = $self->add('workspace', 'TextEntry', 
+    my $w = $self->{wksp} = $self->add_field('Workspace:', $wksp_cb,
         -text => $App->{rester}->workspace,
-        -singleline => 1,
-        -sbborder => 1,
         -width => 15,
         -x => 12,
-        -readonly => 1,
     );
-    my $wksp_cb = sub { toggle_editable( $w, \&workspace_change ) };
-    $w->set_binding( $wksp_cb, KEY_ENTER );
 
     #######################################
     # Create the Page label and field
     #######################################
-    $self->add( undef, 'Label',
-        -bold => 1, 
-        -text => 'Page:', 
+    my $page_cb = sub { toggle_editable( $p, sub { $App->load_page } ) };
+    my $p = $self->{page_box} = $self->add_field('Page:', $page_cb,
+        -width => 45,
         -x => 34,
     );
-    my $p = $self->{page_box} = $self->add('page', 'TextEntry', 
-        -singleline => 1,
-        -sbborder => 1,
-        -width => 45,
-        -x => 40,
-        -readonly => 1,
-    );
-    my $page_cb = sub { toggle_editable( $p, sub { $App->load_page } ) };
-    $p->set_binding( $page_cb, KEY_ENTER );
 
     #######################################
     # Create the Tag label and field
     #######################################
-    $self->add(undef, 'Label',
-        -bold => 1,
-        -text => 'Tag:',
+    my $tag_cb = sub { toggle_editable( $t, \&tag_change ) };
+    my $t = $self->{tag} = $self->add_field('Tag', $tag_cb,
+        -width => 15,
         -x => 90,
     );
-    my $t = $self->{tag} = $self->add('tag', 'TextEntry', 
-        -singleline => 1,
-        -sbborder => 1,
-        -width => 15,
-        -x => 95,
-        -readonly => 1,
-    );
-    my $tag_cb = sub { toggle_editable( $t, \&tag_change ) };
-    $t->set_binding( $tag_cb, KEY_ENTER );
 
     #######################################
     # Create the page Viewer
@@ -104,6 +77,34 @@ Help:
 EOT
 }
 
+sub listbox {
+    my $self = shift;
+    $App->{win}->add('listbox', 'App::Wikrad::Listbox', @_)->focus;
+}
+
+sub add_field {
+    my $self = shift;
+    my $desc = shift;
+    my $cb = shift;
+    my %args = @_;
+    my $x = $args{-x} || 0;
+
+    $self->add(undef, 'Label',
+        -bold => 1,
+        -text => $desc,
+        -x => $x,
+    );
+    $args{-x} = $x + length($desc) + 1;
+    my $w = $self->add(undef, 'TextEntry', 
+        -singleline => 1,
+        -sbborder => 1,
+        -readonly => 1,
+        %args,
+    );
+    $w->set_binding( $cb, KEY_ENTER );
+    return $w;
+}
+
 sub recently_changed {
     my $r = $App->{rester};
     $App->{cui}->status('Fetching recent changes ...');
@@ -117,11 +118,6 @@ sub recently_changed {
             $App->set_page($link) if $link;
         },
     );
-}
-
-sub listbox {
-    my $self = shift;
-    $App->{win}->add('listbox', 'App::Wikrad::Listbox', @_)->focus;
 }
 
 sub choose_link {
