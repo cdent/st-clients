@@ -115,7 +115,11 @@ sub get_page {
         close $fh;
         return $page;
     }
-    return shift @{ $self->{page}{$page_name} };
+    my $text = shift @{ $self->{page}{$page_name} };
+    unless (defined $text) {
+        $text = "$page_name not found";
+    }
+    return $text;
 }
 
 =head2 put_page( $page_name )
@@ -149,7 +153,9 @@ Retrieves page tags stored in the object.
 
 sub get_pagetags {
     my ($self, $page) = @_;
-    return @{ delete($self->{page_tags}{$page}) || [] };
+    my $tags = $self->{page_tags}{$page} || [];
+    return @$tags if wantarray;
+    return join ' ', @$tags;
 }
 
 =head2 die_on_put( $rc )
@@ -186,14 +192,25 @@ sub get_taggedpages {
     my $self = shift;
     my $tag = shift;
 
-    my $tp = $self->{taggedpages}{$tag};
-    return @$tp if ref($tp) eq 'ARRAY';
-    return $tp || '';
+    # makes testing easier
+    my $mock_return = $self->{taggedpages}{$tag};
+    return $mock_return if defined $mock_return;
+
+    my @taggedpages;
+    for my $page (keys %{$self->{page_tags}}) {
+        my $tags = $self->{page_tags}{$page};
+        next unless grep { $_ eq $tag } @$tags;
+        push @taggedpages, $page;
+    }
+    return @taggedpages if wantarray;
+    return join ' ', @taggedpages;
 }
 
 =head2 set_taggedpages( $tag, $return )
 
 Store the taggedpages return value in the object.
+
+This is not a real function, but it can make testing easier.
 
 =cut
 
