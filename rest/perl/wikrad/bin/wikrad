@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Curses qw/KEY_ENTER/;
+use Curses::UI;
+use Socialtext::Resting::Getopt qw/get_rester/;
+
+my $r = get_rester;
+
+my $cui = new Curses::UI( -color_support => 1 );
+my $win = $cui->add( 'main', 'Window');
+$win->add('l_w', 'Label', -bold => 1, -text => 'Workspace:');
+my $workspace = $win->add('workspace', 'TextEntry', 
+    -text => $r->workspace,
+    -singleline => 1,
+    -width => 15,
+    -x => 12,
+    -readonly => 1,
+);
+$workspace->set_binding(
+    sub { toggle_editable( $workspace, \&workspace_change ) },
+    KEY_ENTER
+);
+sub workspace_change {
+    my $new_wksp = $workspace->text;
+    $r->workspace($new_wksp);
+    $cui->dialog("Set workspace to ($new_wksp)");
+}
+
+sub toggle_editable {
+    my $w = shift;
+    my $cb = shift;
+    my $readonly = $w->{'-readonly'};
+
+    my $new_text = $w->text;
+    $new_text =~ s/^\s*(.+?)\s*$/$1/;
+    $w->text($new_text);
+
+    $cb->() if $cb and !$readonly;
+    $w->readonly(!$readonly);
+    $w->set_binding( sub { toggle_editable($w, $cb) }, KEY_ENTER );
+    $w->focus;
+}
+
+my $current_page = shift || 'Luke Closs';
+$win->add('l_p', 'Label', -bold => 1, -text => 'Page', -x => 33);
+my $page = $win->add('page', 'TextEntry', 
+    -text => $current_page,
+    -singleline => 1,
+    -width => 45,
+    -x => 40,
+    -readonly => 1,
+);
+$page->set_binding(
+    sub { toggle_editable( $page, \&load_page_text ) },
+    KEY_ENTER
+);
+
+my $page_viewer = $win->add('viewer', 'TextViewer',
+    -border => 1,
+    -y => 1,
+    -vscrollbar => 1,
+    -wrapping => 1,
+);
+sub load_page_text {
+    my $current_page = $page->text;
+    $cui->status('Loading page...');
+    my $text = $r->get_page($current_page);
+    $page_viewer->text($text);
+    $cui->nostatus;
+}
+load_page_text();
+
+$page_viewer->focus;
+$page_viewer->set_binding( \&quitter, 'q');
+$page_viewer->set_binding( \&editor, 'e');
+
+sub editor {
+    my $workspace = $r->workspace;
+    my $page = $page->text;
+    $cui->status('Editing page');
+    $cui->leave_curses;
+    system("wikedit -w '$workspace' '$page'");
+    $cui->reset_curses;
+    load_page_text();
+}
+
+$cui->set_binding( \&quitter, "\cq");
+$cui->mainloop;
+exit;
+
