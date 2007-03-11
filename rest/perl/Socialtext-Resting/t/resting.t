@@ -5,7 +5,7 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 6;
+plan tests => 7;
 
 my $Strutter = Socialtext::Resting->new(
         username => 'rest-tester@socialtext.com',
@@ -55,6 +55,10 @@ SKIP: {
     my $tagged_pages = $Strutter->get_taggedpages('Taggy');
     like( $tagged_pages, qr/^Test page/,
         "Collection methods behave smart in scalar context" );
+
+    Get_homepage: {
+        is $Strutter->get_homepage, 'socialtext_rest_server_test';
+    }
 }
 
 sub readfile {

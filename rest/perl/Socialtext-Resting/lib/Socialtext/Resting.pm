@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 
 =head1 NAME
 
@@ -61,6 +61,7 @@ Readonly my %ROUTES   => (
     workspaceusers       => $BASE_URI . '/:ws/users',
     user                 => '/data/users/:user_id',
     users                => '/data/users',
+    homepage             => $BASE_URI . '/:ws/homepage',
 );
 
 field 'workspace';
@@ -576,6 +577,9 @@ sub _get_things {
     elsif ( $status == 404 ) {
         return ();
     }
+    elsif ( $status == 302 ) {
+        return $self->response->header('Location');
+    }
     else {
         die "$status: $content\n";
     }
@@ -593,6 +597,20 @@ List all the tags in workspace foo.
 sub get_workspace_tags {
     my $self = shift;
     return $self->_get_things( 'workspacetags' )
+}
+
+=head2 get_homepage
+
+Return the page name of the homepage of the current workspace.
+
+=cut
+
+sub get_homepage {
+    my $self = shift;
+    my $uri = $self->_get_things( 'homepage' );
+    my $workspace = $self->workspace;
+    $uri =~ s#.+/data/workspaces/\Q$workspace\E/pages/(.+)#$1#;
+    return $uri;
 }
 
 =head2 get_backlinks
