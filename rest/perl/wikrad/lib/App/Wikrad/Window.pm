@@ -61,13 +61,30 @@ sub new {
     $v->focus;
     $v->set_binding( \&quitter, 'q');
     $v->set_binding( \&editor, 'e');
-    $v->set_binding( \&choose_link, 'l');
+    $v->set_binding( \&choose_link, 'g');
+    $v->set_binding( \&show_help, '?');
     $v->set_binding( sub { $v->focus }, 'v' );
     $v->set_binding( sub { $p->focus; $page_cb->() }, 'p' );
     $v->set_binding( sub { $w->focus; $wksp_cb->() }, 'w' );
     $v->set_binding( sub { $t->focus; $tag_cb->() }, 't' );
 
+    # Navigation
+    $v->set_binding( sub { $App->go_back }, 'b' );
+
     return $self;
+}
+
+sub show_help {
+    $App->{cui}->dialog(<<EOT);
+Help:
+ ? - show this help
+ w - set workspace
+ p - set page
+ e - edit page
+ g - go to link on page
+ b - go back
+ Ctrl-q - quit
+EOT
 }
 
 sub choose_link {
@@ -83,6 +100,7 @@ sub choose_link {
     if (@links) {
         my $popup = $App->{win}->add('link_popup', 'Listbox',
             -title => 'Choose a page link',
+            -border => 1,
             -values => \@links,
             -modal => 1,
             -onchange => sub {
@@ -120,6 +138,7 @@ sub workspace_change {
         my @workspaces = $r->get_workspaces;
         my $popup = $App->{win}->add('wksp_popup', 'Listbox',
             -title => 'Choose a workspace',
+            -border => 1,
             -values => \@workspaces,
             -modal => 1,
             -onchange => sub {
@@ -143,6 +162,7 @@ sub tag_change {
         my @pages = $r->get_taggedpages($tag);
         my $popup = $App->{win}->add('tag_popup', 'Listbox',
             -title => 'Choose a tagged page',
+            -border => 1,
             -values => \@pages,
             -modal => 1,
             -onchange => sub {

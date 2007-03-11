@@ -11,7 +11,10 @@ our $App;
 
 sub new {
     my $class = shift;
-    $App = { @_ };
+    $App = { 
+        history => [],
+        @_ ,
+    };
     die 'rester is mandatory' unless $App->{rester};
     bless $App, $class;
     $App->_setup_ui;
@@ -28,12 +31,23 @@ sub run {
 sub set_page {
     my $self = shift;
     my $page = shift;
+    my $no_history = shift;
 
     croak "no window!" unless $self->{win};
     my $pb = $self->{win}{page_box};
     croak "no pagebox!" unless $pb;
+
+    push @{ $self->{history} }, $pb->text unless $no_history;
     $pb->text($page);
     $self->load_page;
+}
+
+sub go_back {
+    my $self = shift;
+    my $prev_page = pop @{ $self->{history} };
+    if ($prev_page) {
+        $self->set_page($prev_page, 1);
+    }
 }
 
 sub get_page {
