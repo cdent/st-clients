@@ -7,6 +7,20 @@ use Carp qw/croak/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
 
+our $VERSION = '0.01';
+
+=head1 NAME
+
+App::Wikrad - efficient wiki browsing and editing
+
+=head1 SYNOPSIS
+
+  my $app = App::Wikrad->new(rester => $rester);
+  $app->set_page( $starting_page );
+  $app->run;
+
+=cut
+
 our $App;
 
 sub new {
