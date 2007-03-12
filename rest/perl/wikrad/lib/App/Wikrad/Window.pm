@@ -63,25 +63,35 @@ sub new {
 }
 
 sub show_help {
-    $App->{cui}->dialog(<<EOT);
-Help:
- ? - show this help
+    $App->{cui}->dialog( 
+        -fg => 'yellow',
+        -bg => 'blue',
+        -title => 'Help:',
+        -message => <<EOT);
+Navigation:
  w - set workspace
  p - set page
- t - show tagged pages
- r - show recently changed pages
+ t - choose from tagged pages
+ r - choose from recently changed pages
+ g - choose from the frontlinks
+ B - choose from the backlinks
+ e - open page for edit
+ b - go back
  u - show the uri for the current page
 
- ENTER - jump to page [under cursor]
- n - move to next link
- N - move to previous link
+Movement:
+ ENTER   - jump to page [under cursor]
+ n/N     - move to next/previous link
+ h/l/j/k - left/right/down/up
+ 0/G     - move to beginning/end of page
+ space/- - page down/up
 
- e - edit page
- g - choose a frontlink
- B - choose a backlink
- b - go back
+Search:
+ / - search forward
+ ? - search backwards 
+ (search n/N conflicts with next/prev link)
 
- Ctrl-q / Ctrl-c / q - quit
+Ctrl-q / Ctrl-c / q - quit
 EOT
 }
 
@@ -196,9 +206,11 @@ sub workspace_change {
 }
 
 sub tag_change {
-    my $tag = $App->{win}{tag}->text;
     my $r = $App->{rester};
-    if ($tag) {
+    my $tag = $App->{win}{tag}->text;
+
+    my $chose_tagged_page = sub {
+        my $tag = shift;
         my @pages = $r->get_taggedpages($tag);
         $App->{win}->listbox(
             -title => 'Choose a tagged page',
@@ -206,6 +218,20 @@ sub tag_change {
             change_cb => sub {
                 my $page = shift;
                 $App->set_page($page) if $page;
+            },
+        );
+    };
+    if ($tag) {
+        $chose_tagged_page->($tag);
+    }
+    else {
+        my @tags = $r->get_workspace_tags;
+        $App->{win}->listbox(
+            -title => 'Choose a tag:',
+            -values => \@tags,
+            change_cb => sub {
+                my $tag = shift;
+                $chose_tagged_page->($tag) if $tag;
             },
         );
     }
