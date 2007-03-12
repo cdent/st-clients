@@ -60,6 +60,7 @@ sub set_page {
         push @{ $self->{history} }, {
             page => $pb->text,
             wksp => $wksp->text,
+            pos  => $self->{win}{viewer}{-pos},
         };
     }
     $self->set_workspace($workspace) if $workspace;
@@ -82,6 +83,7 @@ sub go_back {
     my $prev = pop @{ $self->{history} };
     if ($prev) {
         $self->set_page($prev->{page}, $prev->{wksp}, 1);
+        $self->{win}{viewer}{-pos} = $prev->{pos};
     }
 }
 
