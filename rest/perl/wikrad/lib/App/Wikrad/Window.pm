@@ -55,6 +55,7 @@ sub new {
 
     $v->focus;
     $v->set_binding( \&editor,           'e' );
+    $v->set_binding( sub { editor('--pull-includes') }, 'E' );
     $v->set_binding( \&choose_frontlink, 'g' );
     $v->set_binding( \&choose_backlink,  'B' );
     $v->set_binding( \&show_help,        '?' );
@@ -97,6 +98,7 @@ Navigation:
  g - choose from the frontlinks
  B - choose from the backlinks
  e - open page for edit
+ E - open page for edit (--pull-includes)
  b - go back
  u - show the uri for the current page
 
@@ -197,13 +199,14 @@ sub choose_link {
 }
 
 sub editor {
+    my $extra_args = shift || '';
     $App->{cui}->status('Editing page');
     $App->{cui}->leave_curses;
     my $r = $App->{rester};
     my $workspace = $r->workspace;
     my $page = $App->get_page;
     my $server = $r->server;
-    system("wikedit -s '$server' -w '$workspace' '$page'");
+    system("wikedit -s '$server' -w '$workspace' $extra_args '$page'");
     $App->{cui}->reset_curses;
     $App->load_page;
 }
