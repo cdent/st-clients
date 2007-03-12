@@ -4,6 +4,7 @@ use warnings;
 use base 'Curses::UI::Window';
 use Curses qw/KEY_ENTER/;
 use App::Wikrad qw/$App/;
+use Socialtext::Resting;
 
 sub new {
     my $class = shift;
@@ -53,11 +54,25 @@ sub new {
     $v->set_binding( \&show_help,        '?' );
     $v->set_binding( \&recently_changed, 'r' );
     $v->set_binding( \&show_uri,         'u' );
-    $v->set_binding( sub { $v->focus }, 'v' );
-    $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p' );
-    $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w' );
-    $v->set_binding( sub { $t->focus; $tag_cb->($t) },  't' );
+
+    $v->set_binding( sub { $v->focus },  'v' );
+    $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p');
+    $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w');
+    $v->set_binding( sub { $t->focus; $tag_cb->($t) },  't');
+
+    $v->set_binding( sub { $v->viewer_enter }, KEY_ENTER );
     $v->set_binding( sub { $App->go_back }, 'b' );
+
+    # this n/N messes up search next/prev
+    $v->set_binding( sub { $v->next_link },    'n' );
+    $v->set_binding( sub { $v->prev_link },    'N' );
+
+    $v->set_binding( sub { $v->cursor_down },  'j' );
+    $v->set_binding( sub { $v->cursor_up },    'k' );
+    $v->set_binding( sub { $v->cursor_right }, 'l' );
+    $v->set_binding( sub { $v->cursor_left },  'h' );
+    $v->set_binding( sub { $v->cursor_to_home }, '0' );
+    $v->set_binding( sub { $v->cursor_to_end },  'G' );
 
     return $self;
 }
@@ -126,7 +141,8 @@ sub add_field {
 sub show_uri {
     my $r = $App->{rester};
     my $uri = $r->server . '/' . $r->workspace 
-              . '/index.cgi?' . $App->get_page;
+              . '/index.cgi?' 
+              . Socialtext::Resting::_name_to_id($App->get_page);
     $App->{cui}->dialog( -title => "Current page:", -message => $uri );
 }
 

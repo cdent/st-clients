@@ -14,18 +14,6 @@ sub new {
         @_,
     );
 
-    $self->set_binding( sub { $self->viewer_enter }, KEY_ENTER );
-    $self->set_binding( sub { $self->next_link }, 'n' );
-    $self->set_binding( sub { $self->prev_link }, 'N' );
-
-    $self->set_binding( sub { $self->cursor_down }, 'j' );
-    $self->set_binding( sub { $self->cursor_up }, 'k' );
-    $self->set_binding( sub { $self->cursor_right }, 'l' );
-    $self->set_binding( sub { $self->cursor_left }, 'h' );
-
-    $self->set_binding( sub { $self->cursor_to_home }, '0' );
-    $self->set_binding( sub { $self->cursor_to_end }, 'G' );
-
     return $self;
 }
 
@@ -181,39 +169,33 @@ sub draw_text(;$)
             my $make_color = sub {
                 return COLOR_PAIR($co->get_color_pair(shift, 'black'));
             };
+            my $full_line = sub {
+                my ($starting, $colour) = @_;
+                return {
+                    regex => qr/^($starting.+)/,
+                    cb => sub {
+                        my ($i, @matches) = @_;
+                        $replace_segment->($i, '', $matches[0], 
+                                           $make_color->($colour), '');
+                    },
+                };
+            };
+            my $inline = sub {
+                my ($char, $attr) = @_;
+                return {
+                    regex => qr/^(.*?\s)?(\Q$char\E\S.+?\S\Q$char\E\s)(.*)/,
+                    cb => sub {
+                        my ($i, @matches) = @_;
+                        $replace_segment->($i, @matches[0, 1], $attr, $matches[2]);
+                    },
+                };
+            };
             my @wiki_syntax = (
-                { # heading
-                    regex => qr/^(\^.+)/,
-                    cb => sub {
-                        my ($i, @matches) = @_;
-                        $replace_segment->($i, '', $matches[0], 
-                                           $make_color->('magenta'), '');
-                    },
-                },
-                { # list
-                    regex => qr/^(\*+\s.+)/,
-                    cb => sub {
-                        my ($i, @matches) = @_;
-                        $replace_segment->($i, '', $matches[0], 
-                                           $make_color->('green'), '');
-                    },
-                },
-                { # strong
-                    regex => qr/(.*?)(\*\S[^\*]+?\S\*)(.*)/,
-                    cb => sub {
-                        my ($i, @matches) = @_;
-                        $replace_segment->($i, @matches[0, 1], 
-                                           A_BOLD, $matches[2]);
-                    },
-                },
-                { # underline
-                    regex => qr/(.*?)(_\S[^\*]+?\S_)(.*)/,
-                    cb => sub {
-                        my ($i, @matches) = @_;
-                        $replace_segment->($i, @matches[0, 1], 
-                                           A_UNDERLINE, $matches[2]);
-                    },
-                },
+                $full_line->('\^+ ', 'magenta'), # heading
+                $full_line->('\*+ ', 'green'),   # list
+                $inline->('*', A_BOLD), 
+                $inline->('_', A_UNDERLINE), 
+                $inline->('-', A_STANDOUT),
                 { # link
                     regex => qr/(.*?)(\[[^\]]+\])(.*)/,
                     cb => sub {
