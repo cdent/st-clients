@@ -2,7 +2,6 @@ package App::Wikrad;
 use strict;
 use warnings;
 use Curses::UI;
-use Term::ANSIColor ':constants';
 use Carp qw/croak/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
@@ -106,7 +105,6 @@ sub load_page {
                       map {"* [$_]"}
                       @pages;
     }
-    $page_text = colorize_text($page_text);
     $self->{win}{viewer}->text($page_text);
     $self->{win}{viewer}->cursor_to_home;
     $self->{cui}->nostatus;
@@ -117,12 +115,6 @@ sub _setup_ui {
     $self->{cui} = Curses::UI->new( -color_support => 1 );
     $self->{win} = $self->{cui}->add('main', 'App::Wikrad::Window');
     $self->{cui}->leave_curses;
-}
-
-sub colorize_text {
-    my $text = shift;
-
-    return $text;
 }
 
 1;
