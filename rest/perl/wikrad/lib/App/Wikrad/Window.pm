@@ -54,15 +54,15 @@ sub new {
     );
 
     $v->focus;
-    $v->set_binding( \&editor,           'e' );
-    $v->set_binding( sub { editor('--pull-includes') }, 'E' );
     $v->set_binding( \&choose_frontlink, 'g' );
     $v->set_binding( \&choose_backlink,  'B' );
     $v->set_binding( \&show_help,        '?' );
     $v->set_binding( \&recently_changed, 'r' );
     $v->set_binding( \&show_uri,         'u' );
 
-    $v->set_binding( sub { $v->focus },  'v' );
+    $v->set_binding( sub { editor() },                  'e' );
+    $v->set_binding( sub { editor('--pull-includes') }, 'E' );
+    $v->set_binding( sub { $v->focus },                 'v' );
     $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p');
     $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w');
     $v->set_binding( sub { $t->focus; $tag_cb->($t) },  't');
