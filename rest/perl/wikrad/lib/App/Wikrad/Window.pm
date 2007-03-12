@@ -47,16 +47,16 @@ sub new {
     );
 
     $v->focus;
-    $v->set_binding( \&editor, 'e');
-    $v->set_binding( \&choose_frontlink, 'g');
-    $v->set_binding( \&choose_backlink, 'B');
-    $v->set_binding( \&show_help, '?');
-    $v->set_binding( \&recently_changed, 'r');
-    $v->set_binding( \&show_uri, 'u');
+    $v->set_binding( \&editor,           'e' );
+    $v->set_binding( \&choose_frontlink, 'g' );
+    $v->set_binding( \&choose_backlink,  'B' );
+    $v->set_binding( \&show_help,        '?' );
+    $v->set_binding( \&recently_changed, 'r' );
+    $v->set_binding( \&show_uri,         'u' );
     $v->set_binding( sub { $v->focus }, 'v' );
     $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p' );
     $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w' );
-    $v->set_binding( sub { $t->focus; $tag_cb->($t) }, 't' );
+    $v->set_binding( sub { $t->focus; $tag_cb->($t) },  't' );
     $v->set_binding( sub { $App->go_back }, 'b' );
 
     return $self;
@@ -136,27 +136,31 @@ sub recently_changed {
 }
 
 sub choose_frontlink {
-    choose_link('get_frontlinks', 'Choose a page link');
+    choose_link('get_frontlinks', 'page link');
 }
 
 sub choose_backlink {
-    choose_link('get_backlinks', 'Choose a backlink');
+    choose_link('get_backlinks', 'backlink');
 }
 
 sub choose_link {
     my $method = shift;
     my $text = shift;
+    my $arg = shift;
     my $page = $App->get_page;
-    my @links = $App->{rester}->$method($page);
+    my @links = $App->{rester}->$method($page, $arg);
     if (@links) {
         $App->{win}->listbox(
-            -title => $text,
+            -title => "Choose a $text",
             -values => \@links,
             change_cb => sub {
                 my $link = shift;
                 $App->set_page($link) if $link;
             },
         );
+    }
+    else {
+        $App->{cui}->error("No ${text}s");
     }
 }
 
@@ -176,7 +180,7 @@ sub workspace_change {
     my $new_wksp = $App->{win}{wksp}->text;
     my $r = $App->{rester};
     if ($new_wksp) {
-        $App->set_page($r->get_homepage, $new_wksp);
+        $App->set_page(undef, $new_wksp);
     }
     else {
         my @workspaces = $r->get_workspaces;
@@ -185,7 +189,7 @@ sub workspace_change {
             -values => \@workspaces,
             change_cb => sub {
                 my $wksp = shift;
-                $App->set_page($r->get_homepage, $wksp);
+                $App->set_page(undef, $wksp);
             },
         );
     }

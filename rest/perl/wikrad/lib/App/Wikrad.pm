@@ -62,8 +62,11 @@ sub set_page {
             wksp => $wksp->text,
         };
     }
-    $pb->text($page);
     $self->set_workspace($workspace) if $workspace;
+    unless (defined $page) {
+        $page = $self->{rester}->get_homepage;
+    }
+    $pb->text($page);
     $self->load_page;
 }
 

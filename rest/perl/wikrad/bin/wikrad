@@ -11,7 +11,7 @@ my $r = get_rester(
 );
 
 my $app = App::Wikrad->new(rester => $r);
-my $start_page = shift || $r->get_homepage;
+my $start_page = shift;
 $app->set_page($start_page);
 $app->run;
 exit;
