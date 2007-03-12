@@ -73,6 +73,9 @@ Help:
  u - show the uri for the current page
 
  ENTER - jump to page [under cursor]
+ n - move to next link
+ N - move to previous link
+
  e - edit page
  g - choose a frontlink
  B - choose a backlink

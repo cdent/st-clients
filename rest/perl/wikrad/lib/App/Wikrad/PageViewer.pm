@@ -18,12 +18,36 @@ sub new {
     $self->set_binding( sub {}, '' );
 
     $self->set_binding( sub { $self->viewer_enter }, KEY_ENTER );
+    $self->set_binding( sub { $self->next_link }, 'n' );
+    $self->set_binding( sub { $self->prev_link }, 'N' );
     $self->set_binding( sub { $self->cursor_down }, 'j' );
     $self->set_binding( sub { $self->cursor_up }, 'k' );
     $self->set_binding( sub { $self->cursor_right }, 'l' );
     $self->set_binding( sub { $self->cursor_left }, 'h' );
 
     return $self;
+}
+
+sub next_link {
+    my $self = shift;
+    my $pos = $self->{-pos};
+    my $text = $self->get;
+    my $after_text = substr($text, $pos, -1);
+    if ($after_text =~ m/\[(.)/) {
+        my $link_pos = $pos + $-[1];
+        $self->{-pos} = $link_pos;
+    }
+}
+
+sub prev_link {
+    my $self = shift;
+    my $pos = $self->{-pos};
+    my $text = $self->get;
+    my $before_text = reverse substr($text, 0, $pos);
+    if ($before_text =~ m/\](.)/) {
+        my $link_pos = $pos - $-[1] - 1;
+        $self->{-pos} = $link_pos;
+    }
 }
 
 sub viewer_enter {
