@@ -14,16 +14,17 @@ sub new {
         @_,
     );
 
-    # disable all keys
-    $self->set_binding( sub {}, '' );
-
     $self->set_binding( sub { $self->viewer_enter }, KEY_ENTER );
     $self->set_binding( sub { $self->next_link }, 'n' );
     $self->set_binding( sub { $self->prev_link }, 'N' );
+
     $self->set_binding( sub { $self->cursor_down }, 'j' );
     $self->set_binding( sub { $self->cursor_up }, 'k' );
     $self->set_binding( sub { $self->cursor_right }, 'l' );
     $self->set_binding( sub { $self->cursor_left }, 'h' );
+
+    $self->set_binding( sub { $self->cursor_to_home }, '0' );
+    $self->set_binding( sub { $self->cursor_to_end }, 'G' );
 
     return $self;
 }
@@ -92,6 +93,8 @@ sub readonly($;)
     my $this = shift;
     my $readonly = shift;
 
+    # setup key bindings with readonly set to true
+    # so we can't edit this puppy
     $this->SUPER::readonly(1);
     $this->{-readonly} = $readonly;
     return $this;
