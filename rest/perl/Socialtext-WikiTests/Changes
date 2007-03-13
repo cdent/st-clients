@@ -1,4 +1,6 @@
-0.03 - 
+0.03 - Mon Mar 12 21:20:05 PDT 2007
+ - Null now prints out commands
+ - Add util/run-wiki-tests example script
  - test plans that die shouldn't stop all testing
  - fixed st-admin when called with no verify option
 
