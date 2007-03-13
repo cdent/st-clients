@@ -218,7 +218,9 @@ sub workspace_change {
         $App->set_page(undef, $new_wksp);
     }
     else {
+        $App->{cui}->status('Fetching list of workspaces ...');
         my @workspaces = $r->get_workspaces;
+        $App->{cui}->nostatus;
         $App->{win}->listbox(
             -title => 'Choose a workspace',
             -values => \@workspaces,
