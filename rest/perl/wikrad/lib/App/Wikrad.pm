@@ -93,21 +93,27 @@ sub get_page {
 sub load_page {
     my $self = shift;
     my $current_page = $self->{win}{page_box}->text;
-    $self->{cui}->status("Loading page $current_page ...");
-    my $page_text;
-    if ($current_page) {
-        $page_text = $self->{rester}->get_page($current_page);
-    }
-    else {
-        $page_text = "^ Pages:\n\n";
+
+    if (! $current_page) {
+        $self->{cui}->status('Fetching list of pages ...');
         my @pages = $self->{rester}->get_pages;
-        $page_text .= join "\n", 
-                      map {"* [$_]"}
-                      @pages;
+        $self->{cui}->nostatus;
+        $App->{win}->listbox(
+            -title => 'Choose a workspace',
+            -values => \@pages,
+            change_cb => sub {
+                my $page = shift;
+                $App->set_page($page) if $page;
+            },
+        );
+        return;
     }
+
+    $self->{cui}->status("Loading page $current_page ...");
+    my $page_text = $self->{rester}->get_page($current_page);
+    $self->{cui}->nostatus;
     $self->{win}{viewer}->text($page_text);
     $self->{win}{viewer}->cursor_to_home;
-    $self->{cui}->nostatus;
 }
 
 sub _setup_ui {
