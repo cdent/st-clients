@@ -99,7 +99,7 @@ sub load_page {
         my @pages = $self->{rester}->get_pages;
         $self->{cui}->nostatus;
         $App->{win}->listbox(
-            -title => 'Choose a workspace',
+            -title => 'Choose a page',
             -values => \@pages,
             change_cb => sub {
                 my $page = shift;
