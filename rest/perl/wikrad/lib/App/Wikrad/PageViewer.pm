@@ -44,7 +44,6 @@ sub viewer_enter {
     my $pos = $self->{-pos};
     my $text = $self->get;
     my $before_pos = substr($text, 0, $pos);
-    #$cui->dialog("before: ($before_pos)");
 
     my @link_types = (
         [ '{link:? (\S+) \[' => '\]' ],
@@ -56,12 +55,11 @@ sub viewer_enter {
         my ($pre, $post) = @$link;
         if ($before_pos =~ m/$pre([^$post]*)$/) {
             $link_text = $1;
-            if ($2) {
+            if (defined $2) {
                 $link_text = $2;
                 $new_wksp = $1;
             }
             my $after_pos = substr($text, $pos, -1);
-            #$cui->dialog("after ($after_pos)");
             if ($after_pos =~ m/([^$post]*)$post/) {
                 $link_text .= $1;
             }
