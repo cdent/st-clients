@@ -15,7 +15,10 @@ WriteMakefile(
         'JSON'                => 0,
         'YAML'                => 0,
         },
-    EXE_FILES           => ['bin/wikedit'],
+    EXE_FILES           => [
+        'bin/wikedit', 
+        'bin/stu-save-pages',
+    ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Socialtext-Resting-Utils-*' },
 );
