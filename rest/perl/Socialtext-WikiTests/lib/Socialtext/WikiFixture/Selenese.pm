@@ -236,6 +236,18 @@ sub set {
     diag "Set '$name' to '$value'";
 }
 
+=head2 print_page()
+
+Prints the text of the current page loaded into the browser.
+
+=cut
+
+sub print_page {
+    my ($self) = @_;
+
+    print $self->get_text('//body');
+}
+
 =head2 AUTOLOAD
 
 Any functions not specified are passed to Test::WWW::Selenium

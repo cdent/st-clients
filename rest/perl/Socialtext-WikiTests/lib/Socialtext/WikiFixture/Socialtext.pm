@@ -71,8 +71,11 @@ sub st_login {
 
     my $username = shift || $self->{username};
     my $password = shift || $self->{password};
+    my $workspace = shift || $self->{workspace};
 
-    $sel->open_ok('/nlw/login.html');
+    my $url = '/nlw/login.html';
+    $url .= "?redirect_to=\%2F$workspace\%2Findex.cgi" if $workspace;
+    $sel->open_ok($url);
     $sel->type_ok('username', $username);
     $sel->type_ok('password', $password);
     $self->click_and_wait(q{//input[@value='Log in']}, 'log in');

@@ -27,7 +27,7 @@ EOT
     tests => [
         [ 'click_ok' => ['link=Log out', 'log out']],
         [ 'wait_for_page_to_load_ok' => [10000 , 'log out']],
-        [ 'open_ok', '/nlw/login.html' ],
+        [ 'open_ok', '/nlw/login.html?redirect_to=%2Ffoo%2Findex.cgi' ],
         [ 'type_ok', ['username' => 'testuser']],
         [ 'type_ok', ['password' => 'password']],
         [ 'click_ok', [q{//input[@value='Log in']}, 'log in']],
@@ -280,7 +280,7 @@ st_fixture_ok(
 | st-login | foo | bar |
 EOT
     tests => [
-        [ open_ok => '/nlw/login.html' ],
+        [ open_ok => '/nlw/login.html?redirect_to=%2Ffoo%2Findex.cgi' ],
         [ type_ok => ['username', 'foo']],
         [ type_ok => ['password', 'bar']],
         [ click_ok => [q{//input[@value='Log in']}, 'log in']],
@@ -584,7 +584,7 @@ sub st_fixture_ok {
     my $timeout = $args{fixture_args}{selenium_timeout} || 10000;
 
     my $tests = $args{tests};
-    unshift @$tests, [ open_ok => '/nlw/login.html' ],
+    unshift @$tests, [ open_ok => '/nlw/login.html?redirect_to=%2Ffoo%2Findex.cgi' ],
                      [ type_ok => ['username', 'testuser']],
                      [ type_ok => ['password', 'password']],
                      [ click_ok => [q{//input[@value='Log in']}, 'log in']],

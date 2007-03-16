@@ -1,3 +1,7 @@
+0.04 - Not yet released
+ - Added print_page for debugging
+ - Modified socialtext st_login to redirect to the workspace
+
 0.03 - Mon Mar 12 21:20:05 PDT 2007
  - Null now prints out commands
  - Add util/run-wiki-tests example script
