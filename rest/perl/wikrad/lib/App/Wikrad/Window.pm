@@ -59,6 +59,7 @@ sub new {
     $v->set_binding( \&show_help,        '?' );
     $v->set_binding( \&recently_changed, 'r' );
     $v->set_binding( \&show_uri,         'u' );
+    $v->set_binding( \&show_includes,    'i' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -101,6 +102,7 @@ Navigation:
  E - open page for edit (--pull-includes)
  b - go back
  u - show the uri for the current page
+ i - show included pages
 
 Movement:
  ENTER   - jump to page [under cursor]
@@ -152,6 +154,22 @@ sub show_uri {
               . '/index.cgi?' 
               . Socialtext::Resting::_name_to_id($App->get_page);
     $App->{cui}->dialog( -title => "Current page:", -message => $uri );
+}
+
+sub show_includes {
+    my $r = $App->{rester};
+    my $viewer = $App->{win}{viewer};
+    $App->{cui}->status('Fetching included pages ...');
+    my $page_text = $viewer->text;
+    while($page_text =~ m/\{include:? \[(.+?)\]\}/g) {
+        my $included_page = $1;
+        my $included_text = $r->get_page($included_page);
+        my $new_text = "-----Included Page----- [$included_page]\n"
+                       . "$included_text\n";
+        $page_text =~ s/{include:? \[\Q$included_page\E\]}/$new_text/;
+    }
+    $viewer->text($page_text);
+    $App->{cui}->nostatus;
 }
 
 sub recently_changed {
