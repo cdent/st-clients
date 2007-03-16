@@ -148,6 +148,7 @@ sub draw_text(;$)
                 my $old_segment = $segments[$i];
                 my $old_attr = $old_segment->{attr};
                 my @new_segments;
+                $attr = [$attr] unless ref($attr) eq 'ARRAY';
                 push @new_segments, { 
                     attr => $old_attr,
                     text => $pre,
@@ -180,8 +181,9 @@ sub draw_text(;$)
             };
             my $inline = sub {
                 my ($char, $attr) = @_;
+                my $backchar = reverse $char;
                 return {
-                    regex => qr/^(.*?\s)?(\Q$char\E\S.+?\S\Q$char\E\s)(.*)/,
+                    regex => qr/^(.*?\s)?(\Q$char\E\S.+?\S\Q$backchar\E\s)(.*)/,
                     cb => sub {
                         my ($i, @matches) = @_;
                         $replace_segment->($i, @matches[0, 1], $attr, $matches[2]);
@@ -194,6 +196,7 @@ sub draw_text(;$)
                 $inline->('*', A_BOLD), 
                 $inline->('_', A_UNDERLINE), 
                 $inline->('-', A_STANDOUT),
+                $inline->('-----', [A_STANDOUT, $make_color->('yellow')]),
                 { # link
                     regex => qr/(.*?)(\[[^\]]+\])(.*)/,
                     cb => sub {
@@ -219,10 +222,10 @@ sub draw_text(;$)
             # Display the string
             my $len = 0;
             for my $s (@segments) {
-                my $a = $s->{attr};
-                $this->{-canvasscr}->attron($a) if $a;
+                my $a = $s->{attr} || [];
+                $this->{-canvasscr}->attron($_) for @$a;
                 $this->{-canvasscr}->addstr($id, $len, $s->{text});
-                $this->{-canvasscr}->attroff($a) if $a;
+                $this->{-canvasscr}->attroff($_) for @$a;
                 $len += length($s->{text});
             }
         } else {
