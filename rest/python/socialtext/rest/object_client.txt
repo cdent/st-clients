@@ -7,9 +7,9 @@ interface to the workspaces found on a server, keyed by workspace
 name.
 
 >>> import object_client
->>> client = object_client.Client('http://talc.socialtext.net:21024', 'devnull1@socialtext.com', 'd3vnu11l')
+>>> client = object_client.Client('http://fear.socialtext.net:21002', 'devnull1@socialtext.com', 'd3vnu11l')
 >>> client
-<Client talc.socialtext.net:21024 as devnull1@socialtext.com>
+<Client fear.socialtext.net:21002 as devnull1@socialtext.com>
 >>> len(client.workspaces)
 7
 >>> sorted(client.workspaces.keys())
@@ -22,11 +22,13 @@ KeyError: u'non-existent'
 Workspace
 =========
 
+We expect 30 pages because we dispose of one that is totally bogus.
+
 >>> client.workspaces[u'admin']
 <Workspace Admin Wiki>
 >>> ws = _
 >>> len(ws.pages)
-31
+30
 
 Page
 ====

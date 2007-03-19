@@ -131,9 +131,14 @@ class PageCollection:
         self.page_map = {}
         for page_dict in self._fetch_pages_list():
             page_uri = page_dict[u'uri']
-            self.page_map[page_uri] = Page(request=self.request,
-                                           workspace_name=workspace.name,
-                                           page_uri=page_uri)
+            try:
+                self.page_map[page_uri] = Page(request=self.request,
+                                               workspace_name=workspace.name,
+                                              page_uri=page_uri)
+            except ValueError:
+                pass
+                #print 'page was invalid'
+
 
     def _fetch_pages_list(self):
         uri = make_uri('pages', dict(ws=self.workspace.name))
@@ -174,10 +179,7 @@ class Page:
             uri = make_uri('page', {'ws': self.workspace_name, 'pname': page_uri})
             status, content, response = self.request(
                 GET, uri, accept='application/json')
-            try:
-                page = simplejson.loads(content)
-            except ValueError:
-                import pdb;pdb.set_trace()
+            page = simplejson.loads(content)
             self.name = page['name']
 
     def __repr__(self):
