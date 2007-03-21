@@ -37,7 +37,7 @@ sub new {
 sub run {
     my $self = shift;
 
-    my $quitter = sub { $App->quit };
+    my $quitter = sub { exit };
     $self->{cui}->set_binding( $quitter, "\cq");
     $self->{cui}->set_binding( $quitter, "\cc");
     $self->{win}{viewer}->set_binding( $quitter, 'q');
