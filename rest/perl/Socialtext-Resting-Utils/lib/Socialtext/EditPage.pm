@@ -236,8 +236,9 @@ sub _edit_content {
     my $content = shift;
 
     my $filename = _write_file(undef, $content);
+    my $editor   = $ENV{EDITOR} || '/usr/bin/vim';
 
-    system( "$ENV{EDITOR} $filename" );
+    system($editor, $filename);
 
     return _read_file($filename);
 }

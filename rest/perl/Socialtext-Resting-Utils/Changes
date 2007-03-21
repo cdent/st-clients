@@ -5,6 +5,7 @@ Revision history for Socialtext-Utils
     - It's now more like an in-memory Socialtext::Rester
   - Added a primative Socialtext::EditBlog
   - Add stu-save-pages
+  - Use /usr/bin/vim if no $EDITOR
 
 0.11 - Sun Feb 25 10:54:55 PST 2007
   - YAML wiki object only looks for yaml in the first .pre block
