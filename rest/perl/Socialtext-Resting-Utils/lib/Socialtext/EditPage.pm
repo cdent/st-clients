@@ -238,7 +238,8 @@ sub _edit_content {
     my $filename = _write_file(undef, $content);
     my $editor   = $ENV{EDITOR} || '/usr/bin/vim';
 
-    system($editor, $filename);
+    # Unit tests rely on using shell interpolation
+    system("$editor '$filename'");
 
     return _read_file($filename);
 }
