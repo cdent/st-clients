@@ -9,7 +9,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Socialtext::Resting'        => '0.15',
-        'Socialtext::Resting::Utils' => '0.10',
+        'Socialtext::Resting::Utils' => '0.12',
         'Test::More'                 => 0,
     },
     EXE_FILES           => ['bin/st-archive-mail'],
