@@ -1,67 +1,27 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use XML::Liberal;
 use Socialtext::Resting::Getopt qw/get_rester/;
-use LWP::Simple qw/get/;
 use Data::Dumper;
 use Encode;
+use lib 'lib';
+use CPAN::RSS;
 
 $| = 1; # turn on autoflushing
 
-my $rester = get_rester(
-    server => 'http://talc.socialtext.net:21029',
-    username => 'devnull1@socialtext.com',
-    password => 'd3vnu11l',
-    workspace => 'cpan',
-);
+my $rester = get_rester;
 
-my $uri = 'http://search.cpan.org/uploads.rdf';
-my $rdf = get($uri);
-die "Couldn't get rdf" unless $rdf;
-my $parser = XML::Liberal->new( 'LibXML' );
-my $doc = $parser->parse_string($rdf);
+my $releases = CPAN::RSS->new->parse_feed;
 
-print "Fetching latest cpan rss ...\n";
-my @items = $doc->getElementsByTagName('item');
-die "No items in $uri!\n" unless @items;
+my $package_filter = load_package_list( $rester, 'Socialtext CPAN Modules' );
+print Dumper $package_filter;
+if (%$package_filter) {
+    @$releases = grep { $package_filter->{$_->{name}} }
+                 @$releases;
+}
+print Dumper $releases;
+exit;
 my @releases;
-for my $i (@items) {
-    my ($title_elem) = $i->getElementsByTagName('title');
-    my $package_string = $title_elem->textContent;
-    next if $package_string eq 'search.cpan.org';
-    unless ($package_string =~ m/(.+)-(v?\d+(?:\.[\d_]+)+)$/) {
-        die "Couldn't parse version: $package_string";
-    }
-    my %release = (
-        name => $1,
-        version => $2,
-    );
-
-    my ($link_elem)  = $i->getElementsByTagName('link');
-    $release{link} = $link_elem->textContent;
-    $release{pause_id} = $1 if $release{link} =~ m#search\.cpan\.org/~(\w+)/#;
-
-    my ($desc_elem) = $i->getElementsByTagName('description');
-    $release{desc} = $desc_elem ? $desc_elem->textContent : 'No description';
-    my ($author_elem) = $i->getElementsByTagName('dc:creator');
-    $release{author} = $author_elem->textContent;
-
-    push @releases, \%release;
-}
-
-=for comment
-
-{ # example
-    'link' => 'http://search.cpan.org/~dmaki/XML-RSS-LibXML-0.30_01/',
-    'desc' => 'XML::RSS with XML::LibXML',
-    'version'  => '0.30_01',
-    'name'     => 'XML-RSS-LibXML',
-    'author'   => 'Daisuke Maki',
-    'pause_id' => 'dmaki'
-}
-
-=cut
 
 print "Putting releases onto the wiki ...\n";
 my %pause_id;
@@ -101,6 +61,18 @@ EOT
 }
 
 exit;
+
+sub load_package_list {
+    my $rester    = shift;
+    my $page_name = shift;
+    print "Loading '$page_name' from " . $rester->workspace . "\n";
+    my $page = $rester->get_page($page_name);
+    my %packages;
+    while ($page =~ m/^\*\s+(.+)$/mg) {
+        $packages{$1}++;
+    }
+    return \%packages;
+}
 
 sub put_release_on_wiki {
     my $r = shift;
