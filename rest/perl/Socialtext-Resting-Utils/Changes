@@ -1,6 +1,6 @@
 Revision history for Socialtext-Utils
 
-0.12 - not yet released
+0.12 - Wed Mar 21 21:40:29 PDT 2007
   - Refactor Socialtext::Resting::Mock's tag and page handling
     - It's now more like an in-memory Socialtext::Rester
   - Added a primative Socialtext::EditBlog

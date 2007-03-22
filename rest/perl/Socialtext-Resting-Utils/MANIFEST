@@ -1,4 +1,5 @@
 bin/wikedit
+bin/stu-save-pages
 Changes
 lib/Socialtext/EditPage.pm
 lib/Socialtext/WikiObject.pm
