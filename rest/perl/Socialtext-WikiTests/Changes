@@ -1,4 +1,4 @@
-0.04 - Not yet released
+0.04 - Wed Mar 21 14:45:45 PDT 2007
  - Added print_page for debugging
  - Modified socialtext st_login to redirect to the workspace
 

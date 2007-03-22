@@ -1,3 +1,4 @@
+lib/Socialtext/WikiTest.pm
 lib/Socialtext/WikiFixture.pm
 lib/Socialtext/WikiFixture/Selenese.pm
 lib/Socialtext/WikiFixture/Socialtext.pm
