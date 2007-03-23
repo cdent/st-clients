@@ -1,4 +1,4 @@
-package CPAN::RSS;
+package Socialtext::CPANWiki::RSSFeed;
 use strict;
 use warnings;
 use XML::Liberal;
