@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base 'Exporter';
 use Socialtext::Resting::DefaultRester;
-use Getopt::Long qw/:config pass_through/;
+use Getopt::Long qw/:config/;
 our @EXPORT_OK = qw/get_rester rester_usage/;
 
 =head1 NAME
@@ -29,6 +29,7 @@ Create a new rester from command line args.
 
 sub get_rester {
     my %opts = @_;
+    Getopt::Long::Configure('pass_through');
     GetOptions(
         \%opts,
         'server=s',
@@ -37,6 +38,7 @@ sub get_rester {
         'password=s',
         'rester-config=s',
     );
+    Getopt::Long::Configure('no_pass_through');
     return Socialtext::Resting::DefaultRester->new(%opts);
 }
 
