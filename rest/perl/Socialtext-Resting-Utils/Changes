@@ -1,5 +1,8 @@
 Revision history for Socialtext-Utils
 
+0.13 - not yet released
+  - Socialtext::Resting::Getopt doesn't set pass_through globally
+
 0.12 - Wed Mar 21 21:40:29 PDT 2007
   - Refactor Socialtext::Resting::Mock's tag and page handling
     - It's now more like an in-memory Socialtext::Rester
