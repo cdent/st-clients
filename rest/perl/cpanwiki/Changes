@@ -1,3 +1,7 @@
+0.02 - Thu Mar 22 22:12:52 PDT 2007
+* Fix bug when uploading author
+* Add --noskip, to avoid skipping pages that already exist on the wiki
+
 0.01 - Thu Mar 22 17:22:46 PDT 2007
 * Refactored code from one script into modules
 * Added a cpan filter list, loaded from the wiki we're uploading to

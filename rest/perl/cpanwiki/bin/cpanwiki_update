@@ -9,12 +9,15 @@ $| = 1; # turn on autoflushing
 
 my $rester = get_rester;
 my $filter = '';
+my $noskip;
 GetOptions(
     'f|filter-page=s' => \$filter,
+    'noskip'          => \$noskip,
 ) or usage();
 
 Socialtext::CPANWiki->new(
     rester => $rester,
+    noskip => $noskip,
     filter_page => 'Socialtext CPAN Modules',
 )->update;
 

@@ -10,7 +10,7 @@ Socialtext::CPANWiki - Update a wiki with info from the CPAN RSS Feed
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -76,7 +76,7 @@ sub _update_pause_ids {
     print "\nUpdating PAUSE ID pages ...\n" if %$pause_id;
     for my $id (keys %$pause_id) {
         my $author = $pause_id->{$id};
-        put_author_page($id, <<EOT, 'pause_id');
+        $self->_put_author_page($id, <<EOT, 'pause_id');
 [$author]
 
 {include: [$author]}
@@ -125,7 +125,7 @@ sub _put_release_on_wiki {
     print sprintf('%50s ', $release_page);
     $rester->get_page($release_page);
     my $code = $rester->response->code;
-    if ($code eq '200') {
+    if ($code eq '200' and !$self->{noskip}) {
         print "skipping ...\n";
         return 0;
     }
