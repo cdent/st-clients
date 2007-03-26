@@ -1,4 +1,4 @@
-package App::Wikrad;
+package Socialtext::Wikrad;
 use strict;
 use warnings;
 use Curses::UI;
@@ -6,15 +6,15 @@ use Carp qw/croak/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
-App::Wikrad - efficient wiki browsing and editing
+Socialtext::Wikrad - efficient wiki browsing and editing
 
 =head1 SYNOPSIS
 
-  my $app = App::Wikrad->new(rester => $rester);
+  my $app = Socialtext::Wikrad->new(rester => $rester);
   $app->set_page( $starting_page );
   $app->run;
 
@@ -119,7 +119,7 @@ sub load_page {
 sub _setup_ui {
     my $self = shift;
     $self->{cui} = Curses::UI->new( -color_support => 1 );
-    $self->{win} = $self->{cui}->add('main', 'App::Wikrad::Window');
+    $self->{win} = $self->{cui}->add('main', 'Socialtext::Wikrad::Window');
     $self->{cui}->leave_curses;
 }
 

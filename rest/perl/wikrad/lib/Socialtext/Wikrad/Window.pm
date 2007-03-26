@@ -1,9 +1,9 @@
-package App::Wikrad::Window;
+package Socialtext::Wikrad::Window;
 use strict;
 use warnings;
 use base 'Curses::UI::Window';
 use Curses qw/KEY_ENTER/;
-use App::Wikrad qw/$App/;
+use Socialtext::Wikrad qw/$App/;
 use Socialtext::Resting;
 
 sub new {
@@ -48,7 +48,7 @@ sub new {
     # Create the page Viewer
     #######################################
     my $v = $self->{viewer} = $self->add(
-        'viewer', 'App::Wikrad::PageViewer',
+        'viewer', 'Socialtext::Wikrad::PageViewer',
         -border => 1,
         -y      => 1,
     );
@@ -122,7 +122,7 @@ EOT
 
 sub listbox {
     my $self = shift;
-    $App->{win}->add('listbox', 'App::Wikrad::Listbox', @_)->focus;
+    $App->{win}->add('listbox', 'Socialtext::Wikrad::Listbox', @_)->focus;
 }
 
 sub add_field {
@@ -200,7 +200,9 @@ sub choose_link {
     my $text = shift;
     my $arg = shift;
     my $page = $App->get_page;
+    $App->{cui}->status("Fetching ${text}s");
     my @links = $App->{rester}->$method($page, $arg);
+    $App->{cui}->nostatus;
     if (@links) {
         $App->{win}->listbox(
             -title => "Choose a $text",

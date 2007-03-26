@@ -1,6 +1,10 @@
 Changelog:
 
-0.01 - not yet released
+0.02 - Sun Mar 25 16:25:03 PDT 2007
+ - remove references to App::Wikrad
+ - Add status dialog when fetching forward/back links
+
+0.01 - Thu Mar 22 16:06:30 PDT 2007
  - many many things
  - added a status box when fetching list of workspaces
  - use a listbox for list of pages

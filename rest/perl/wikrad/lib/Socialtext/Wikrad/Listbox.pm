@@ -1,9 +1,9 @@
-package App::Wikrad::Listbox;
+package Socialtext::Wikrad::Listbox;
 use strict;
 use warnings;
 use base 'Curses::UI::Listbox';
 use Curses qw/KEY_ENTER/;
-use App::Wikrad qw/$App/;
+use Socialtext::Wikrad qw/$App/;
 
 sub new {
     my $class = shift;
