@@ -1,17 +1,32 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Socialtext::Resting::Getopt qw/get_rester/;
+use Socialtext::Resting::Getopt qw/get_rester rester_usage/;
 use lib 'lib';
 use Socialtext::Wikrad;
+use Getopt::Long;
 
 my $r = get_rester(
     server => 'https://www.socialtext.net',
     workspace => 'stoss',
 );
 
+GetOptions(
+) or usage();
+usage() unless $r->server and $r->workspace and $r->username and $r->password;
+
 my $app = Socialtext::Wikrad->new(rester => $r);
 my $start_page = shift;
 $app->set_page($start_page);
 $app->run;
 exit;
+
+sub usage {
+    my $rester_usage = rester_usage();
+    die <<EOT;
+USAGE: wikrad [<rester options>] ['Page Name']
+
+$rester_usage
+EOT
+}
+
