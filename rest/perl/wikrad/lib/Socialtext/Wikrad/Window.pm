@@ -153,7 +153,7 @@ sub show_uri {
     my $uri = $r->server . '/' . $r->workspace 
               . '/index.cgi?' 
               . Socialtext::Resting::_name_to_id($App->get_page);
-    $App->{cui}->dialog( -title => "Current page:", -message => $uri );
+    $App->{cui}->dialog( -title => "Current page:", -message => " $uri" );
 }
 
 sub show_includes {
