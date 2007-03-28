@@ -6,14 +6,13 @@ use lib 'lib';
 use Socialtext::Wikrad;
 use Getopt::Long;
 
-my $r = get_rester(
-    server => 'https://www.socialtext.net',
-    workspace => 'stoss',
-);
+my $r = get_rester(); # reads @ARGV and ~/.wikeditrc
+$r->server('https://www.socialtext.net') unless $r->server;
+$r->workspace('stoss') unless $r->workspace;
 
 GetOptions(
 ) or usage();
-usage() unless $r->server and $r->workspace and $r->username and $r->password;
+usage() unless $r->username and $r->password;
 
 my $app = Socialtext::Wikrad->new(rester => $r);
 my $start_page = shift;
@@ -29,4 +28,3 @@ USAGE: wikrad [<rester options>] ['Page Name']
 $rester_usage
 EOT
 }
-
