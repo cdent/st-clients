@@ -60,6 +60,7 @@ sub new {
     $v->set_binding( \&recently_changed, 'r' );
     $v->set_binding( \&show_uri,         'u' );
     $v->set_binding( \&show_includes,    'i' );
+    $v->set_binding( \&clone_page,       'c' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -103,6 +104,7 @@ Navigation:
  b - go back
  u - show the uri for the current page
  i - show included pages
+ c - clone this page
 
 Movement:
  ENTER   - jump to page [under cursor]
@@ -154,6 +156,20 @@ sub show_uri {
               . '/index.cgi?' 
               . Socialtext::Resting::_name_to_id($App->get_page);
     $App->{cui}->dialog( -title => "Current page:", -message => " $uri" );
+}
+
+sub clone_page {
+    my $r = $App->{rester};
+    my $template_page = $App->get_page;
+    my $template = $r->get_page($template_page);
+    my $new_page = $App->{cui}->question("Title for new page:");
+    $App->{cui}->status("Creating page ...");
+    $r->put_page($new_page, $template);
+    my @tags = $r->get_pagetags($template_page);
+    $r->put_pagetag($new_page, $_) for @tags;
+    $App->{cui}->nostatus;
+
+    $App->set_page($new_page);
 }
 
 sub show_includes {
