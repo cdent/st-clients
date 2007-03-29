@@ -1,0 +1,8 @@
+#!/bin/bash
+export PERL5LIB='/home/lukec/svnwiki/lib'
+
+svnnotify --repos-path "$1" --revision "$2" \
+            --handler Wiki \
+            --to '/home/lukec/svnwiki/svn-rester.conf' \
+            --svnlook /usr/bin/svnlook
+
