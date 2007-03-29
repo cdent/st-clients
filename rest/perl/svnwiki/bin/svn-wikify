@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+use FindBin;
+$ENV{PERL5LIB} = "$FindBin::Bin/../lib";
+
+my $rp = shift;
+my $rev = shift;
+system("svnnotify --repos-path '$rp' --revision '$rev' "
+	. "--handler Wiki "
+	. "--to '$FindBin::Bin/../svn-rester.conf' "
+	. "--svnlook /usr/bin/svnlook");
+
