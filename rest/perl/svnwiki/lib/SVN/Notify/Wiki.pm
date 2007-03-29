@@ -30,7 +30,7 @@ sub execute {
     my $repo = _short_repo_name($self->{repos_path});
     my $page_name = "$repo - r$self->{revision}";
     my $branch = $self->_branch_prefix || 'trunk';
-    my @tags = ('revision', $author, $branch, $repo);
+    my @tags = ('revision', "author:$author", "branch:$branch", "repo:$repo");
     my $page = <<EOT;
 ^^ r$self->{revision} - $author, $date
 *Comment:*
@@ -47,7 +47,7 @@ EOT
             $page .= "* $file\n";
 	    (my $filename = $file) =~ s#.+/##;
 	    $file =~ s/\//_/g;
-            push @tags, $file, $filename;
+            push @tags, "path:$file", "filename:$filename";
         }
     }
 
