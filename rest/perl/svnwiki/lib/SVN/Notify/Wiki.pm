@@ -45,15 +45,19 @@ EOT
         no strict 'refs';
         for my $file (@{ $$type }) {
             $page .= "* $file\n";
-	    (my $filename = $file) =~ s#.+/##;
-	    $file =~ s/\//_/g;
-            push @tags, "path:$file", "filename:$filename";
+	    next if @{ $$type } > 50;
+	    (my $filetag = $file) =~ s/\//_/g;
+            push @tags, "path:$filetag";
         }
     }
 
     $page .= "\n^^ Diff\n";
+    for my $file (@$added) {
+	my $file_text = $self->read_svn_file($file);
+	$page .= "^^^ Added: `$file`\n.pre\n$file_text\n.pre\n\n";
+    }
     for my $file (keys %diffs) {
-        $page .= "^^^ `$file`\n.pre\n$diffs{$file}\n.pre\n\n";
+	$page .= "^^^ Modified: `$file`\n.pre\n$diffs{$file}\n.pre\n\n";
     }
 
     my $r = get_rester('rester-config' => $self->{to});
@@ -67,6 +71,17 @@ EOT
         $r->put_pagetag($page_name, $_);
     }
     print "\n";
+}
+
+sub read_svn_file {
+    my $self = shift;
+    my $file = shift;
+
+    my $svnlook = $self->svnlook;
+    my $repos_path = $self->repos_path;
+    my $revision   = $self->revision;
+    my $content = qx($svnlook cat -r $revision $repos_path $file 2>&1);
+    return $content;
 }
 
 sub _branch_prefix {
