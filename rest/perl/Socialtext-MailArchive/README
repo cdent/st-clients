@@ -9,3 +9,5 @@ Hook st-archive-mail into your /etc/aliases file on your mailserver like this:
 user-on-a-mailing-list: |/usr/bin/st-archive-mail \
   --server <your socialtext server> --username <username> \
   --password <password> --workspace <workspace>
+
+More information at https://www.socialtext.net/stoss/index.cgi?wiki_list_archiving
