@@ -223,7 +223,8 @@ sub st_watch_page {
         }
         $row++;
     }
-    ok $found_page, "st-watch-page $watch_on - $page_name";
+    ok $found_page, "st-watch-page $watch_on - $page_name"
+        unless $ENV{ST_WF_TEST};
 }
 
 sub _watch_page_xpath {

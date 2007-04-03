@@ -10,12 +10,14 @@ BEGIN {
     use_ok 'Socialtext::WikiObject::TestPlan';
 }
 
+local $ENV{ST_WF_TEST} = 1;
+
 st_fixture_ok(
     plan => <<EOT,
 | st-page-title | monkey |
 EOT
     tests => [
-        [ 'text_like' => ['id=st-page-title', qr/\Qmonkey\E/]],
+        [ 'text_like' => ['id=st-list-title', qr/\Qmonkey\E/]],
     ],
 );
 
@@ -94,18 +96,18 @@ EOT
     ],
     tests => [
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img/@alt} ],
+          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img/@alt} ],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img/@alt} ],
+          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img/@alt} ],
         [ 'click_ok' => 
-          [ q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img},
+          [ q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img},
             'clicking watch button'] ],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img/@src}],
+          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img/@src}],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img/@src}],
+          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img/@src}],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img/@src}],
+          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img/@src}],
     ],
 );
 
@@ -121,14 +123,14 @@ EOT
     ],
     tests => [
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img/@alt} ],
+          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img/@alt} ],
         [ 'click_ok' => 
-          [ q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img},
+          [ q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img},
             'clicking watch button'] ],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img/@src}],
+          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img/@src}],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img/@src}],
+          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img/@src}],
     ],
 );
 
@@ -160,9 +162,9 @@ EOT
     ],
     tests => [
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[1]/img/@alt} ],
+          q{//table[@id='st-watchlist-content']/tbody/tr[2]/td[2]/img/@alt} ],
         [ 'get_attribute' => 
-          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[1]/img/@alt} ],
+          q{//table[@id='st-watchlist-content']/tbody/tr[3]/td[2]/img/@alt} ],
     ],
 );
 
@@ -201,7 +203,7 @@ EOT
         [ 'type_ok' => [ q{st-search-term}, 'foo' ] ],
         [ 'click_ok' => 'link=Search' ],
         [ 'wait_for_page_to_load_ok' => 10000 ],
-        [ 'text_like' => ['id=st-page-title', qr/\Qbar\E/] ],
+        [ 'text_like' => ['id=st-list-title', qr/\Qbar\E/] ],
     ],
 );
 

@@ -47,7 +47,7 @@ Recursive_plan_with_default_fixture: {
 * [Plan2]
 EOT
         pages => { 
-            'Plan1' => "* Fixture: Null\n| die |\n",
+            'Plan1' => "* Fixture: Null\n| bar |\n",
             'Plan2' => "* Fixture: Null\n| foo |\n",
         },
         tp_args => { default_fixture => 'Null' },
