@@ -53,7 +53,7 @@ sub set_page {
     my $no_history = shift;
 
     my $pb = $self->{win}{page_box};
-    my $wksp = $self->{win}{wksp};
+    my $wksp = $self->{win}{workspace_box};
 
     unless ($no_history) {
         push @{ $self->{history} }, {
@@ -73,7 +73,7 @@ sub set_page {
 sub set_workspace {
     my $self = shift;
     my $wksp = shift;
-    $self->{win}{wksp}->text($wksp);
+    $self->{win}{workspace_box}->text($wksp);
     $self->{rester}->workspace($wksp);
 }
 

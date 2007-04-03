@@ -10,49 +10,10 @@ sub new {
     my $class = shift;
     my $self  = $class->SUPER::new(@_);
 
-    #######################################
-    # Create the Workspace label and field
-    #######################################
-    my $wksp_cb = sub { toggle_editable( shift, \&workspace_change ) };
-    my $w = $self->{wksp} = $self->add_field('Workspace:', $wksp_cb,
-        -text => $App->{rester}->workspace,
-        -width => 18,
-        -x => 1,
-    );
+    $self->_create_ui_widgets;
 
-    #######################################
-    # Create the Page label and field
-    #######################################
-    my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
-    my $p = $self->{page_box} = $self->add_field('Page:', $page_cb,
-        -width => 45,
-        -x => 32,
-    );
-
-    #######################################
-    # Create the Tag label and field
-    #######################################
-    my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
-    my $t = $self->{tag} = $self->add_field('Tag:', $tag_cb,
-        -width => 15,
-        -x => 85,
-    );
-
-    $self->add(undef, 'Label',
-        -x => 107,
-        -bold => 1,
-        -text => "Help: hit '?'"
-    );
-
-    #######################################
-    # Create the page Viewer
-    #######################################
-    my $v = $self->{viewer} = $self->add(
-        'viewer', 'Socialtext::Wikrad::PageViewer',
-        -border => 1,
-        -y      => 1,
-    );
-
+    my ($v, $p, $w, $t) = map { $self->{$_} } 
+                          qw/viewer page_box workspace_box tag_box/;
     $v->focus;
     $v->set_binding( \&choose_frontlink, 'g' );
     $v->set_binding( \&choose_backlink,  'B' );
@@ -65,9 +26,9 @@ sub new {
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
     $v->set_binding( sub { $v->focus },                 'v' );
-    $v->set_binding( sub { $p->focus; $page_cb->($p) }, 'p');
-    $v->set_binding( sub { $w->focus; $wksp_cb->($w) }, 'w');
-    $v->set_binding( sub { $t->focus; $tag_cb->($t) },  't');
+    $v->set_binding( sub { $p->focus; $self->{cb}{page}->($p) },      'p' );
+    $v->set_binding( sub { $w->focus; $self->{cb}{workspace}->($w) }, 'w' );
+    $v->set_binding( sub { $t->focus; $self->{cb}{tag}->($t) },       't' );
 
     $v->set_binding( sub { $v->viewer_enter }, KEY_ENTER );
     $v->set_binding( sub { $App->go_back }, 'b' );
@@ -120,6 +81,55 @@ Search:
 
 Ctrl-q / Ctrl-c / q - quit
 EOT
+}
+
+sub _create_ui_widgets {
+    my $self = shift;
+    #######################################
+    # Create the Workspace label and field
+    #######################################
+    my $wksp_cb = sub { toggle_editable( shift, \&workspace_change ) };
+    $self->{cb}{workspace} = $wksp_cb;
+    $self->{workspace_box} = $self->add_field('Workspace:', $wksp_cb,
+        -text => $App->{rester}->workspace,
+        -width => 18,
+        -x => 1,
+    );
+
+    #######################################
+    # Create the Page label and field
+    #######################################
+    my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
+    $self->{cb}{page} = $page_cb;
+    $self->{page_box} = $self->add_field('Page:', $page_cb,
+        -width => 45,
+        -x => 32,
+    );
+
+    #######################################
+    # Create the Tag label and field
+    #######################################
+    my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
+    $self->{cb}{tag} = $tag_cb;
+    $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
+        -width => 15,
+        -x => 85,
+    );
+
+    $self->add(undef, 'Label',
+        -x => 107,
+        -bold => 1,
+        -text => "Help: hit '?'"
+    );
+
+    #######################################
+    # Create the page Viewer
+    #######################################
+    $self->{viewer} = $self->add(
+        'viewer', 'Socialtext::Wikrad::PageViewer',
+        -border => 1,
+        -y      => 1,
+    );
 }
 
 sub listbox {
@@ -248,7 +258,7 @@ sub editor {
 }
 
 sub workspace_change {
-    my $new_wksp = $App->{win}{wksp}->text;
+    my $new_wksp = $App->{win}{workspace_box}->text;
     my $r = $App->{rester};
     if ($new_wksp) {
         $App->set_page(undef, $new_wksp);
@@ -270,7 +280,7 @@ sub workspace_change {
 
 sub tag_change {
     my $r = $App->{rester};
-    my $tag = $App->{win}{tag}->text;
+    my $tag = $App->{win}{tag_box}->text;
 
     my $chose_tagged_page = sub {
         my $tag = shift;
