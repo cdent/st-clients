@@ -61,9 +61,10 @@ sub init {
         die "Selenium browser_url is mandatory!" unless $self->{browser_url};
 
         $self->{selenium} = Test::WWW::Selenium->new(
-            host => $self->{host},
-            port => $self->{port} || 4444,
+            host        => $self->{host},
+            port        => $self->{port} || 4444,
             browser_url => $self->{browser_url},
+            browser     => $ENV{selenium_browser} || '*firefox',
         );
         $self->{_started_selenium}++;
     }

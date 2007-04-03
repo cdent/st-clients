@@ -1,4 +1,8 @@
 0.04 - Not yet released
+ - Added a failing test if a testplan dies
+ - updated Socialtext ids based on UI changes
+ - Made Socialtext watchlist code more robust
+ - Change the selenium browser with $ENV{selenium_browser}
  - Added print_page for debugging
  - Modified socialtext st_login to redirect to the workspace
 

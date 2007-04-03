@@ -2,6 +2,7 @@ package Socialtext::WikiObject::TestPlan;
 use strict;
 use warnings;
 use base 'Socialtext::WikiObject';
+use Test::More;
 
 =head1 NAME
 
@@ -9,7 +10,7 @@ Socialtext::WikiObject::TestPlan - Load wiki pages as Test plan objects
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
@@ -123,7 +124,7 @@ sub _recurse_testplans {
             fixture_args => $self->{fixture_args},
         );
         eval { $plan->run_tests };
-        warn "Error during test plan $page: $@\n" if $@;
+        ok 0, "Error during test plan $page: $@" if $@;
     }
 }
 

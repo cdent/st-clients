@@ -115,7 +115,7 @@ Verifies that the page title (NOT HTML title) is correct.
 
 sub st_page_title {
     my ($self, $expected_title) = @_;
-    $self->{selenium}->text_like('id=st-page-title', qr/\Q$expected_title\E/);
+    $self->{selenium}->text_like('id=st-list-title', qr/\Q$expected_title\E/);
 }
 
 =head2 st_search( $search_term, $expected_result_title )
@@ -131,7 +131,7 @@ sub st_search {
     $sel->type_ok('st-search-term', $opt1);
     $sel->click_ok('link=Search');
     $sel->wait_for_page_to_load_ok($self->{selenium_timeout});
-    $sel->text_like('id=st-page-title', qr/\Q$opt2\E/);
+    $sel->text_like('id=st-list-title', qr/\Q$opt2\E/);
 }
 
 =head2 st_result( $expected_result )
@@ -206,17 +206,24 @@ sub st_watch_page {
     # We need to find which row the page we're interested in is in
     my $sel = $self->{selenium};
     my $row = 2; # starts at 1, which is the table header
+    my $found_page = 0;
+    (my $short_name = lc($page_name)) =~ s/\s/_/g;
     while (1) {
-        my $xpath = qq{//table[\@id='st-watchlist-content']/tbody/tr[$row]/td[1]/img};
+        my $xpath = qq{//table[\@id='st-watchlist-content']/tbody/tr[$row]/td[2]/img};
         my $alt;
         eval { $alt = $sel->get_attribute("$xpath/\@alt") };
         last unless $alt;
-        if ($alt eq lc($page_name)) {
+        if ($alt eq $short_name) {
             $self->_watch_page_xpath($xpath, $watch_re);
+            $found_page++;
             last;
+        }
+        else {
+            warn "# Looking at watchlist for ($short_name), found ($alt)\n";
         }
         $row++;
     }
+    ok $found_page, "st-watch-page $watch_on - $page_name";
 }
 
 sub _watch_page_xpath {
