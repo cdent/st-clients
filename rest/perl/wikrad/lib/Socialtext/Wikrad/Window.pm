@@ -284,7 +284,13 @@ sub tag_change {
 
     my $chose_tagged_page = sub {
         my $tag = shift;
+        $App->{cui}->status('Fetching tagged pages ...');
         my @pages = $r->get_taggedpages($tag);
+        $App->{cui}->nostatus;
+        if (@pages == 0) {
+            $App->{cui}->dialog("No pages tagged '$tag' found ...");
+            return;
+        }
         $App->{win}->listbox(
             -title => 'Choose a tagged page',
             -values => \@pages,
@@ -298,7 +304,9 @@ sub tag_change {
         $chose_tagged_page->($tag);
     }
     else {
+        $App->{cui}->status('Fetching workspace tags ...');
         my @tags = $r->get_workspace_tags;
+        $App->{cui}->nostatus;
         $App->{win}->listbox(
             -title => 'Choose a tag:',
             -values => \@tags,
