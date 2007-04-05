@@ -15,7 +15,7 @@ sub handler {
     my $r = shift;
 
     my $rester = get_rester(
-        'rester-config' => '/home/lukec/devblogs/stoss-rester.conf',
+        'rester-config' => '/etc/stoss-rester.conf',
     );
     die "no server!" unless $rester->server; 
 
