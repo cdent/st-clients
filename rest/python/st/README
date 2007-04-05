@@ -1,0 +1,20 @@
+-=-=-
+st
+
+This is a TurboGears (http://www.turbogears.org) project. It can be
+started by running the start-st.py script.
+-=-=-
+
+A Turbogears app that is a client of the Socialtext REST API.
+Based on the Turbogears 20 minute Wiki Tutorial.
+
+Started by cdent and matthew for the April 2007 wikithon.
+Still more to do.
+
+Requires:
+
+ turbogears: http://turbogears.org
+ simplejson: http://undefined.org/python/
+ socialtext.rest.simple_client:
+   https://repo.socialtext.net:8999/svn/socialtext-clients/trunk/rest/python/socialtext
+

@@ -1,0 +1,2 @@
+db_module=st.model
+history_dir=$base/st/sqlobject-history
