@@ -230,8 +230,13 @@ class RESTClient:
         return urllib.quote(uri % replacements)
 
     def _extend_uri(self, uri):
-        return "%s?%s" % (uri, urllib.urlencode(dict(filter=self.filter,
-            q=self.query, order=self.order, count=self.count)))
+        params = {}
+        for attr in ['filter', 'count', 'order', 'query']:
+            name = attr
+            if name == 'query': name = 'q'
+            if self.__dict__.has_key(attr):
+                params[name] = self.__dict__[attr]
+        return "%s?%s" % (uri, urllib.urlencode(params))
 
     def _get_collection(self, collection, replacements=None):
         replacements = replacements or {}
