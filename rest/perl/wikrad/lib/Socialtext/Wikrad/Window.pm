@@ -5,6 +5,8 @@ use base 'Curses::UI::Window';
 use Curses qw/KEY_ENTER/;
 use Socialtext::Wikrad qw/$App/;
 use Socialtext::Resting;
+use JSON;
+use Data::Dumper;
 
 sub new {
     my $class = shift;
@@ -22,6 +24,7 @@ sub new {
     $v->set_binding( \&show_uri,         'u' );
     $v->set_binding( \&show_includes,    'i' );
     $v->set_binding( \&clone_page,       'c' );
+    $v->set_binding( \&show_metadata,    'm' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -66,6 +69,7 @@ Navigation:
  u - show the uri for the current page
  i - show included pages
  c - clone this page
+ m - show page metadata (tags, revision)
 
 Movement:
  ENTER   - jump to page [under cursor]
@@ -83,81 +87,18 @@ Ctrl-q / Ctrl-c / q - quit
 EOT
 }
 
-sub _create_ui_widgets {
-    my $self = shift;
-    #######################################
-    # Create the Workspace label and field
-    #######################################
-    my $wksp_cb = sub { toggle_editable( shift, \&workspace_change ) };
-    $self->{cb}{workspace} = $wksp_cb;
-    $self->{workspace_box} = $self->add_field('Workspace:', $wksp_cb,
-        -text => $App->{rester}->workspace,
-        -width => 18,
-        -x => 1,
+sub show_metadata {
+    my $r = $App->{rester};
+    $App->{cui}->status('Fetching page metadata ...');
+    $r->accept('application/json');
+    my $page_name = $App->get_page;
+    my $json_text = $r->get_page($page_name);
+    my $page_data = jsonToObj($json_text);
+    $App->{cui}->nostatus;
+    $App->{cui}->dialog(
+        -title => "$page_name metadata",
+        -message => Dumper $page_data,
     );
-
-    #######################################
-    # Create the Page label and field
-    #######################################
-    my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
-    $self->{cb}{page} = $page_cb;
-    $self->{page_box} = $self->add_field('Page:', $page_cb,
-        -width => 45,
-        -x => 32,
-    );
-
-    #######################################
-    # Create the Tag label and field
-    #######################################
-    my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
-    $self->{cb}{tag} = $tag_cb;
-    $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
-        -width => 15,
-        -x => 85,
-    );
-
-    $self->add(undef, 'Label',
-        -x => 107,
-        -bold => 1,
-        -text => "Help: hit '?'"
-    );
-
-    #######################################
-    # Create the page Viewer
-    #######################################
-    $self->{viewer} = $self->add(
-        'viewer', 'Socialtext::Wikrad::PageViewer',
-        -border => 1,
-        -y      => 1,
-    );
-}
-
-sub listbox {
-    my $self = shift;
-    $App->{win}->add('listbox', 'Socialtext::Wikrad::Listbox', @_)->focus;
-}
-
-sub add_field {
-    my $self = shift;
-    my $desc = shift;
-    my $cb = shift;
-    my %args = @_;
-    my $x = $args{-x} || 0;
-
-    $self->add(undef, 'Label',
-        -bold => 1,
-        -text => $desc,
-        -x => $x,
-    );
-    $args{-x} = $x + length($desc) + 1;
-    my $w = $self->add(undef, 'TextEntry', 
-        -singleline => 1,
-        -sbborder => 1,
-        -readonly => 1,
-        %args,
-    );
-    $w->set_binding( sub { $cb->($w) }, KEY_ENTER );
-    return $w;
 }
 
 sub show_uri {
@@ -338,6 +279,83 @@ sub toggle_editable {
     $cb->() if $cb and !$readonly;
     $w->readonly(!$readonly);
     $w->set_binding( sub { toggle_editable($w, $cb) }, KEY_ENTER );
+}
+
+sub _create_ui_widgets {
+    my $self = shift;
+    #######################################
+    # Create the Workspace label and field
+    #######################################
+    my $wksp_cb = sub { toggle_editable( shift, \&workspace_change ) };
+    $self->{cb}{workspace} = $wksp_cb;
+    $self->{workspace_box} = $self->add_field('Workspace:', $wksp_cb,
+        -text => $App->{rester}->workspace,
+        -width => 18,
+        -x => 1,
+    );
+
+    #######################################
+    # Create the Page label and field
+    #######################################
+    my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
+    $self->{cb}{page} = $page_cb;
+    $self->{page_box} = $self->add_field('Page:', $page_cb,
+        -width => 45,
+        -x => 32,
+    );
+
+    #######################################
+    # Create the Tag label and field
+    #######################################
+    my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
+    $self->{cb}{tag} = $tag_cb;
+    $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
+        -width => 15,
+        -x => 85,
+    );
+
+    $self->add(undef, 'Label',
+        -x => 107,
+        -bold => 1,
+        -text => "Help: hit '?'"
+    );
+
+    #######################################
+    # Create the page Viewer
+    #######################################
+    $self->{viewer} = $self->add(
+        'viewer', 'Socialtext::Wikrad::PageViewer',
+        -border => 1,
+        -y      => 1,
+    );
+}
+
+sub listbox {
+    my $self = shift;
+    $App->{win}->add('listbox', 'Socialtext::Wikrad::Listbox', @_)->focus;
+}
+
+sub add_field {
+    my $self = shift;
+    my $desc = shift;
+    my $cb = shift;
+    my %args = @_;
+    my $x = $args{-x} || 0;
+
+    $self->add(undef, 'Label',
+        -bold => 1,
+        -text => $desc,
+        -x => $x,
+    );
+    $args{-x} = $x + length($desc) + 1;
+    my $w = $self->add(undef, 'TextEntry', 
+        -singleline => 1,
+        -sbborder => 1,
+        -readonly => 1,
+        %args,
+    );
+    $w->set_binding( sub { $cb->($w) }, KEY_ENTER );
+    return $w;
 }
 
 1;

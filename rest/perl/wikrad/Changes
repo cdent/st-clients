@@ -1,6 +1,8 @@
 Changelog:
 
 0.04 - not yet released
+ - Added 'm' to view page meta data.  
+   Data::Dumper for presentation, yay!
  - Added 'c' to clone a page (templates, yay!)
  - fixed editing page names with strange characters
  - STOSS workspace has lower priority than your stored server 
