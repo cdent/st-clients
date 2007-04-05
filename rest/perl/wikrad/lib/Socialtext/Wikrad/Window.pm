@@ -25,6 +25,7 @@ sub new {
     $v->set_binding( \&show_includes,    'i' );
     $v->set_binding( \&clone_page,       'c' );
     $v->set_binding( \&show_metadata,    'm' );
+    $v->set_binding( \&add_pagetag,      'T' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -70,6 +71,7 @@ Navigation:
  i - show included pages
  c - clone this page
  m - show page metadata (tags, revision)
+ T - Tag page
 
 Movement:
  ENTER   - jump to page [under cursor]
@@ -85,6 +87,33 @@ Search:
 
 Ctrl-q / Ctrl-c / q - quit
 EOT
+}
+
+sub add_pagetag {
+    my $r = $App->{rester};
+    $App->{cui}->status('Fetching page tags ...');
+    $r->accept('text/plain');
+    my $page_name = $App->get_page;
+    my @tags = $r->get_pagetags($page_name);
+    $App->{cui}->nostatus;
+    my $question = "Enter new tags, separate with commas, prefix with '-' to remove\n  ";
+    if (@tags) {
+        $question .= join(", ", @tags) . "\n";
+    }
+    my $newtags = $App->{cui}->question($question) || '';
+    my @new_tags = split(/\s*,\s*/, $newtags);
+    if (@new_tags) {
+        $App->{cui}->status("Tagging $page_name ...");
+        for my $t (@new_tags) {
+            if ($t =~ s/^-//) {
+                eval { $r->delete_pagetag($page_name, $t) };
+            }
+            else {
+                $r->put_pagetag($page_name, $t);
+            }
+        }
+        $App->{cui}->nostatus;
+    }
 }
 
 sub show_metadata {
@@ -226,6 +255,7 @@ sub tag_change {
     my $chose_tagged_page = sub {
         my $tag = shift;
         $App->{cui}->status('Fetching tagged pages ...');
+        $r->accept('text/plain');
         my @pages = $r->get_taggedpages($tag);
         $App->{cui}->nostatus;
         if (@pages == 0) {
@@ -246,6 +276,7 @@ sub tag_change {
     }
     else {
         $App->{cui}->status('Fetching workspace tags ...');
+        $r->accept('text/plain');
         my @tags = $r->get_workspace_tags;
         $App->{cui}->nostatus;
         $App->{win}->listbox(
