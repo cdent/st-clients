@@ -1,4 +1,4 @@
-0.05 - not yet released
+0.05 - Mon Apr  9 11:00:01 PDT 2007
  - move Socialtext specific code out of this module
  - move the fixture test utility code into a package 
  - s/Mock::Rester/Socialtext::Resting::Mock/

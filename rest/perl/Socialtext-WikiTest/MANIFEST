@@ -9,6 +9,5 @@ t/fixture-selenese.t
 t/testplan.t
 t/lib/Test/WWW/Selenium.pm
 Makefile.PL
-META.yml
 MANIFEST
 Changes
