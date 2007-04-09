@@ -5,7 +5,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME                => 'Socialtext::WikiTest',
     AUTHOR              => 'Luke Closs <cpan@5thplane.com>',
-    VERSION_FROM        => 'lib/Socialtext/WikiFixture.pm',
+    VERSION_FROM        => 'lib/Socialtext/WikiTest.pm',
     PL_FILES            => {},
     PREREQ_PM => {
         'Socialtext::Resting' => 0,
