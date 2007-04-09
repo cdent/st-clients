@@ -161,7 +161,8 @@ sub show_includes {
         my $included_page = $1;
         my $included_text = $r->get_page($included_page);
         my $new_text = "-----Included Page----- [$included_page]\n"
-                       . "$included_text\n";
+                       . "$included_text\n"
+                       . "-----End Include----- \n";
         $page_text =~ s/{include:? \[\Q$included_page\E\]}/$new_text/;
     }
     $viewer->text($page_text);

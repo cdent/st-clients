@@ -1,6 +1,7 @@
 Changelog:
 
 0.04 - not yet released
+ - Added end of include marker
  - Added 'T' to tag the current page
  - Added 'm' to view page meta data.  
    Data::Dumper for presentation, yay!
