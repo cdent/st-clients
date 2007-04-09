@@ -2,8 +2,8 @@
 use strict;
 use warnings;
 use Test::More qw/no_plan/;
+use Socialtext::Resting::Mock;
 use lib 't/lib';
-use Mock::Rester; # mocked
 use Test::WWW::Selenium qw/$SEL/; # mocked
 
 BEGIN {
@@ -11,7 +11,7 @@ BEGIN {
     use_ok 'Socialtext::WikiObject::TestPlan';
 }
 
-my $rester = Mock::Rester->new;
+my $rester = Socialtext::Resting::Mock->new;
 
 Base_fixture: {
     $rester->put_page('Test Plan', <<EOT);

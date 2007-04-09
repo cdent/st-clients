@@ -1,4 +1,9 @@
-0.04 - Not yet released
+0.05 - not yet released
+ - move Socialtext specific code out of this module
+ - move the fixture test utility code into a package 
+ - s/Mock::Rester/Socialtext::Resting::Mock/
+
+0.04 - March 21, 2007
  - Added a failing test if a testplan dies
  - updated Socialtext ids based on UI changes
  - Made Socialtext watchlist code more robust

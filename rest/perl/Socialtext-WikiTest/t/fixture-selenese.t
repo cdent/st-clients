@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More qw/no_plan/;
 use Test::Exception;
-use t::FixtureUtils qw/fixture_ok/;
+use Socialtext::WikiFixture::TestUtils qw/fixture_ok/;
 
 BEGIN {
     use lib 'lib';

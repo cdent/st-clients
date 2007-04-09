@@ -1,18 +1,14 @@
-package t::FixtureUtils;
+package Socialtext::WikiFixture::TestUtils;
 use strict;
 use warnings;
-use base 'Exporter';
 use Test::More;
-use lib 't/lib';
-use Mock::Rester; # mocked
-use Test::WWW::Selenium qw/$SEL/; # mocked
+use Socialtext::Resting::Mock;
+use mocked 'Test::WWW::Selenium', qw/$SEL/;
 
+use base 'Exporter';
 our @EXPORT_OK = qw/fixture_ok/;
 
-# Add to t/bin to the path for our fake st-* commands
-$ENV{PATH} = "t/bin:$ENV{PATH}";
-
-my $rester = Mock::Rester->new;
+my $rester = Socialtext::Resting::Mock->new;
 
 sub fixture_ok {
     my %args = @_;
