@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More qw/no_plan/;
 use lib 't/lib';
-use Mock::Rester; # mocked
+use Socialtext::Resting::Mock;
 
 BEGIN {
     use lib 'lib';
@@ -89,7 +89,7 @@ EOT
 sub testplan_ok {
     my %args = @_;
 
-    my $rester = Mock::Rester->new;
+    my $rester = Socialtext::Resting::Mock->new;
     $rester->put_page('Test Plan' => $args{plan_content});
     for my $p (keys %{ $args{pages} }) {
         $rester->put_page($p, $args{pages}{$p});
