@@ -8,7 +8,7 @@ Socialtext::WikiTest - Execute tests defined on wiki pages
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 AUTHOR
 

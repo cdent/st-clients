@@ -156,7 +156,7 @@ sub _munge_options {
 
     my @opts;
     for (@_) {
-        my $var = $_ || '';
+        my $var = defined $_ ? $_ : '';
         $var =~ s/%%(\w+)%%/exists $self->{$1} ? $self->{$1} : 'undef' /eg;
         $var =~ s/\\n/\n/g;
         push @opts, $var;
