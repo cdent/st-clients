@@ -10,10 +10,14 @@ use URI::Escape;
 my $start_dir = $ARGV[0];
 my $original_uri = $ARGV[1];
 my $workspace = $ARGV[2];
+my $subdir = $ARGV[3];
 
 if ( !$workspace ) {
 	die "No workspace given, usage: $0 <start_dir> <original_uri> <workspace>\n";
 }
+
+my $top_dir = $subdir ? "$start_dir/WikiHome/$subdir" : "$start_dir/WikiHome";
+my $top_file = $subdir ? "$start_dir/WikiHome/$subdir.xml" : "$start_dir/WikiHome.xml";
 
 # Files{basename} = fullpath
 # Names{basename} = title
@@ -43,9 +47,9 @@ sub get_filelist {
 			->prune
 			->discard,
 		   $rule->new);
-	$rule->name( qr/^[^\.]+(.xml)$/ );
-	my @files = $rule->in( "$start_dir/WikiHome");
-	push (@files, "$start_dir/WikiHome.xml");
+	$rule->name( qr/^.+(.xml)$/ );
+	my @files = $rule->in( "$top_dir");
+	push (@files, "$top_file");
 	return @files;
 }
 
@@ -64,6 +68,7 @@ sub convert_content {
 sub gather_info {
 	my $fullpath = shift;
 	chomp $fullpath;
+        next if ($fullpath =~ /\.\w\w\w\.xml/);
 	my ($basename) = fileparse($fullpath);
 	if ( $Files{$basename} ) {
 		die "2 files with the same filename: $basename\n";
@@ -166,7 +171,7 @@ sub create_wikifiles {
 			foreach my $match (@matches) {
 				my ($page_uri, $url) = ($match =~ m/"([^"]+)"<(http:[^>]+)>/);
 				(my $clean_url = $url) =~ s/\+/ /g;
-				if ($clean_url =~ /$page_uri$/) {
+				if ($clean_url =~ /\Q$page_uri\E$/) {
 					$new_content =~ s{\Q"$page_uri"<$url>}{[$page_uri]\E};
 				}
 			}
