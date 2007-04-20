@@ -110,6 +110,7 @@ sub load_page {
     }
 
     $self->{cui}->status("Loading page $current_page ...");
+    $self->{rester}->accept('text/x.socialtext-wiki');
     my $page_text = $self->{rester}->get_page($current_page);
     $self->{cui}->nostatus;
     $self->{win}{viewer}->text($page_text);
