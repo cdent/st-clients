@@ -141,10 +141,12 @@ sub show_uri {
 sub clone_page {
     my $r = $App->{rester};
     my $template_page = $App->get_page;
+    $r->accept('text/x.socialtext-wiki');
     my $template = $r->get_page($template_page);
     my $new_page = $App->{cui}->question("Title for new page:");
     $App->{cui}->status("Creating page ...");
     $r->put_page($new_page, $template);
+    $r->accept('text/plain');
     my @tags = $r->get_pagetags($template_page);
     $r->put_pagetag($new_page, $_) for @tags;
     $App->{cui}->nostatus;
@@ -159,6 +161,7 @@ sub show_includes {
     my $page_text = $viewer->text;
     while($page_text =~ m/\{include:? \[(.+?)\]\}/g) {
         my $included_page = $1;
+        $r->accept('text/x.socialtext-wiki');
         my $included_text = $r->get_page($included_page);
         my $new_text = "-----Included Page----- [$included_page]\n"
                        . "$included_text\n"
@@ -172,6 +175,7 @@ sub show_includes {
 sub recently_changed {
     my $r = $App->{rester};
     $App->{cui}->status('Fetching recent changes ...');
+    $r->accept('text/plain');
     my @recent = $r->get_taggedpages('Recent changes');
     $App->{cui}->nostatus;
     $App->{win}->listbox(
@@ -236,6 +240,7 @@ sub workspace_change {
     }
     else {
         $App->{cui}->status('Fetching list of workspaces ...');
+        $r->accept('text/plain');
         my @workspaces = $r->get_workspaces;
         $App->{cui}->nostatus;
         $App->{win}->listbox(

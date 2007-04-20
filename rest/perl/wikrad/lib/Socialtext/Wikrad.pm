@@ -64,6 +64,7 @@ sub set_page {
     }
     $self->set_workspace($workspace) if $workspace;
     unless (defined $page) {
+        $self->{rester}->accept('text/plain');
         $page = $self->{rester}->get_homepage;
     }
     $pb->text($page);
@@ -96,6 +97,7 @@ sub load_page {
 
     if (! $current_page) {
         $self->{cui}->status('Fetching list of pages ...');
+        $self->{rester}->accept('text/plain');
         my @pages = $self->{rester}->get_pages;
         $self->{cui}->nostatus;
         $App->{win}->listbox(
