@@ -9,6 +9,7 @@ Changelog:
  - fixed editing page names with strange characters
  - STOSS workspace has lower priority than your stored server 
    and workspace - thanks Chris Simmons
+ - all rester calls set accept header
 
 0.03 - Mon Mar 26 20:44:43 PDT 2007
  - Added wikrad usage
