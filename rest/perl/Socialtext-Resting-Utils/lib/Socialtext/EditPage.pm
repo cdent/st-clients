@@ -96,7 +96,7 @@ If specified, this page will be used as the template for a new page.
 sub edit_page {
     my $self = shift;
     my %args = @_;
-    my $page = delete $args{page};
+    my $page = $self->{page} = delete $args{page};
     croak "page is mandatory" unless $page;
 
     my $rester = $self->{rester};
@@ -235,7 +235,9 @@ sub _edit_content {
     my $self = shift;
     my $content = shift;
 
-    my $filename = _write_file(undef, $content);
+    my $workspace = $self->{rester}->workspace || '';
+    my $filename = File::Temp->new( TEMPLATE => "$workspace.$self->{page}.XXXX" );
+    _write_file($filename, $content);
     my $editor   = $ENV{EDITOR} || '/usr/bin/vim';
 
     # Unit tests rely on using shell interpolation
