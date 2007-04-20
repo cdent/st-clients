@@ -26,7 +26,12 @@ sub parse_wikitext {
 
     # Load the YAML
     $wikitext =~ s/^\.pre\n(.+)\.pre.+$/$1/s;
-    my $data = Load($wikitext);
+    chomp $wikitext;
+    $wikitext .= "\n";
+
+    my $data = {};
+    eval { $data = Load($wikitext) };
+    $data->{yaml_error} = $@;
     $self->{_hash} = $data;
 
     # Store the data into $self
