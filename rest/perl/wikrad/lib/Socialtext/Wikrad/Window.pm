@@ -202,6 +202,7 @@ sub choose_link {
     my $arg = shift;
     my $page = $App->get_page;
     $App->{cui}->status("Fetching ${text}s");
+    $App->{rester}->accept('text/plain');
     my @links = $App->{rester}->$method($page, $arg);
     $App->{cui}->nostatus;
     if (@links) {
