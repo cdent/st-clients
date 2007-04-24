@@ -8,6 +8,7 @@ BEGIN {
     use_ok 'Blikistan';
     use_ok 'Blikistan::MagicEngine';
     use_ok 'Blikistan::MagicEngine::Perl';
+    use_ok 'Blikistan::MagicEngine::PerlSite';
 }
 
 my $r = Socialtext::Resting::Mock->new(
