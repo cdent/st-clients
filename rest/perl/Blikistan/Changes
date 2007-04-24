@@ -1,5 +1,6 @@
 0.05 - not yet released
  - hide rester password from templates
+ - add PerlSite magic engine (Hydra)
 
 0.04 - Wed Apr  4 15:37:33 PDT 2007
  - Bug fixes
