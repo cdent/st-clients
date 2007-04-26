@@ -150,9 +150,14 @@ sub edit_page {
             my $updated_file = _write_file(undef, $orig_content);
             my $orig_file = _write_file(undef, $content);
             my $our_file  = _write_file(undef, $new_content);
+
             # merge the content and re-edit
-            system("merge -L yours -L original -L 'new edit' $our_file "
-                   . "$orig_file $updated_file 2> /dev/null");
+            # XXX: STDERR is not redirected.  Should use IPC::Run.  However,
+            # it's nice to be able to create pages w/ quotes and other shell
+            # characters in their name.
+            system(qw(merge -L yours -L original -L), "new edit", $our_file,
+                   $orig_file, $updated_file);
+
             $content = _read_file($our_file);
         }
         else {
@@ -243,8 +248,7 @@ sub _edit_content {
     _write_file($filename, $content);
     my $editor   = $ENV{EDITOR} || '/usr/bin/vim';
 
-    # Unit tests rely on using shell interpolation
-    system("$editor '$filename'");
+    system( $editor, $filename );
 
     return _read_file($filename);
 }

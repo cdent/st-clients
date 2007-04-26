@@ -96,7 +96,13 @@ Extraclude: {
     my $r = Socialtext::Resting::Mock->new;
     $r->put_page('Foo', "Monkey\n");
 
-    local $ENV{EDITOR} = "cp t/extraclude.txt";
+    # Load up a fancy faked editor that copies in an extraclude.
+    my $fancy_cp = File::Temp->new();
+    chmod 0755, $fancy_cp->filename;
+    print $fancy_cp "#!/bin/sh\ncp t/extraclude.txt \$1\n";
+    $fancy_cp->close();
+    local $ENV{EDITOR} = $fancy_cp->filename;
+
     my $ep = Socialtext::EditPage->new(rester => $r);
     $ep->edit_page(page => 'Foo');
 
