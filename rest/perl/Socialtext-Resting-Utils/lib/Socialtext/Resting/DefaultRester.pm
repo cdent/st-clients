@@ -85,7 +85,9 @@ sub _load_config {
         open(my $fh, $file) or die "Can't open $file: $!";
         while(<$fh>) {
             if (/^(\w+)\s*=\s*(\S+)\s*$/) {
-                $opts{$1} = $2;
+                my ($key, $val) = (lc($1), $2);
+                $val =~ s#/$## if $key eq 'server';
+                $opts{$key} = $val;
             }
         }
         close $fh;
