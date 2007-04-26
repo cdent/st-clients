@@ -236,7 +236,10 @@ sub _edit_content {
     my $content = shift;
 
     my $workspace = $self->{rester}->workspace || '';
-    my $filename = File::Temp->new( TEMPLATE => "$workspace.$self->{page}.XXXX" );
+    my $filename = File::Temp->new( 
+        TEMPLATE => "$workspace.$self->{page}.XXXX", 
+        SUFFIX => '.wiki' 
+    );
     _write_file($filename, $content);
     my $editor   = $ENV{EDITOR} || '/usr/bin/vim';
 
