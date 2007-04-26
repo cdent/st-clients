@@ -64,7 +64,7 @@ Put the above options into $rc_file like this:
   username = some_user\@foobar.com
   password = your_pass
   workpace = your_workspace
-  server   = https://www.socialtext.net/
+  server   = https://www.socialtext.net
 EOT
 }
 
