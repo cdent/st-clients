@@ -17,15 +17,16 @@ sub new {
     my ($v, $p, $w, $t) = map { $self->{$_} } 
                           qw/viewer page_box workspace_box tag_box/;
     $v->focus;
-    $v->set_binding( \&choose_frontlink, 'g' );
-    $v->set_binding( \&choose_backlink,  'B' );
-    $v->set_binding( \&show_help,        '?' );
-    $v->set_binding( \&recently_changed, 'r' );
-    $v->set_binding( \&show_uri,         'u' );
-    $v->set_binding( \&show_includes,    'i' );
-    $v->set_binding( \&clone_page,       'c' );
-    $v->set_binding( \&show_metadata,    'm' );
-    $v->set_binding( \&add_pagetag,      'T' );
+    $v->set_binding( \&choose_frontlink,         'g' );
+    $v->set_binding( \&choose_backlink,          'B' );
+    $v->set_binding( \&show_help,                '?' );
+    $v->set_binding( \&recently_changed,         'r' );
+    $v->set_binding( \&show_uri,                 'u' );
+    $v->set_binding( \&show_includes,            'i' );
+    $v->set_binding( \&clone_page,               'c' );
+    $v->set_binding( \&clone_page_from_template, 'C' );
+    $v->set_binding( \&show_metadata,            'm' );
+    $v->set_binding( \&add_pagetag,              'T' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -139,19 +140,33 @@ sub show_uri {
 }
 
 sub clone_page {
+    my @args = @_; # obj, key, args
+    my $template_page = $args[2] || $App->get_page;
     my $r = $App->{rester};
-    my $template_page = $App->get_page;
     $r->accept('text/x.socialtext-wiki');
     my $template = $r->get_page($template_page);
     my $new_page = $App->{cui}->question("Title for new page:");
     $App->{cui}->status("Creating page ...");
     $r->put_page($new_page, $template);
     $r->accept('text/plain');
-    my @tags = $r->get_pagetags($template_page);
+    my @tags = grep { $_ ne 'template' } $r->get_pagetags($template_page);
     $r->put_pagetag($new_page, $_) for @tags;
     $App->{cui}->nostatus;
 
     $App->set_page($new_page);
+}
+
+sub clone_page_from_template {
+    my $tag = 'template';
+    $App->{cui}->status('Fetching pages tagged $tag...');
+    $App->{rester}->accept('text/plain');
+    my @pages = $App->{rester}->get_taggedpages($tag);
+    $App->{cui}->nostatus;
+    $App->{win}->listbox(
+        -title => 'Choose a template',
+        -values => \@pages,
+        change_cb => sub { clone_page(undef, undef, shift) },
+    );
 }
 
 sub show_includes {

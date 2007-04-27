@@ -5,7 +5,8 @@ Changelog:
  - Added 'T' to tag the current page
  - Added 'm' to view page meta data.  
    Data::Dumper for presentation, yay!
- - Added 'c' to clone a page (templates, yay!)
+ - Added 'c' to clone a page
+ - Added 'C' to clone a page from a specific template page
  - fixed editing page names with strange characters
  - STOSS workspace has lower priority than your stored server 
    and workspace - thanks Chris Simmons
