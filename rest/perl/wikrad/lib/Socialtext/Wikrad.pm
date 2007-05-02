@@ -6,7 +6,7 @@ use Carp qw/croak/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 NAME
 

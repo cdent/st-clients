@@ -146,14 +146,16 @@ sub clone_page {
     $r->accept('text/x.socialtext-wiki');
     my $template = $r->get_page($template_page);
     my $new_page = $App->{cui}->question("Title for new page:");
-    $App->{cui}->status("Creating page ...");
-    $r->put_page($new_page, $template);
-    $r->accept('text/plain');
-    my @tags = grep { $_ ne 'template' } $r->get_pagetags($template_page);
-    $r->put_pagetag($new_page, $_) for @tags;
-    $App->{cui}->nostatus;
+    if ($new_page) {
+        $App->{cui}->status("Creating page ...");
+        $r->put_page($new_page, $template);
+        $r->accept('text/plain');
+        my @tags = grep { $_ ne 'template' } $r->get_pagetags($template_page);
+        $r->put_pagetag($new_page, $_) for @tags;
+        $App->{cui}->nostatus;
 
-    $App->set_page($new_page);
+        $App->set_page($new_page);
+    }
 }
 
 sub clone_page_from_template {

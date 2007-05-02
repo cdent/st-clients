@@ -1,5 +1,8 @@
 Changelog:
 
+0.05 - not yet released
+ - fixed bug: no page entered in page clone dialog
+
 0.04 - Fri Apr 27 14:28:31 PDT 2007
  - Added end of include marker
  - Added 'T' to tag the current page
