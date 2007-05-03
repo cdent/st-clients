@@ -52,10 +52,10 @@ sub rester_usage {
     my $rc_file = $Socialtext::Resting::DefaultRester::CONFIG_FILE;
     return <<EOT;
 REST API Options:
- --server      Socialtext server to archive mail to
+ --server      Socialtext server
  --username    User to login as
  --password    User password
- --workspace   Workspace to archive mail to
+ --workspace   Workspace to use
  --rester-config   Config file containing 'key = value'
 
 Rester Config:
