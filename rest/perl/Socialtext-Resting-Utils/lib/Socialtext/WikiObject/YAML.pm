@@ -31,7 +31,7 @@ sub parse_wikitext {
 
     my $data = {};
     eval { $data = Load($wikitext) };
-    $data->{yaml_error} = $@;
+    $data->{yaml_error} = $@ if $@;
     $self->{_hash} = $data;
 
     # Store the data into $self
