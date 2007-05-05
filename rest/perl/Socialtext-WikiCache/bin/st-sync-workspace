@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib 'lib';
+use Socialtext::Resting::Getopt qw/get_rester/;
+use Socialtext::WikiCache;
+
+my $workspace = shift or die "USAGE: $0 <workspace>";
+
+my $r = get_rester(workspace => $workspace);
+
+Socialtext::WikiCache->new( rester => $r )->sync;
+
+

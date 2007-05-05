@@ -1,0 +1,11 @@
+This module is a starting point to create a local cache of a workspace, perhaps supporting something like wikrad unplugged.
+
+
+Future Ideas:
+* sync to and from a workspace
+* interactive conflict resolution - open $EDITOR with a 3-way merge
+* batch conflict resolution - post the 3-way merge to the wiki
+** Merge wafls? { theirs }, { yours } ???
+
+* Is the wikicache also an implementation of our storage system?  Is this good or bad?
+

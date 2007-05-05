@@ -1,0 +1,14 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use lib 'lib';
+use Socialtext::WikiCache::Resting;
+
+my $r = Socialtext::WikiCache::Resting->new;
+$r->workspace('st-sandbox');
+print "-----\n";
+print $r->get_page('bar');
+print "-----\n";
+$r->accept('application/json');
+print $r->get_page('bar');
+
