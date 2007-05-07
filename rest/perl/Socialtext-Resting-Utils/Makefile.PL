@@ -18,6 +18,7 @@ WriteMakefile(
     EXE_FILES           => [
         'bin/wikedit', 
         'bin/stu-save-pages',
+        'bin/stu-wanted-pages',
     ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Socialtext-Resting-Utils-*' },
