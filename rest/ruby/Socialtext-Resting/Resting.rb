@@ -40,6 +40,8 @@ Password = 'd3vnu11l'
 attr_accessor :workspace
 attr_accessor :server
 attr_accessor :accept
+attr_accessor :username
+attr_accessor :password
 
 def add_comment(pname="", comment="")
     uri = make_uri('pagecomments', :ws => self.workspace, :pname => pname)
@@ -64,8 +66,8 @@ def get_workspaces()
     get_collection(:url => uri, :accept => self.accept)
 end
 
-def get_pages()
-    uri = make_uri('pages', :ws => self.workspace)
+def get_pages(query={})
+    uri = make_uri('pages', {:ws => self.workspace}, query)
     get_collection(:url => uri, :accept => self.accept)
 end
 
@@ -86,10 +88,12 @@ end
 
 def request(opts)
     opts= DefaultRequestArgs.merge(opts)
-    url = URI.parse(opts[:url])
+    url = URI.parse(self.server + opts[:url][:path])
+    path = opts[:url][:path] + opts[:url][:query]
 
-    req = make_request(opts.merge(:path => url.path))
-    req.basic_auth Username, Password
+    req = make_request(opts.merge(:path => path))
+    #req.basic_auth Username, Password
+    req.basic_auth self.username, self.password
 
     http = Net::HTTP.new(url.host, url.port)
     http.use_ssl = (url.scheme == 'https')
@@ -127,10 +131,18 @@ def make_request(opts={})
     return req
 end
 
-def make_uri(route, opts={})
+def make_uri(route, opts={}, query={})
     uri = Routes[route]
     opts.each_pair {|var, value| uri.gsub!(":#{var}", URI.escape(value))}
-    return self.server + uri
+    qs = query.size ? '?' : ''
+    params = []
+    query.each_pair {|x, y| params << [x.to_s, URI.escape(y.to_s)]}
+    qs += params.map {|e| e.join('=')}.join('&')
+    return {
+        :server => self.server,
+        :path => uri,
+        :query => qs,
+    }
 end
 
 end
