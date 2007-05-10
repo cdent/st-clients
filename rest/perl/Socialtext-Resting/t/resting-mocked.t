@@ -45,6 +45,31 @@ Get_page: {
     );
 }
 
+Get_json_verbose_page: {
+    my $rester = new_strutter();
+    $Mock_resp->set_always('content', 'bar');
+    $rester->json_verbose(1);
+    $rester->accept('application/json');
+    is $rester->get_page('Foo'), 'bar';
+    result_ok(
+        uri  => '/pages/foo?verbose=1',
+        ua_calls => [
+            [ 'simple_request' => $Mock_req ],
+        ],
+        req_calls => [
+            [ 'authorization_basic' => $rester_opts{username}, 
+              $rester_opts{password},
+            ],
+            [ 'header' => 'Accept', 'application/json' ],
+        ],
+        resp_calls => [
+            [ 'code' ],
+            [ 'content' ],
+            [ 'header' => 'etag' ],
+        ],
+    );
+}
+
 Get_page_fails: {
     my $rester = new_strutter();
     $Mock_resp->set_always('content', 'no auth');

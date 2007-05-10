@@ -77,6 +77,7 @@ field 'query';
 field 'etag_cache' => {};
 field 'http_header_debug';
 field 'response';
+field 'json_verbose';
 
 =head2 new
 
@@ -129,6 +130,7 @@ sub get_page {
         'page',
         { pname => $pname, ws => $self->workspace }
     );
+    $uri .= '?verbose=1' if $self->json_verbose;
 
     my ( $status, $content, $response ) = $self->_request(
         uri    => $uri,
