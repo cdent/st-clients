@@ -1,0 +1,22 @@
+    [% devweb_title %]
+	<br/>
+	<div class="center">
+	    <form onsubmit="login(); return false" action="#">
+		Log in as
+		<select name="username">
+		    [% FOREACH user = users %]
+			<option value="[% user %]">[% user %]</option>
+		    [% END %]
+		</select>
+		<input type='submit' value='submit'/>
+	    </form>
+	</div>
+
+	<br/>
+	<br/>
+
+	<div class="center">
+	    <a href="#" onclick="logout(); return false">log out</a>
+	</div>
+    </body>
+</html>

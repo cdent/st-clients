@@ -1,0 +1,116 @@
+[% devweb_title %]
+<div class=margins>
+    [% IF warnings %]
+        <h2>Warnings:</h2>
+        <div class="testoutput">
+        [% warnings %]<br />
+        </div>
+    [% END %]
+    [% IF notice %]
+        <h2>[% notice %]</h2>
+    [% END %]
+    <form method="get" action="/qatzilla/admin">
+	<h3>Create a new product.</h3>
+	    Enter a product name:
+	    <input type="text" name="new_prod_name" size="40" maxlength="100" /><br /><br/>
+	    Enter the location of this product's test plans:
+	    <input type="text" name="product_xid" size="40"
+	    maxlength="100" value="//depot/" /><br /><br />
+	    <input type="submit" name="action" value="Create Product" />
+	    <br /><hr />
+    </form>
+    <form method="get" action="/qatzilla/admin">
+	<h3>Create a new report.</h3>
+	    Choose a product:
+	    <select name="product" size="1">
+		<option disabled="disabled"  selected="selected">Choose a product from the
+		list:</option>
+                [% FOREACH product = products %]
+		<option value="[% product.product_id %]">[% product.name %]</option>
+                [% END %]
+	    </select><br /><br />
+	    Enter a report name:
+	    <input type="text" name="new_rep_name" size="40" maxlength="100" /><br />
+	    <input type="submit" name="action" value="Create Report" /><br /><br /><hr/>
+	</form>
+	
+    <form method="get" action="/qatzilla/admin">
+	<h3> Delete a product. </h3>
+	<b>Note</b>: You can only delete a product if there are no reports
+	associated with the product.
+	<br /><br />
+
+	    Choose a product to delete:
+	    <select name="product" size="1">
+		<option disabled="disabled"  selected="selected">Choose a product from the
+		list:</option>
+                [% FOREACH product = products %]
+		<option value="[% product.product_id %]">[% product.name %]</option>
+                [% END %]	
+	    </select><br /><br />
+	    <input type="submit" name="action" value="Delete Product" />
+	    <br /><br /><hr />
+	</form>
+
+    <h3>Copy or Delete a Report:</h3>
+    Choose a product:
+    <select onChange="document.location = 'admin?product_id=' + this.value" size="1">
+	<option disabled="disabled" selected="selected">
+	    Choose a product from the list:
+	</option>
+    [% FOREACH product = products %]
+	[% IF product.product_id == product_id %]
+	    [% sel = "selected='true'" %]
+	[% ELSE %]
+	    [% sel = '' %]
+	[% END %]
+	<option [% sel %] value="[% product.product_id %]">
+	    [% product.name %]
+	</option>
+    [% END %]
+    </select>
+
+    <br/>
+
+    [% IF reports %]
+	<form method="get" action="/qatzilla/admin">
+	    Copy data from
+	    <select name="report_from">
+		[% FOREACH report = reports %]
+		    <option value="[% report.report_id %]">[% report.name %]</option>
+		[% END %]
+	    </select>
+	    Copy data to
+	    <select name="report_to">
+		[% FOREACH report = reports %]
+		    <option value="[% report.report_id %]">[% report.name %]</option>
+		[% END %]
+	    </select>
+	    <input type="submit" name="action" value="Copy Data"/>
+	</form>
+
+	<form method="get" action="/qatzilla/admin">
+	    Delete report
+	    <select name="report_id">
+		[% FOREACH report = reports %]
+		    <option value="[% report.report_id %]">[% report.name %]</option>
+		[% END %]
+	    </select>
+	    <input type="submit" name="action" value="Delete Report"/>
+	</form>
+    [% END %]
+
+    <hr/>
+    <h3>Current Products:</h3>
+    <ul>
+    [% FOREACH p IN products %]
+      <li>[% p.name %] - <pre>[% p.product_xid %]</pre>
+    [% END %]
+    </ul>
+  </div>
+ </body>
+</html>
+	
+	    
+	    
+

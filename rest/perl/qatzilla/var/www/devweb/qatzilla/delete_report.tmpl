@@ -1,0 +1,13 @@
+[% devweb_title %]
+<br />
+
+<form method="get" action="/qatzilla/summary">
+    Are you <b>VERY, VERY</b> sure that you want to delete this report? <br
+    /><br />
+    <input type="checkbox" name="force" />Force deletion of report.
+    <input type="hidden" name="report_id" 
+	value="[% report_id %]" />
+    <input type="submit" name="action" value="Force Delete" />
+</form>
+</body>
+</html>

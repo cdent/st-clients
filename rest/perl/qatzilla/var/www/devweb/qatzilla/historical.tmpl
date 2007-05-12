@@ -1,0 +1,147 @@
+[% devweb_title %]
+    <br/>
+    <div class="center">
+	<b>Product:</b>
+	<select onChange="document.location='history?product_id=' + this.value">
+	    <option disabled="disabled" selected="selected">Choose a product from the list:</option>
+	    [% FOREACH product = products %]
+		[% sel = "" %]
+		[% IF product.name == product_name %]
+		    [% sel = "selected='true'" %]
+		[% END %]
+		<option [% sel %] value="[% product.product_id %]">
+		    [% product.name %]
+		</option>
+	    [% END %]	
+	</select>
+
+[% IF product_id %]
+    [% IF product_name %]
+	<h3> Historical Overview for [% product_name %]</h3>
+	<p><b>
+	  Test Case Location:
+	  <a target="_window" href="/p4db/depotTreeBrowser.cgi?HIDEDEL=YES&FSPC=[% p4_path %]">
+	    [% p4_path %]
+	  </a>
+	</b></p>
+    [% ELSE %]
+	<h3> No products to display. </h3>
+    [% END %]
+
+    <form name='col'>
+	Show colours for:
+	<input type="hidden" name="product_id" value="[% product_id %]"/>
+	[% IF colourize == 'priority' %]
+	    <input name="colourize" type="radio" onChange="document.forms['col'].submit()" value="status"/>status
+	    <input name="colourize" type="radio" checked="true" value="priority">priority
+	[% ELSE %]
+	    <input name="colourize" type="radio" checked="true" value="status"/>status
+	    <input name="colourize" type="radio" onChange="document.forms['col'].submit()" value="priority">priority
+	[% END %]
+    </form>
+
+    [% IF reports %]
+	[% IF tester %]
+	    <div class="red">Sections with red text are owned by [% tester %]</div>
+	[% END %]
+	<form>
+
+	[% IF show_skip %]
+	    <input type="submit" value="skip"/>
+	[% ELSE %]
+	    <input type='submit' name="show_skip" value="show skip"/>
+	[% END %]
+
+	    <input type="hidden" name="product_id" value="[% product_id %]"/>
+	    <table class="qatzilla">
+	      <tr>
+		<td class="tableHeader">Test Section</td>
+		[% FOREACH report = reports %]
+		    <td class="tableHeader">
+		      <a href="/qatzilla/summary?product_id=[% product_id %]&amp;report_id=[% report.report_id %]">
+		      [% escapeHTML(report.name) %]</a></td>
+		    </td>
+		[% END %]
+	      </tr>
+
+	      [% IF blocked %]
+		  <tr>
+		    <td class="tableHeader">Blocked Cases</td>
+		    [% FOREACH report = reports %]
+			<td class="blocked">[% report.total_blocked %]</td>
+		    [% END %]
+		  </tr>
+	      [% END %]
+
+	      <tr>
+		<td class="tableHeader">Total Time</td>
+		[% FOREACH report = reports %]
+		    [% id = report.report_id %]
+		    <td class="tableHeader">[% time_tot.$id %]</td>
+		[% END %]
+	      </tr>
+
+	      <tr>
+		<td class="tableHeader">Remaining Time</td>
+		[% FOREACH report = reports %]
+		    [% id = report.report_id %]
+		    <td class="tableHeader">[% time_left.$id %]</td>
+		[% END %]
+	      </tr>
+
+	      <tr>
+		<td class="tableHeader">Percent Complete</td>
+		[% FOREACH report = reports %]
+		    <td class="tableHeader">[% report.complete %] %</td>
+		[% END %]
+	      </tr>
+
+	      <tr>
+		<td class="tableHeader">Summary</td>
+		[% FOREACH report = reports %]
+		    [% class = get_class(report) %]
+		    <td class="[% class %]">
+			[% get_counts(report) %]
+		    </td>
+		[% END %]
+	      </tr>
+
+	      [% FOREACH section_name = sections %]
+		<tr>
+		    <td>[% section_name %]</td>
+		    [% FOREACH report = reports %]
+			[% report_id = report.report_id %]
+			[% info = history.$section_name.$report_id %]
+			[% IF colourize == 'priority' %]
+			    [% class = get_pclass(history.$section_name.$report_id.priority) %]
+			[% ELSE %]
+			    [% class = get_class(info) %]
+			[% END %]
+			<td class="[% class %]">
+			    <a class="ttip" href="/qatzilla/update?section_id=[% info.section_id %]&report_id=[% report_id %]">
+				<span style="text-align:left; width:120px">[% get_mouseover(info) %]</span>
+				[% get_counts(info) %]
+			    </a>
+			    [% IF show_skip %]
+				<input type='checkbox' name="skip" value='[% info.section_id %]'/>
+			    [% END %]
+			</td>
+		    [% END %]
+		</tr>
+	      [% END %]
+
+	    </table>
+	[% IF show_skip %]
+	    <input type="submit" value="skip"/>
+	[% ELSE %]
+	    <input type='submit' name="show_skip" value="show skip"/>
+	[% END %]
+	</form>
+
+    [% ELSE %]
+       <h3>There are no reports for this product.</h3>
+    [% END %]
+</div>
+</body>
+</html>
+[%END%]

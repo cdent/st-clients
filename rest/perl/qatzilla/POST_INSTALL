@@ -1,0 +1,6 @@
+# regenerate selenium tests if necessary
+use ActiveState::Run qw(run);
+my $test_regen = "$Config{prefix}/bin/selenium-regen";
+if (-x $test_regen) {
+    run($test_regen);
+}

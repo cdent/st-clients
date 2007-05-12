@@ -1,0 +1,28 @@
+  [% devweb_title %]
+    [% IF !mungedump %]
+      <h1>Test your Rest</h1>
+      <form method="get" action="/qatzilla/test">
+        <h2>Choose a product from the list:</h2>
+        <select name="pid">
+          <option disabled="disabled" selected="selected">
+            Pick one:
+          </option>
+          [% FOREACH product = products %]
+            <option value="[% product.product_id %]">[% product.name %]</option>
+          [% END %]	
+        </select>
+        <input type="submit" name="action" value="Test that Rest!" />
+        <br />
+        <h2>Or, paste some text here:</h2>
+        <textarea name="testrest" rows="10" cols="80"></textarea><br />
+        <input type="submit" name="action" value="Test that Rest!" />
+      </form>
+    [% END %]
+
+    [% IF mungedump %]
+      <h1>Rest dump</h1>
+      <a href="/qatzilla/test">Back to test page</a><br />
+      <pre>[% mungedump %]</pre>
+    [% END %]
+  </body>
+</html>

@@ -1,0 +1,22 @@
+[% header %]
+    <div class="center">
+	<h3>Updating test cases for [% product_name %] -> [% report_name %]
+	    -> [% section_name %]</h3>
+	<h3> The following conflicts occured: </h3>
+    </div>
+    <form method="post" action="/qatzilla/update">
+	<div class="center">
+	    <input type="submit" name="action" value="Force" />
+	    <input type="submit" name="action" value="Cancel" /><br />
+	</div>
+	[% conflict_table %]<br /><br />
+	<div class="center">
+	    <input type="submit" name="action" value="Force" />
+	    <input type="submit" name="action" value="Cancel" />	   
+	    <input type="hidden" name="product_id" value="[% product_id %]" />
+	    <input type="hidden" name="report_id"  value="[% report_id %]" />
+	    <input type="hidden" name="section_id" value="[% section_id %]" />
+	</div>
+    </form>
+  </body>
+</html>

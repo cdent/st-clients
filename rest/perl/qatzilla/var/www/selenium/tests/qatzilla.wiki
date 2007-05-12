@@ -1,0 +1,100 @@
+Qatzilla Web Tests
+
+# clean up any old test state
+| open | /qatzilla/admin?action=Delete+Product&prod_name=QatTest&force=1 |
+| assertTextNotPresent | error |
+
+# basic sanity
+| open | /qatzilla |
+| assertLocation | /qatzilla/ |
+| verifyTextPresent | Qatzilla Overview |
+
+# Customize page
+| open | /qatzilla |
+| clickAndWait | link=Customize |
+| assertLocation | /qatzilla/customize |
+| verifyTextNotPresent | error |
+
+# create a product
+| open | /qatzilla |
+| clickAndWait | link=Admin |  |
+| clickAndWait | //input[@type='submit' and @value='Create Product'] |  |
+| verifyTextPresent | Create Product failed - Name not set! |  |
+| verifyTextPresent | Create Product failed - Location not set! |  |
+| type | new_prod_name | QatTest |
+| clickAndWait | //input[@type='submit' and @value='Create Product'] |  |
+| verifyTextNotPresent | Create Product failed - Name not set! |  |
+| verifyTextPresent | Create Product failed - Location not set! |  |
+| type | new_prod_name | QatTest |
+| type | product_xid | //depot/main/support/devweb/unstable/Sophos-Qatzilla/QatTests/... |
+| clickAndWait | //input[@type='submit' and @value='Create Product'] |  |
+| verifyTextNotPresent |  Create Product failed - Already a product named QatTest! |
+
+# create a report
+| open | /qatzilla |
+| clickAndWait | link=Admin |  |
+| select | product | label=QatTest |
+| select | platforms | label=Linux |
+| select | platforms | label=Linux |
+| type | new_rep_name | test1 |
+| clickAndWait | //input[@type='submit' and @value='Create Report'] |  |
+
+# view a report
+| open | /qatzilla |
+| select | new_product_id | QatTest |
+| clickAndWait | //input[@type='submit' and @value='Change Product'] |
+| verifyTextNotPresent | error |
+| verifyTextPresent |  Historical Overview for QatTest |
+| clickAndWait | link=test1 |
+| verifyTextPresent | Summary for build report test1 |
+| verifyTextPresent | 0 / 0 / 0 / 87 |  |
+| verifyTextPresent | Automated Selenium Tests |
+| verifyTextPresent | 0 / 0 / 0 / 200 |  |
+
+# view a section
+| clickAndWait | link=Duality Testing Network 1 |  |
+| verifyTextNotPresent | error |
+| verifyTextPresent | Updating test cases for QatTest -> test1 -> Duality |
+| verifyTextPresent | Resize the terminal window. |
+| verifyTextPresent | Install from a directory | 
+
+# edit a section
+| click | id=1_p |  |
+| click | id=2_f |  |
+| click | id=3_s |  |
+| click | id=4_p |  |
+| type | id=4_c | yerba mate |
+| clickAndWait | //input[@type='submit' and @value='Submit'] |  |
+| verifyTextPresent | Summary for build report test1 |
+| verifyTextPresent | 2 / 1 / 1 / 87 |
+
+# cause a conflict
+| clickAndWait | link=Duality Testing Network 1 |  |
+| click | id=1_f |  |
+| clickAndWait | //input[@type='submit' and @value='Submit'] |  |
+| verifyTextPresent | The following conflicts occured: |  |
+| verifyTextPresent | Resize the terminal window. |  |
+| clickAndWait | //input[@type='submit' and @value='Force'] |  |
+| verifyTextPresent | Summary for build report test1 |  |
+| verifyTextPresent | 1 / 2 / 1 / 87 |  |
+| verifyTextPresent | yerba mate |  |
+
+# delete a report
+| open | /qatzilla |
+| select | new_product_id | QatTest |
+| clickAndWait | //input[@type='submit' and @value='Change Product'] |
+| verifyTextPresent | Historical Overview for QatTest |
+| clickAndWait | link=test1 | 
+| verifyTextPresent | Summary for build report test1 | 
+| clickAndWait | link=Delete Report | | 
+| verifyTextPresent | Are you VERY, VERY sure that you |  |
+| click | name=force |  |
+| clickAndWait | //input[@type='submit' and @value='Force Delete'] |  |
+| verifyLocation | /qatzilla/ | |
+
+# delete a product
+| open | /qatzilla |
+| clickAndWait | link=Admin |  |
+| select | //div/form[position()="4" and @action="/qatzilla/admin"]/select[@name="product"] | label=QatTest |
+| clickAndWait | //input[@type='submit' and @value='Delete Product'] |  |
+| verifyTextNotPresent | QatTest |

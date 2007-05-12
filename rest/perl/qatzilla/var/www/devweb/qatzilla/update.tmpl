@@ -1,0 +1,166 @@
+[% header %]
+	<br/>
+	<div class="center">
+		<b><a href="history?product_id=[% product_id %]">Product:</b></a>
+		<select onChange="document.location='history?product_id=' + this.value">
+		    <option disabled="disabled" selected="selected">Choose a product from the list:</option>
+		    [% FOREACH product = products %]
+			[% sel = "" %]
+			[% IF product.product_id == product_id %]
+			    [% sel = "selected='true'" %]
+			[% END %]
+			<option [% sel %] value="[% product.product_id %]">
+			    [% product.name %]
+			</option>
+		    [% END %]	
+		</select>
+
+		<br/>
+
+		<b><a href="summary?report_id=[% report_id %]">Report:</b></a>
+		<select onChange="document.location='summary?report_id=' + this.value">
+		    <option disabled="disabled" selected="selected">Choose a report from the list:</option>
+		    [% FOREACH report = reports %]
+			[% sel = "" %]
+			[% IF report.report_id == report_id %]
+			    [% sel = "selected='true'" %]
+			[% END %]
+			<option [% sel %] value="[% report.report_id %]">
+			    [% report.name %]
+			</option>
+		    [% END %]	
+		</select>
+
+		<br/>
+
+		<b>Section:</b>
+		<select onChange="document.location='update?section_id=' + this.value">
+		    <option disabled="disabled" selected="selected">Choose a section from the list:</option>
+		    [% FOREACH section = sections %]
+			[% sel = "" %]
+			[% IF section.section_id == section_id %]
+			    [% sel = "selected='true'" %]
+			[% END %]
+			<option [% sel %] value="[% section.section_id %]">
+			    [% section.name %]
+			</option>
+		    [% END %]	
+		</select>
+
+		<br/>
+
+		<small>
+		    P4 Location:
+		    <a href="/p4db/fileViewer.cgi?FSPC=[% test_filename %]" target="_window">
+			[% test_filename %]
+		    </a>
+		</small>
+	    </h3>
+	</div>
+
+	<form method="post" action="/qatzilla/update" enctype="multipart/form-data">
+	    <input type="hidden" name="product_id" value="[% product_id %]" />
+	    <input type="hidden" name="report_id"  value="[% report_id %]" />
+	    <input type="hidden" name="section_id" value="[% section_id %]" />
+
+	    <div class="center">
+		<input type="checkbox" name="force" />
+		Force overwrite of conflicts
+		<br />
+		<br />
+		<input type="submit" name="action" value="Submit" />
+		<input type="submit" name="action" value="Cancel" />
+		<br />
+		<br />
+	    </div>
+
+	    <table class="qatzilla">
+		<tr>
+		    <td class="tableHeader">Test Case</td>
+		    <td class="tableHeader">Status</td>
+		    <td class="tableHeader">Comments</td>
+		    <td class="tableHeader">Tester</td>
+		</tr>
+		<tr>
+		    <td class="all">All</td>
+		    <td class="all" style="text-align: center">
+			<input name="all" type="radio" onClick="set_all('pass')"/>
+			    Pass 
+			<input name="all" type="radio" onClick="set_all('fail')"/>
+			    Fail
+			<input name="all" type="radio" onClick="set_all('skipped')"/>
+			    Skipped
+			<input name="all" type="radio" onClick="set_all('untested')"/>
+			    Untested
+		    </td>
+		    <td class="all"></td>
+		    <td class="all">[% sec_tester %]</td>
+		</tr>
+
+		[% FOREACH tc = test_cases %]
+		    <tr>
+			[% IF name != tc.name %]
+			    [% name = tc.name %]
+			    [% rowspan = heights.$name %]
+			    <td rowspan='[% rowspan %]' class="expand">
+				<a onclick="fetch_test_case('[% tc.tc_id %]'); return false" 
+				   href="/qatzilla/testsection?tc_id=[% tc.tc_id %]">
+				    [% escapeHTML(name) %]
+				</a>
+				<div class="expand" id='content_[% tc.tc_id %]'>
+				</div>
+			    </td>
+			[% END %]
+
+			<td class="[% lc(tc.status) %]" id="[% tc.tc_id %]" nowrap="nowrap">
+			    [% FOREACH status = [ 'Pass', 'Fail', 'Skipped', 'Untested' ] %]
+				<input class="tscheck" 
+				       type="radio" 
+                                       [% IF status_is(tc.status, lc(status)) %]
+                                       	checked='true'
+                                       [% END %]
+				       onClick="set_state('[% tc.tc_id %]','[% lc(status) %]', true)"
+				       name="status_[% tc.tc_id %]"
+				       value="[% status %]"
+				       />
+				[% status %] 
+			    [% END %]
+			    <span id="blocked_[% tc.tc_id %]" style="display: none">
+				<input class="tscheck" type="checkbox" 
+				       onClick="set_state('[% tc.tc_id %]', this.checked ? 'blocked' : 'fail')"
+				       name="blocked_[% tc.tc_id %]"
+				       id="blocked_[% tc.tc_id %]_chk"
+				       />
+				Blocked
+			    </span>
+			    <script>set_state('[% tc.tc_id %]', '[% lc(tc.status) %]')</script>
+			</td>
+			<td class=\"tableContent\">
+			    <input type="text" 
+				   name="comment_[% tc.tc_id %]" 
+				   value="[% escapeHTML(tc.comment) %]"
+				   size="40" 
+				   maxlength="255" 
+				   />
+			</td>
+			<td class=\"tableContent\">
+			    [% IF NOT sec_tester %]
+				<input type="text" 
+				       name="tester_[% tc.tc_id %]" 
+				       value="[% escapeHTML(tc.tester) %]"
+				       size="10" 
+				       maxlength="255" 
+				       />
+			    [% END %]
+			</td>
+		    </tr>
+		[% END %]
+	    </table>
+	    <br />
+	    <div class="center">
+		<input type="submit" name="action" value="Submit" />
+		<input type="submit" name="action" value="Cancel" />	   
+	    </div>
+	</form>
+    </body>
+</html>

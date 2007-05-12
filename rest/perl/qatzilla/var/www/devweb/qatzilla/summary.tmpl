@@ -1,0 +1,113 @@
+	[% devweb_title %]
+	<br/>
+	<form>
+	    <input type="hidden" name="report_id" value="[% report_id %]"/>
+	    <div class="center">
+		<b><a href="history?product_id=[% product_id %]">Product:</b></a>
+		<select onChange="document.location='history?product_id=' + this.value">
+		    <option disabled="disabled" selected="selected">Choose a product from the list:</option>
+		    [% FOREACH product = products %]
+			[% sel = "" %]
+			[% IF product.product_id == product_id %]
+			    [% sel = "selected='true'" %]
+			[% END %]
+			<option [% sel %] value="[% product.product_id %]">
+			    [% product.name %]
+			</option>
+		    [% END %]	
+		</select>
+
+		<br/>
+
+		<b>Report:</b>
+		<select onChange="document.location='summary?report_id=' + this.value">
+		    <option disabled="disabled" selected="selected">Choose a report from the list:</option>
+		    [% FOREACH report = reports %]
+			[% sel = "" %]
+			[% IF report.report_id == report_id %]
+			    [% sel = "selected='true'" %]
+			[% END %]
+			<option [% sel %] value="[% report.report_id %]">
+			    [% report.name %]
+			</option>
+		    [% END %]	
+		</select>
+	    </div>
+
+	    <table class="qatzilla">
+		<tr>
+		    <td class="tableHeader">Test Section</td>
+		    <td class="tableHeader">
+			Pass/Fail/Blocked/Skip/Total
+		    </td>
+		    <td class="tableHeader">Comments</td>
+		    <td class="tableHeader">Time</td>
+		    <td class="tableHeader">Execution Priority</td>
+		    <td class="tableHeader">
+			<select name="tester_filter" onChange="change_tester()">
+			    <option value="all" [% selected_tester('all') %]>All</option>
+			    [% FOREACH tester = testers %]
+				<option value="[% tester %]" [% selected_tester(tester) %]>
+				    [% tester %]
+				</option>
+			    [% END %]
+			</select>
+		    </td>
+		</tr>
+
+		[% FOREACH section = sections %]
+		    [% class = get_class(section) %]
+		    <tr>
+			<td>
+			    <a href="/qatzilla/update?section_id=[% section.section_id %]">
+			    [% section.section_name %]
+			    </a>
+			</td>
+
+			<td class="[% class %]">
+			    [% get_counts(section) %]
+			</td>
+
+			<td>
+			    [% fixup_comment(section.comment) %]
+			</td>
+
+			<td>
+			    [% section.time %]
+			</td>
+
+			<td class="[% get_pclass(section.priority) %]">
+			    <select name="pty_[% section.section_id %]:[% section.priority %]">
+				[% FOREACH val = priorities %]
+				    [% IF section.priority == val %]
+					<option selected="true" value="[% val %]">[% val %]</option>
+				    [% ELSE %]
+					<option value="[% val %]">[% val %]</option>
+				    [% END %]
+				[% END %]
+			    </select>
+			</td>
+
+			<td>
+			    [% tlist = tester_list(section.tester) %]
+			    [% IF tlist %]
+				[% tlist %]
+			    [% ELSE %]
+				<input class="tester" 
+				       type="text" 
+				       value="[% section.tester %]" 
+				       name="section_[% section.section_id %]:[% section.tester %]"
+				       />
+			    [% END %]
+			</td>
+		    </tr>
+		[% END %]
+	    </table>
+
+	    <div class="center">
+		<input type="submit" value="submit"/>
+	    </div>
+	</form>
+
+    </body>
+</html>

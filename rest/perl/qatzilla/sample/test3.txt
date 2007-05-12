@@ -1,0 +1,18 @@
+.. section_xid=test_section_3_xid
+.. section_name=Test Section 3
+.. section_time=2
+
+.. tc_xid=test_case_3.1
+.. tc_name=Test Case 3.1
+
+This is the first test case
+
+.. tc_xid=test_case_3.2
+.. tc_name=Test Case 3.2
+
+This is the second test case
+
+.. tc_xid=test_case_3.3
+.. tc_name=Test Case 3.3
+
+This is the third test case

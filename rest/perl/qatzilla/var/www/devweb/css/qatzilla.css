@@ -1,0 +1,121 @@
+body {
+    overflow: -moz-scrollbars-vertical;
+}
+
+table.qatzilla {
+    border: 2px solid black;
+    padding: 0px;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+table.qatzilla td.tableHeader {
+    text-align: center;
+}
+
+.overflowing {
+    padding-left: 5px; 
+    height: 200px; 
+    overflow:auto; 
+    text-align:left; 
+}
+
+pre {
+ white-space: -moz-pre-wrap;
+ white-space: -pre-wrap;
+ white-space: -o-pre-wrap;
+ white-space: pre-wrap;
+ word-wrap: break-word;
+}
+
+td.expand {
+    width: 300px;
+}
+
+div.expand {
+    display: none; 
+    height: 0px; 
+    width: 300px;
+}
+
+.red, .red:hover, .red:visited, .red:active, .red:link {
+    color: red;
+}
+
+table.qatzilla td {
+    border: 1px solid black;
+    padding: 2px;
+    text-align: left;
+    padding-left: 5px;
+}
+
+table.qatzilla .all {
+    background-color: #dddddd;
+    text-align: left;
+}
+
+input.tester {
+    width: 60px;
+}
+
+.reports {
+    display: none;
+}
+
+.center {
+    text-align: center;
+}
+
+td.qatContent {
+       background-color: #FFFFFF;
+}
+td.qatContentRight {
+    background-color: #FFFFFF;
+    text-align: right;
+}
+
+tr.resultRow:hover td.qatContent {
+    background-color: #cccccc;
+    color: #CC0000;
+}
+
+tr.resultRow:hover td.qatContentRight {
+    background-color: #cccccc;
+}
+
+tr.resultRow:hover td.pass, 
+tr.resultRow:hover td.fail, 
+tr.resultRow:hover td.untested,
+tr.resultRow:hover td.skipped,
+tr.resultRow:hover td.blocked
+{
+    background-color: #cccccc;
+    text-align: center;
+}
+
+td.pass, td.fail, td.untested, td.skipped, td.blocked {
+    text-align: center !important;
+}
+
+.pass {
+    background-color: #a3c978;
+}
+
+.fail {
+    background-color: #f7a724;
+}
+
+.blocked {
+    background-color: #dd442d;
+}
+
+.untested {
+    background-color: #ffff8f;
+}
+
+.skipped {
+    background-color: #c9b8d3;
+}
