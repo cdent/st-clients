@@ -12,7 +12,6 @@ my %most_wanted;
 for my $page (@all_pages) {
     warn "Fetching '$page'\n";
     my @incipient = $r->get_frontlinks($page, 1);
-    my $incipient_page_count;
     for my $i (@incipient) {
         $incipient_page_count++;  
         push @{ $most_wanted{$i} }, $page;
