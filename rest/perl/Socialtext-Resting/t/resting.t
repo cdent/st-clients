@@ -5,7 +5,7 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 7;
+plan tests => 8;
 
 my $Strutter = Socialtext::Resting->new(
         username => 'rest-tester@socialtext.com',
@@ -58,6 +58,11 @@ SKIP: {
 
     Get_homepage: {
         is $Strutter->get_homepage, 'socialtext_rest_server_test';
+    }
+
+    Invalid_workspace: {
+        $Strutter->workspace('st-no-existy');
+        is $Strutter->get_homepage, undef;
     }
 }
 

@@ -10,7 +10,7 @@ use Class::Field 'field';
 
 use Readonly;
 
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 
 =head1 NAME
 
@@ -611,7 +611,7 @@ sub get_homepage {
     my $self = shift;
     my $uri = $self->_get_things( 'homepage' );
     my $workspace = $self->workspace;
-    $uri =~ s#.+/data/workspaces/\Q$workspace\E/pages/(.+)#$1#;
+    $uri =~ s#.+/data/workspaces/\Q$workspace\E/pages/(.+)#$1# if $uri;
     return $uri;
 }
 
