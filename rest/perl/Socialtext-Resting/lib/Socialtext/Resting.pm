@@ -78,6 +78,7 @@ field 'etag_cache' => {};
 field 'http_header_debug';
 field 'response';
 field 'json_verbose';
+field 'cookie';
 
 =head2 new
 
@@ -750,15 +751,20 @@ sub _request {
     my $self = shift;
     my %p    = @_;
     my $ua   = LWP::UserAgent->new();
-    my $uri  = $self->server . $p{uri};
+    (my $server = $self->server) =~ s#/$##;
+    my $uri  = "$server$p{uri}";
     if ($self->verbose) {
         warn "uri: $uri\n";
     }
+
     my $request = HTTP::Request->new( $p{method}, $uri );
     $request->authorization_basic( $self->username, $self->password );
     $request->header( 'Accept'       => $p{accept} )   if $p{accept};
     $request->header( 'Content-Type' => $p{type} )     if $p{type};
     $request->header( 'If-Match'     => $p{if_match} ) if $p{if_match};
+    if (my $cookie = $self->cookie) {
+        $request->header('cookie' => $cookie);
+    }
     $request->content( $p{content} ) if $p{content};
     $self->response( $ua->simple_request($request) );
 
