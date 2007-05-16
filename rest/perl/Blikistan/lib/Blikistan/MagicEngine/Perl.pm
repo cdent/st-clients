@@ -9,7 +9,7 @@ sub print_blog {
     my $self = shift;
     my $r = $self->{rester};
     
-    my $params = $self->load_config($r);
+    my $params = $self->load_config;
     $params->{rester} = $r;
     $params->{blog_tag} ||= $self->{blog_tag};
 
@@ -33,9 +33,6 @@ sub print_blog {
             date => scalar($r->response->header('Last-Modified')),
         }, @posts,
     ];
-
-    # Hide password, so it's not visible to the templates
-    $r->{password} = undef;
 
     return $self->render_template( $params );
 }

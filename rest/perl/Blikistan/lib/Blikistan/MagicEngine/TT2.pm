@@ -23,6 +23,9 @@ sub render_template {
         $tmpl = \$content;
     }
 
+    # Hide password, so it's not visible to the templates
+    $r->{password} = undef;
+
     my $path = join ': ', 
                grep { defined }
                ($self->{template_path}, $FindBin::Bin);
