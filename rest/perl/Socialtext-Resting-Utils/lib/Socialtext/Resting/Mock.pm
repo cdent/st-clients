@@ -122,6 +122,18 @@ sub get_page {
     return $text;
 }
 
+=head2 get_pages
+
+Retrieve a list of pages in the current workspace.
+
+=cut
+
+sub get_pages {
+    my ($self) = @_;
+    return keys %{ $self->{page} };
+}
+
+
 =head2 put_page( $page_name )
 
 Stores the page content in the object.

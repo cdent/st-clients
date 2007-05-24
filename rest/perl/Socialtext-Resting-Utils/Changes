@@ -6,6 +6,7 @@ Revision history for Socialtext-Utils
   - Socialtext::EditPage names the tempfiles more meaningfully
   - Added a .wiki extension to the tempfiles.
   - Made system() calls in EditPage take LIST form, rather than STRING.
+  - added get_pages() to the mock rester
 
 0.12 - Wed Mar 21 21:40:29 PDT 2007
   - Refactor Socialtext::Resting::Mock's tag and page handling

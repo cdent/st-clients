@@ -15,6 +15,7 @@ Pages: {
     $r->put_page('foo', 'bar');
     is $r->get_page('foo'), 'bar';
     is $r->get_page('foo'), 'foo not found';
+    is_deeply [$r->get_pages], ['foo'];
 }
 
 Tags: {
