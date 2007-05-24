@@ -1,5 +1,7 @@
 Revision history for Socialtext-Utils
 
+0.14 - not yet released
+
 0.13 - Thu May 24 12:39:46 PDT 2007
   - Add stu-most-wanted which produces 'Most Wanted Pages' page
   - Socialtext::Resting::Getopt doesn't set pass_through globally
