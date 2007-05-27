@@ -355,6 +355,7 @@ sub toggle_editable {
     $w->text($new_text);
 
     if ($readonly) {
+        $w->{last_text} = $new_text;
         $w->cursor_to_home;
         $w->focus;
     }
@@ -363,6 +364,11 @@ sub toggle_editable {
     }
 
     $cb->() if $cb and !$readonly;
+
+    if (! $readonly and $w->text =~ m/^\s*$/) {
+        $w->text($w->{last_text}) if $w->{last_text};
+    }
+
     $w->readonly(!$readonly);
     $w->set_binding( sub { toggle_editable($w, $cb) }, KEY_ENTER );
 }
