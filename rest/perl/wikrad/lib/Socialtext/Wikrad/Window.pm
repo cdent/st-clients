@@ -338,6 +338,42 @@ sub toggle_editable {
 
 sub _create_ui_widgets {
     my $self = shift;
+    my %widget_positions = (
+        workspace_field => {
+            -width => 18,
+            -x     => 1,
+        },
+        page_field => {
+            -width => 45,
+            -x     => 32,
+        },
+        tag_field => {
+            -width => 15,
+            -x     => 85,
+        },
+        help_label => {
+            -x => 107,
+        },
+        page_viewer => {
+            -y => 1,
+        },
+    );
+    
+    my $win_width = $self->width;
+    if ($win_width < 110 and $win_width >= 80) {
+        $widget_positions{tag_field} = {
+            -width => 18,
+            -x     => 1,
+            -y     => 1,
+            label_padding => 6,
+        };
+        $widget_positions{help_label} = {
+            -x => 32,
+            -y => 1,
+        };
+        $widget_positions{page_viewer}{-y} = 2;
+    }
+
     #######################################
     # Create the Workspace label and field
     #######################################
@@ -345,8 +381,7 @@ sub _create_ui_widgets {
     $self->{cb}{workspace} = $wksp_cb;
     $self->{workspace_box} = $self->add_field('Workspace:', $wksp_cb,
         -text => $App->{rester}->workspace,
-        -width => 18,
-        -x => 1,
+        %{ $widget_positions{workspace_field} },
     );
 
     #######################################
@@ -355,8 +390,7 @@ sub _create_ui_widgets {
     my $page_cb = sub { toggle_editable( shift, sub { $App->load_page } ) };
     $self->{cb}{page} = $page_cb;
     $self->{page_box} = $self->add_field('Page:', $page_cb,
-        -width => 45,
-        -x => 32,
+        %{ $widget_positions{page_field} },
     );
 
     #######################################
@@ -365,14 +399,13 @@ sub _create_ui_widgets {
     my $tag_cb = sub { toggle_editable( shift, \&tag_change ) };
     $self->{cb}{tag} = $tag_cb;
     $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
-        -width => 15,
-        -x => 85,
+        %{ $widget_positions{tag_field} },
     );
 
     $self->add(undef, 'Label',
-        -x => 107,
         -bold => 1,
-        -text => "Help: hit '?'"
+        -text => "Help: hit '?'",
+        %{ $widget_positions{help_label} },
     );
 
     #######################################
@@ -381,7 +414,7 @@ sub _create_ui_widgets {
     $self->{viewer} = $self->add(
         'viewer', 'Socialtext::Wikrad::PageViewer',
         -border => 1,
-        -y      => 1,
+        %{ $widget_positions{page_viewer} },
     );
 }
 
@@ -396,13 +429,16 @@ sub add_field {
     my $cb = shift;
     my %args = @_;
     my $x = $args{-x} || 0;
+    my $y = $args{-y} || 0;
+    my $label_padding = $args{label_padding} || 0;
 
     $self->add(undef, 'Label',
         -bold => 1,
         -text => $desc,
         -x => $x,
+        -y => $y,
     );
-    $args{-x} = $x + length($desc) + 1;
+    $args{-x} = $x + length($desc) + 1 + $label_padding;
     my $w = $self->add(undef, 'TextEntry', 
         -singleline => 1,
         -sbborder => 1,
