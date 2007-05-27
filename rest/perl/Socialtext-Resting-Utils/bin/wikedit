@@ -6,12 +6,13 @@ use Socialtext::Resting::Getopt qw/get_rester rester_usage/;
 use Getopt::Long;
 
 my %opts = ( rester => get_rester() );
-my %edit_opts;
+my %edit_opts = (tags => []);
 GetOptions(
     'pull-includes'=> \$opts{pull_includes},
     'latest-tag=s' => \$opts{latest_tag},
     'o|output=s'   => \$edit_opts{output},
     'template=s'   => \$edit_opts{template},
+    'tag=s@'       => \$edit_opts{tags},
 ) or usage();
 
 my $page = shift;

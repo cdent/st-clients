@@ -13,7 +13,7 @@ Socialtext::EditPage - Edit a wiki page using your favourite EDITOR.
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -168,6 +168,7 @@ sub edit_page {
     if ($tags) {
         $tags = [$tags] unless ref($tags) eq 'ARRAY';
         for my $tag (@$tags) {
+            print "Putting page tag $tag on $page\n";
             $rester->put_pagetag($page, $tag);
         }
     }
