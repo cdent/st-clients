@@ -1,6 +1,8 @@
 Changelog:
 
 0.05 - not yet released
+ - wikrad now works in 80 column terminals
+ - Add 'P' - new blog post in current blog
  - fixed bug: no page entered in page clone dialog
 
 0.04 - Fri Apr 27 14:28:31 PDT 2007

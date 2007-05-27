@@ -27,6 +27,7 @@ sub new {
     $v->set_binding( \&clone_page_from_template, 'C' );
     $v->set_binding( \&show_metadata,            'm' );
     $v->set_binding( \&add_pagetag,              'T' );
+    $v->set_binding( \&new_blog_post,            'P' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -58,33 +59,35 @@ sub show_help {
         -bg => 'blue',
         -title => 'Help:',
         -message => <<EOT);
-Navigation:
- w - set workspace
- p - set page
- t - choose from tagged pages
- r - choose from recently changed pages
- g - choose from the frontlinks
- B - choose from the backlinks
- e - open page for edit
- E - open page for edit (--pull-includes)
- b - go back
- u - show the uri for the current page
- i - show included pages
- c - clone this page
- m - show page metadata (tags, revision)
- T - Tag page
-
-Movement:
- ENTER   - jump to page [under cursor]
+Basic Commands:
+ j/k/h/l/arrow keys - move cursor
  n/N     - move to next/previous link
- h/l/j/k - left/right/down/up
- 0/G     - move to beginning/end of page
+ ENTER   - jump to page [under cursor]
  space/- - page down/up
+ b       - go back
+ e       - open page for edit
+ r       - choose from recently changed pages
+
+Awesome Commands:
+ 0/G - move to beginning/end of page
+ w   - set workspace
+ p   - set page
+ t   - tagged pages
+ g   - frontlinks
+ B   - backlinks
+ E   - open page for edit (--pull-includes)
+ u   - show the uri for the current page
+ i   - show included pages
+ m   - show page metadata (tags, revision)
+ T   - Tag page
+ c   - clone this page
+ C   - clone page from template
+ P   - New blog post (read tags from current page)
 
 Search:
  / - search forward
  ? - search backwards 
- (search n/N conflicts with next/prev link)
+ (Bad: search n/N conflicts with next/prev link)
 
 Ctrl-q / Ctrl-c / q - quit
 EOT
@@ -131,6 +134,28 @@ sub show_metadata {
     );
 }
 
+sub new_blog_post {
+    my $r = $App->{rester};
+
+    (my $username = qx(id)) =~ s/^.+?\(([^)]+)\).+/$1/s;
+    my @now = localtime;
+    my $default_post = sprintf '%s, %4d-%02d-%02d', $username,
+                               $now[5] + 1900, $now[4] + 1, $now[3];
+    my $page_name = $App->{cui}->question(
+        -question => 'Enter name of new blog post:',
+        -answer   => $default_post,
+    ) || '';
+    return unless $page_name;
+
+    $App->{cui}->status('Fetching tags ...');
+    $r->accept('text/plain');
+    my @tags = _get_current_tags($App->get_page);
+    $App->{cui}->nostatus;
+
+    $App->set_page($page_name);
+    editor( map { ('--tag', $_) } @tags );
+}
+
 sub show_uri {
     my $r = $App->{rester};
     my $uri = $r->server . '/' . $r->workspace 
@@ -149,13 +174,19 @@ sub clone_page {
     if ($new_page) {
         $App->{cui}->status("Creating page ...");
         $r->put_page($new_page, $template);
-        $r->accept('text/plain');
-        my @tags = grep { $_ ne 'template' } $r->get_pagetags($template_page);
+        my @tags = _get_current_tags($template_page);
         $r->put_pagetag($new_page, $_) for @tags;
         $App->{cui}->nostatus;
 
         $App->set_page($new_page);
     }
+}
+
+sub _get_current_tags {
+    my $page = shift;
+    my $r = $App->{rester};
+    $r->accept('text/plain');
+    return grep { $_ ne 'template' } $r->get_pagetags($page);
 }
 
 sub clone_page_from_template {
