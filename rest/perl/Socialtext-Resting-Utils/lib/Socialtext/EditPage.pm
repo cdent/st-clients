@@ -242,8 +242,9 @@ sub _edit_content {
     my $content = shift;
 
     my $workspace = $self->{rester}->workspace || '';
+    (my $page = $self->{page}) =~ s#/#_#g;
     my $filename = File::Temp->new( 
-        TEMPLATE => "$workspace.$self->{page}.XXXX", 
+        TEMPLATE => "$workspace.$page.XXXX", 
         SUFFIX => '.wiki' 
     );
     _write_file($filename, $content);
