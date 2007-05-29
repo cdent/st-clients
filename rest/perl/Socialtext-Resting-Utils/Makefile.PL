@@ -12,6 +12,7 @@ WriteMakefile(
         'Socialtext::Resting' => '0.15',
         'Test::More'          => 0,
         'Test::Mock::LWP'     => 0,
+        'Getopt::Long'        => '2.36',
         'JSON'                => 0,
         'YAML'                => 0,
         },
