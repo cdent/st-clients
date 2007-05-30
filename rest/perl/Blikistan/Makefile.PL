@@ -10,6 +10,7 @@ version_from    'lib/Blikistan.pm';
 
 build_requires 'Test::More'           => '0.42';
 requires 'Socialtext::Resting::Utils' => '0.11';
+requires 'Socialtext::Resting'        => '0.20';
 requires 'Template';
 
 # Auto-install all dependencies from CPAN

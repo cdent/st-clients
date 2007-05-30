@@ -1,4 +1,7 @@
 0.06 - not yet released
+ - move common functions into B::ME::TT2
+   - these functions are accessible from the templates, cool.
+ - create B::ME::Simple, which uses a config and template
  - fix bug when hiding rester password
 
 0.05 - Mon Apr 23 22:21:20 PDT 2007
