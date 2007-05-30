@@ -93,7 +93,9 @@ sub load_rester_utils {
         my $page   = shift;
         my $length = shift || 30;
         my $p = $self->_load_page($page);
-        return substr($p->{wikitext}, 0, $length);
+        my $small = substr($p->{wikitext}, 0, $length);
+        $small .= " ..." if $small ne $p->{wikitext};
+        return $small;
     }
 }
 
