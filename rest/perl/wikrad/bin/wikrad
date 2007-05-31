@@ -8,7 +8,7 @@ use Getopt::Long;
 
 my $r = get_rester(); # reads @ARGV and ~/.wikeditrc
 $r->server('https://www.socialtext.net') unless $r->server;
-$r->workspace('stoss') unless $r->workspace;
+$r->workspace('open') unless $r->workspace;
 
 GetOptions(
 ) or usage();
