@@ -1,8 +1,9 @@
 Revision history for Socialtext-Utils
 
-0.14 - not yet released
+0.14 - Thu May 31 10:24:37 PDT 2007
   - Added --tag to wikedit
   - fixed bug when editing pages that have a '/'
+  - Updated MANIFEST, so stu-most-wanted is actually packaged :)
 
 0.13 - Thu May 24 12:39:46 PDT 2007
   - Add stu-most-wanted which produces 'Most Wanted Pages' page
