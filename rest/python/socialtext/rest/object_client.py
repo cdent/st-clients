@@ -4,14 +4,10 @@ import urllib2
 import httplib
 import simplejson
 import re
+import functools
 
 from common import routes
 
-
-GET = 'GET'
-PUT = 'PUT'
-POST = 'POST'
-DELETE = 'DELETE'
 
 def make_uri(thing, replacements):
     uri = routes[thing]
@@ -26,30 +22,26 @@ def name_to_id(page_name):
     id = re.compile("^0$").sub('_', id)
     return id.lower()
 
-class Client:
 
-    def __init__(self, server, username, password):
-        """ Create a new Client instance that will be the base for querying a
-            Socialtext application.
-        """
-        scheme, server = urllib2.urlparse.urlparse(server)[:2]
-        connector = (((scheme == 'http') and 
-                      httplib.HTTPConnection) or
-                     httplib.HTTPSConnection)
+class WikiError(Exception):
+    pass
 
-        self.server = server
-        self.username = username
 
+class Requester:
+
+    def __init__(self, connector, server, username, password):
         self.connection = connector(server)
         self.creds = {'Authorization': "Basic %s" % base64.encodestring('%s:%s' % (username, password))[:-1]}
-        self.workspaces = WorkspaceCollection(self.request)
-        self.users = UserCollection(self.request)
+        self.GET = functools.partial(self.request, 'GET')
+        self.PUT = functools.partial(self.request, 'PUT')
+        self.POST = functools.partial(self.request, 'POST')
+        self.DELETE = functools.partial(self.request, 'DELETE')
 
-    def request(self, method, uri, accept='text/plain', type=None, content=None):
+    def request(self, method, uri, accept='text/plain', content_type=None, content=None):
         self.connection.close() # close any previous connection
         headers = self.creds.copy()
-        if type:
-            headers.update({'Content-type': type})
+        if content_type:
+            headers.update({'Content-type': content_type})
         if accept:
             headers.update({'Accept': accept})
 
@@ -58,35 +50,59 @@ class Client:
         response = self.connection.getresponse()
         return response.status, response.read(), response
 
+
+class Client:
+
+    def __init__(self, server, username, password):
+        """ Create a new Client instance that will be the base for querying a
+            Socialtext application.
+        """
+        scheme, server = urllib2.urlparse.urlparse(server)[:2]
+        connector = (((scheme == 'http') and
+                      httplib.HTTPConnection) or
+                     httplib.HTTPSConnection)
+
+        self.server = server
+        self.username = username
+
+        self.requester = Requester(connector, server, username, password)
+        self.workspaces = WorkspaceCollection(self.requester)
+        self.users = UserCollection(self.requester)
+
     def __repr__(self):
         return '<Client %s as %s>' % (self.server, self.username)
 
 
 class UserCollection:
 
-    def __init__(self, server):
+    def __init__(self, requester):
         pass
 
 
 class WorkspaceCollection:
 
-    def __init__(self, request):
-        self.request = request
+    def __init__(self, requester):
+        self.requester = requester
         self.workspace_map = {}
-        for ws_dict in self._fetch_workspaces_list():
-            ws_name = ws_dict[u'name']
-            self.workspace_map[ws_name] = Workspace(request=request,
-                                                    name=ws_name)
+        self.populate_workspace_keys()
 
-    def _fetch_workspaces_list(self):
-        status, content, response = self.request(
-            GET, routes['workspaces'], accept='application/json')
-        return simplejson.loads(content)
+    def populate_workspace_keys(self):
+        status, content, response = self.requester.GET(
+            routes['workspaces'], accept='application/json')
+        for ws_dict in simplejson.loads(content):
+            self.workspace_map[ws_dict[u'name']] = None
 
     # mapping protocol
 
     def __getitem__(self, workspace_name):
-        return self.workspace_map[workspace_name]
+        try:
+            ws = self.workspace_map[workspace_name]
+            if ws is None:
+                ws = self.workspace_map[workspace_name] = Workspace(requester=self.requester,
+                                                                    name=workspace_name)
+            return ws
+        except KeyError:
+            raise
 
     def __setitem__(self, workspace_name, workspace):
         raise NotImplementedError("Not yet")
@@ -101,21 +117,22 @@ class WorkspaceCollection:
         return self.workspace_map.keys()
 
     def values(self):
-        return self.workspace_map.values()
+        # this will go through and fully instantiate each workspace
+        return [self[x] for x in self.keys()]
 
 
 class Workspace:
 
-    def __init__(self, request=None, title=None, name=None):
-        self.request = request
+    def __init__(self, requester=None, title=None, name=None):
+        self.requester = requester
         self.name = name
         self.title = title
         self.pages = PageCollection(self)
 
-        if request and name:
+        if requester and name:
             uri = make_uri('workspace', {'ws': name})
-            status, content, response = self.request(
-                GET, uri, accept='application/json')
+            status, content, response = self.requester.GET(
+                uri, accept='application/json')
             ws = simplejson.loads(content)
             self.title = ws['title']
 
@@ -127,35 +144,39 @@ class PageCollection:
 
     def __init__(self, workspace):
         self.workspace = workspace
-        self.request = workspace.request
+        self.requester = workspace.requester
         self.page_map = {}
-        for page_dict in self._fetch_pages_list():
-            page_uri = page_dict[u'uri']
-            try:
-                self.page_map[page_uri] = Page(request=self.request,
-                                               workspace_name=workspace.name,
-                                              page_uri=page_uri)
-            except ValueError:
-                pass
-                #print 'page was invalid'
+        self.populate_page_keys()
 
-
-    def _fetch_pages_list(self):
+    def populate_page_keys(self):
         uri = make_uri('pages', dict(ws=self.workspace.name))
-        status, content, response = self.request(
-            GET, uri, accept='application/json')
-        return simplejson.loads(content)
+        status, content, response = self.requester.GET(
+            uri, accept='application/json')
+        for page_dict in simplejson.loads(content):
+            self.page_map[page_dict[u'uri']] = None
 
     # mapping protocol
 
     def __getitem__(self, page_name):
-        return self.page_map[name_to_id(page_name)]
+        page_uri = name_to_id(urllib.unquote(page_name))
+        try:
+            page = self.page_map.get(page_uri)
+            if page is None:
+                page = self.page_map[page_uri] = Page(requester=self.requester,
+                                                      workspace_name=self.workspace.name,
+                                                      page_uri=page_uri)
+            return page
+        except KeyError:
+            raise
 
     def __setitem__(self, page_name, page):
-        raise NotImplementedError("Not yet")
+        uri = make_uri('page', dict(ws=self.workspace.name, pname=page_name))
+        status, content, response = self.requester.PUT(
+            uri, content_type='text/x.socialtext-wiki', content=page)
 
     def __delitem__(self, page_name):
-        raise NotImplementedError("Not yet")
+        uri = make_uri('page', dict(ws=self.workspace.name, pname=page_name))
+        status, content, response = self.requester.DELETE(uri)
 
     def __len__(self):
         return len(self.page_map)
@@ -164,21 +185,24 @@ class PageCollection:
         return self.page_map.keys()
 
     def values(self):
-        return self.page_map.values()
+        # this will go through and fully instantiate each page
+        return [self[x] for x in self.keys()]
 
 
 class Page:
 
-    def __init__(self, request=None, name=None, page_uri=None, workspace_name=None):
-        self.request = request
+    def __init__(self, requester=None, name=None, page_uri=None, workspace_name=None):
+        self.requester = requester
         self.page_uri = page_uri
         self.workspace_name = workspace_name
         self.name = name
 
-        if request and page_uri:
+        if requester and page_uri:
             uri = make_uri('page', {'ws': self.workspace_name, 'pname': page_uri})
-            status, content, response = self.request(
-                GET, uri, accept='application/json')
+            status, content, response = self.requester.GET(
+                uri, accept='application/json')
+            if status in [404, 500]:
+                raise WikiError(content)
             page = simplejson.loads(content)
             self.name = page['name']
 

@@ -1,15 +1,15 @@
-Server
+Client
 ======
 
-A server is a entry point to a set of workspaces. It has two navigable
+A client is a entry point to a set of workspaces. It has two navigable
 sub-objects: `users` and `workspaces`. `workspaces` offers a mapping
 interface to the workspaces found on a server, keyed by workspace
 name.
 
 >>> import object_client
->>> client = object_client.Client('http://fear.socialtext.net:21002', 'devnull1@socialtext.com', 'd3vnu11l')
+>>> client = object_client.Client('http://talc.socialtext.net:22025', 'devnull1@socialtext.com', 'd3vnu11l')
 >>> client
-<Client fear.socialtext.net:21002 as devnull1@socialtext.com>
+<Client talc.socialtext.net:22025 as devnull1@socialtext.com>
 >>> len(client.workspaces)
 7
 >>> sorted(client.workspaces.keys())
@@ -22,32 +22,25 @@ KeyError: u'non-existent'
 Workspace
 =========
 
-We expect 30 pages because we dispose of one that is totally bogus.
-
 >>> client.workspaces[u'admin']
 <Workspace Admin Wiki>
 >>> ws = _
 >>> len(ws.pages)
-30
+31
+>>> sorted(ws.pages.keys())
+[u'admin_wiki', u'advanced_getting_around', u'agenda', u'angel_com', u'announcements_and_links', u'babel', u'can_i_change_something', u'congratulations_you_know_how_to_use_a_workspace', u'conversations', u'documents_that_people_are_working_on', u'formattingtest', u'formattingtodo', u'how_do_i_find_my_way_around', u'how_do_i_make_a_new_page', u'how_do_i_make_links', u'internationalization', u'lists_of_pages', u'meeting_agendas', u'people', u'project_plans', u'quick_start', u'selenium_runjavascriptrttests', u'start_here', u'territories', u'what_else_is_here', u'what_if_i_make_a_mistake', u'what_s_the_funny_punctuation', u'wikiwygformattingtest', u'wikiwygformattingtodo', u'workspace_tour_table_of_contents', u'zona_zero']
 
 Page
 ====
 
+>>> ws.pages[u'internationalization']
+<Page Internationalization>
 >>> ws.pages[u'Admin Wiki'] == ws.pages[u'admin_wiki']
 True
 >>> ws.pages[u'Admin Wiki']
 <Page Admin Wiki>
 >>> page = _
-
-# >>> page.tags
-# [<Tag: foo>, <Tag: bar>, <Tag: baz>]
-# 
-# Tag
-# ===
-# 
-# >>> page.tags[0]
-# <Tag: foo>
-# >>> tag = _
-# >>> ws.tags[0]
-# <Tag: foo>
-# 
+>>> ws.pages[u'New Page'] = u'This is a new page.'
+>>> ws.pages[u'new_page'] is ws.pages[u'New Page']
+True
+>>> del ws.pages[u'New Page']
