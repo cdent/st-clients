@@ -2,6 +2,7 @@ package Socialtext::WikiFixture::Selenese;
 use strict;
 use warnings;
 use base 'Socialtext::WikiFixture';
+use Encode;
 use Test::More;
 
 =head1 NAME
@@ -176,6 +177,7 @@ sub quote_as_regex {
     my $self = shift;
     my $var = shift || '';
 
+    Encode::_utf8_on($var) unless Encode::is_utf8($var);
     if ($var =~ qr{^qr/(.+?)/$}) {
         return qr/$1/s;
     }
