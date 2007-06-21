@@ -1,5 +1,6 @@
-0.06 - Not released
+0.06 - Thu Jun 21 15:47:13 PDT 2007
  - Fix a bug that prevented testing whether a value was "0"
+ - Handle multi-byte characters better - Thanks Takatoshi Kitano
 
 0.05 - Mon Apr  9 11:00:01 PDT 2007
  - move Socialtext specific code out of this module
