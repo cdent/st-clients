@@ -9,6 +9,9 @@ BEGIN {
     use_ok 'Blikistan::MagicEngine';
     use_ok 'Blikistan::MagicEngine::Perl';
     use_ok 'Blikistan::MagicEngine::PerlSite';
+    use_ok 'Blikistan::MagicEngine::Simple';
+    use_ok 'Blikistan::MagicEngine::TT2';
+    use_ok 'Blikistan::MagicEngine::YamlConfig';
 }
 
 my $r = Socialtext::Resting::Mock->new(
