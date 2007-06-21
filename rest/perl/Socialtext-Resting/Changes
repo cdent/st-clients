@@ -1,4 +1,4 @@
-0.20 - Not yet released
+0.20 - Thu Jun 21 15:30:30 PDT 2007
  - added json_verbose flag to return json + wikitext in get_page()
  - fixed warning when an invalid workspace is used with get_homepage()
  - support setting a cookie for requests
