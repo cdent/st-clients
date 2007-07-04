@@ -1,3 +1,6 @@
+0.07 - not yet released
+ - Scrub all HTML by default
+
 0.06 - Thu Jun 21 15:29:20 PDT 2007
  - move common functions into B::ME::TT2
    - these functions are accessible from the templates, cool.

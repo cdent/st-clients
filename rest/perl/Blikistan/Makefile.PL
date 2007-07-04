@@ -12,6 +12,7 @@ build_requires 'Test::More'           => '0.42';
 requires 'Socialtext::Resting::Utils' => '0.11';
 requires 'Socialtext::Resting'        => '0.20';
 requires 'Template';
+requires 'HTML::Scrubber';
 
 # Auto-install all dependencies from CPAN
 auto_install;

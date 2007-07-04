@@ -36,6 +36,9 @@ sub render_template {
     my $template = Template->new( { INCLUDE_PATH => $path } );
     $template->process( $tmpl, $params, \$output) or
         die $template->error;
+
+    my $scrubber = $self->{scrubber};
+    $output = $scrubber->scrub($output) if $scrubber;
     return $output;
 }
 

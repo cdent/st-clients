@@ -68,3 +68,33 @@ Template_in_the_wiki: {
     );
     is $b->print_blog, 'title: bar';
 }
+
+Scrub_html: {
+    $r->put_page('Blog Template', <<EOT);
+<script language="javascript"> alert("Hello, I am EVIL!");    </script>
+Hey there!
+EOT
+    my $b = Blikistan->new(
+        rester => $r,
+        magic_opts => {
+            template_page => 'Blog Template',
+        },
+    );
+    is $b->print_blog, "\nHey there!\n";
+}
+
+Avoid_scrubbing: {
+    my $raw_html = <<EOT;
+<script language="javascript"> alert("Hello, I am EVIL!");    </script>
+Hey there!
+EOT
+    $r->put_page('Blog Template', $raw_html);
+    my $b = Blikistan->new(
+        rester => $r,
+        magic_opts => {
+            template_page => 'Blog Template',
+            scrubber => undef,
+        },
+    );
+    is $b->print_blog, $raw_html;
+}

@@ -2,6 +2,7 @@ package Blikistan;
 use strict;
 use warnings;
 use Carp qw/croak/;
+use HTML::Scrubber;
 
 =head1 NAME
 
@@ -41,7 +42,7 @@ Blikistan (both the country and software) is completely paperless.
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 FUNCTIONS
 
@@ -68,6 +69,10 @@ sub new {
 
     if (!$self->{magic_opts}{template_name}) {
         $self->{magic_opts}{template_page}     ||= 'Blog Template';
+    }
+
+    if (! exists $self->{magic_opts}{scrubber}) {
+        $self->{magic_opts}{scrubber} = HTML::Scrubber->new;
     }
 
     croak 'rester is mandatory' unless $self->{rester};
