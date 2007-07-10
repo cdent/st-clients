@@ -11,3 +11,4 @@ t/lib/Test/WWW/Selenium.pm
 Makefile.PL
 MANIFEST
 Changes
+META.yml                                 Module meta-data (added by MakeMaker)

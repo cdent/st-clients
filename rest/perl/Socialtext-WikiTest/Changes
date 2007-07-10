@@ -1,3 +1,6 @@
+0.07 - not yet released
+ - Fix a bug to allow UTF8 characters in regexps - Thanks Takatoshi Kitano
+
 0.06 - Thu Jun 21 15:47:13 PDT 2007
  - Fix a bug that prevented testing whether a value was "0"
  - Handle multi-byte characters better - Thanks Takatoshi Kitano
