@@ -127,6 +127,7 @@ sub handle_command {
         }
     }
 
+    Encode::_utf8_on($opt2) unless Encode::is_utf8($opt2);
     # Try to guess _ok methods
     $command .= '_ok' if { map { $_ => 1 } qw(open type) }->{$command};
     $self->$command($opt1, $opt2);
