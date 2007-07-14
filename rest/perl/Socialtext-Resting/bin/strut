@@ -66,6 +66,16 @@ use App::Options (
             env         => "STRUT_ORDER",
             required    => 0,
         },
+        author => {
+            description => "Page author",
+            env         => "STRUT_AUTHOR",
+            required    => 0,
+        },
+        date   => {
+            description => "Date for page",
+            env         => "STRUT_DATE",
+            required    => 0,
+        },
     },
 );
 
@@ -395,7 +405,21 @@ sub set_page {
               " set_page <workspace> <page_name> <filename>\n");
     }
     my $Page = pick_page($opts{workspace}, $opts{page});
-    my $content = readfile($opts{filename});
+    my $content;
+    if ( $opts{author} || $opts{date} ) {
+        my %content_object;
+        $content_object{content} = readfile($opts{filename});
+        if ( $opts{date} ) {
+            $content_object{date} = $opts{date};
+        }
+        if ( $opts{author} ) {
+            $content_object{from} = $opts{author};
+        }
+        $content = \%content_object;
+    } else {
+        $content = readfile($opts{filename});
+    }
+
     $Strutter->put_page($Page, $content);
 }
 
