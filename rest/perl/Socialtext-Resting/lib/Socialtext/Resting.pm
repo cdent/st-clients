@@ -7,6 +7,7 @@ use URI::Escape;
 use LWP::UserAgent;
 use HTTP::Request;
 use Class::Field 'field';
+use JSON;
 
 use Readonly;
 
@@ -163,10 +164,11 @@ to specify which workspace to operate on.
 sub get_attachment {
     my $self          = shift;
     my $attachment_id = shift;
+    my $page_name = shift;
 
     my $uri = $self->_make_uri(
-        'workspaceattachment',
-        { attachment_id => $attachment_id, ws => $self->workspace, }
+        'pageattachment',
+        { pname => $page_name, attachment_id => $attachment_id, ws => $self->workspace, }
     );
 
     my ( $status, $content ) = $self->_request(
@@ -174,7 +176,17 @@ sub get_attachment {
         method => 'GET',
     );
 
-    if ( $status == 200 || $status == 404 ) {
+    # Review - we're getting the URL and then getting the attachment.  This
+    # might not be the best tack but for now it works
+    if ( $status == 200 ) {
+        my ($href) = ($content =~ m/href='(.*)'>/);
+        my ( $status, $content ) = $self->_request(
+            uri => $href,
+            method => 'GET',
+        );
+        return $content;
+    }
+    if ( $status == 404 ) {
         return $content;
     }
     else {
