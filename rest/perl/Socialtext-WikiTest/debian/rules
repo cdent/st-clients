@@ -53,6 +53,10 @@ install-stamp:
 	# the dirs, we delete them from the deb:
 	rmdir --ignore-fail-on-non-empty --parents $(TMP)/usr/lib/perl5
 
+	find $(TMP) -name 'packlist' -delete
+	find $(TMP) -name '.packlist' -delete
+	find $(TMP) -name 'perllocal.pod' -delete
+
 	touch install-stamp
 
 binary-arch:
