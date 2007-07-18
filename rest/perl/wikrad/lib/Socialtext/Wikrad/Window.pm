@@ -28,6 +28,7 @@ sub new {
     $v->set_binding( \&show_metadata,            'm' );
     $v->set_binding( \&add_pagetag,              'T' );
     $v->set_binding( \&new_blog_post,            'P' );
+    $v->set_binding( \&change_server,            'S' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -83,6 +84,7 @@ Awesome Commands:
  c   - clone this page
  C   - clone page from template
  P   - New blog post (read tags from current page)
+ S   - Change REST server
 
 Search:
  / - search forward
@@ -342,6 +344,22 @@ sub tag_change {
                 $chose_tagged_page->($tag) if $tag;
             },
         );
+    }
+}
+
+sub change_server {
+    my $r = $App->{rester};
+    my $old_server = $r->server;
+    my $question = <<EOT;
+Enter the REST server you'd like to use:
+  (Current server: $old_server)
+EOT
+    my $new_server = $App->{cui}->question( 
+        -question => $question,
+        -answer   => $old_server,
+    ) || '';
+    if ($new_server and $new_server ne $old_server) {
+        $r->server($new_server);
     }
 }
 
