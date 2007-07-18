@@ -1,5 +1,8 @@
 Changelog:
 
+0.06 - not yet released
+ - Added ability to change REST server - 'S'
+
 0.05 - Tue Jun  5 19:24:15 PDT 2007
  - wikrad now works in 80 column terminals
  - Add 'P' - new blog post in current blog
