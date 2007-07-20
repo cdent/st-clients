@@ -5,6 +5,7 @@ Changes
 lib/Socialtext/EditPage.pm
 lib/Socialtext/WikiObject.pm
 lib/Socialtext/WikiObject/YAML.pm
+lib/Socialtext/WikiObject/PreBlock.pm
 lib/Socialtext/WikiObject/Factory.pm
 lib/Socialtext/Resting/DefaultRester.pm
 lib/Socialtext/Resting/Utils.pm

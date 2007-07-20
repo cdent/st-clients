@@ -1,12 +1,11 @@
-package Socialtext::WikiObject::YAML;
+package Socialtext::WikiObject::PreBlock;
 use strict;
 use warnings;
-use base 'Socialtext::WikiObject::PreBlock';
-use YAML;
+use base 'Socialtext::WikiObject';
 
 =head1 NAME
 
-Socialtext::WikiObject::YAML - Parse page content as YAML
+Socialtext::WikiObject::PreBlock - Parse out the first '.pre' block
 
 =cut
 
@@ -16,7 +15,7 @@ our $VERSION = '0.01';
 
 =head2 parse_wikitext()
 
-Override parent method to load the wikitext as YAML.
+Override parent method to load the pre block
 
 =cut
 
@@ -24,29 +23,20 @@ sub parse_wikitext {
     my $self = shift;
     my $wikitext = shift;
 
-    $self->SUPER::parse_wikitext($wikitext);
-    $wikitext = $self->pre_block;
-
-    my $data = {};
-    eval { $data = Load($wikitext) };
-    $data->{yaml_error} = $@ if $@;
-    $self->{_hash} = $data;
-
-    # Store the data into $self
-    for my $k (keys %$data) {
-        $self->{$k} = $self->{lc $k} = $data->{$k};
-    }
+    # Load the YAML
+    $wikitext =~ s/^.*?\.pre\n(.+)\.pre.+$/$1/s;
+    chomp $wikitext;
+    $wikitext .= "\n";
+    $self->{_pre_block} = $wikitext;
 }
 
-=head2 as_hash
+=head2 pre_block
 
-Return the parsed YAML as a hash.
+Return the parsed .pre block
 
 =cut
 
-sub as_hash { $_[0]->{_hash} }
-
-# TODO - Add AUTOLOADed methods?
+sub pre_block { $_[0]->{_pre_block} }
 
 =head1 AUTHOR
 
