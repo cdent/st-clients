@@ -28,4 +28,5 @@ t/factory.t
 t/yaml-object.t
 t/rester.conf
 t/getopt-test.pl
+t/pre-block.t
 META.yml                                 Module meta-data (added by MakeMaker)
