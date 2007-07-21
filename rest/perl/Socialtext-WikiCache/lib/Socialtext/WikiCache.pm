@@ -22,6 +22,8 @@ sub cache_dir { shift->{cache_dir} }
 
 sub sync {
     my $self = shift;
+    my $force = shift;
+
     my $r = $self->{rester};
     $r->accept('application/json');
     print "Fetching page list...\n";
@@ -32,7 +34,7 @@ sub sync {
     $r->json_verbose(1);
     for my $page (@$pages) {
         my $page_file = $self->page_file($page->{page_id});
-        if (-e $page_file) {
+        if (!$force and -e $page_file) {
             # check for freshness
             my $cur_json = get_contents($page_file);
             my $cur_data = jsonToObj($cur_json);
@@ -43,10 +45,16 @@ sub sync {
             }
         }
 
-        print "Fetching $page->{page_id}...\n";
+        print "Fetching $page->{page_id} JSON ...\n";
+        $r->accept('application/json');
         my $json = $r->get_page($page->{page_id});
         my $data = jsonToObj($json);
-        set_contents($page_file, $json);
+
+        print "Fetching $page->{page_id} HTML ...\n";
+        $r->accept('text/html');
+        $data->{html} = $r->get_page($page->{page_id});
+
+        set_contents($page_file, objToJson($data));
     }
 }
 
