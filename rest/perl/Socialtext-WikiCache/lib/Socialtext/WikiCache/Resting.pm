@@ -52,22 +52,12 @@ sub get_taggedpages {
     my $tag  = shift;
     my $accept = $self->accept || '';
 
-    my $pages_dir = $self->{_wc}->page_file('');
-    my @files = glob("$pages_dir*");
-    my @tagged_pages;
-    for my $f (@files) {
-        (my $page_id = $f) =~ s#.+/##;
-        my @tags = $self->get_pagetags($page_id);
-        for my $t (@tags) {
-            if ($t eq $tag) {
-                push @tagged_pages, $page_id;
-                last;
-            }
-        }
-    }
+    my $tag_file = $self->{_wc}->tag_file;
+    my $json = get_contents($tag_file);
+    my $tag_data = jsonToObj($json);
 
     if ($accept eq 'text/plain') {
-        return @tagged_pages;
+        return @{ $tag_data->{$tag} || [] };
     }
 
     die "get_taggedpages not implemented for accept type $accept";

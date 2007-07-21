@@ -30,6 +30,8 @@ sub sync {
     my $pages_json = $r->get_pages;
     my $pages = jsonToObj($pages_json);
 
+    my %tags;
+
     # Fetch details
     $r->json_verbose(1);
     for my $page (@$pages) {
@@ -55,13 +57,31 @@ sub sync {
         $data->{html} = $r->get_page($page->{page_id});
 
         set_contents($page_file, objToJson($data));
+
+        for my $tag (@{ $data->{tags} }) {
+            push @{ $tags{$tag} }, $page->{page_id};
+        }
     }
+
+    # save tags for quick lookups
+    print "Writing workspace tag file...\n";
+    set_contents($self->tag_file, objToJson(\%tags));
+}
+
+sub tag_file {
+    my $self = shift;
+    return $self->workspace_dir . "/.workspace_tags";
+}
+
+sub workspace_dir {
+    my $self = shift;
+    return "$self->{cache_dir}/" . $self->{rester}->workspace;
 }
 
 sub page_file {
     my $self = shift;
     my $page_id = shift;
-    my $workspace_dir = "$self->{cache_dir}/" . $self->{rester}->workspace;
+    my $workspace_dir = $self->workspace_dir;
 
     unless (-d $workspace_dir) {
         mkpath $workspace_dir or die "Can't mkpath $workspace_dir: !";
