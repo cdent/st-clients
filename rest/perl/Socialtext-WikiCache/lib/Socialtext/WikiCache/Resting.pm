@@ -4,6 +4,7 @@ use warnings;
 use Socialtext::WikiCache;
 use base 'Socialtext::Resting';
 use Socialtext::WikiCache::Util qw/get_contents/;
+use JSON;
 
 sub new {
     my $class = shift;
@@ -20,11 +21,12 @@ sub get_page {
     my $page = shift;
 
     my $accept = $self->accept || '';
-    my $page_dir = $self->{_wc}->page_dir($page);
-    if ($accept =~ /json/) {
-        return get_contents("$page_dir/json");
-    }
-    return get_contents("$page_dir/wikitext");
+    my $page_file = $self->{_wc}->page_file($page);
+    my $content = get_contents($page_file);
+    return $content if $accept =~ /json/;
+
+    my $data = jsonToObj($content);
+    return $data->{wikitext};
 }
 
 1;

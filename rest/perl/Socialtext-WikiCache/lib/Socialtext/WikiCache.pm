@@ -25,27 +25,28 @@ sub sync {
     my @pages = $r->get_pages;
 
     # Fetch details
+    $r->json_verbose(1);
     for my $page (@pages) {
         $r->accept('application/json');
         my $json = $r->get_page($page);
         my $data = jsonToObj($json);
         my $page_id = $data->{page_id};
 
-        my $page_dir = $self->page_dir($page_id);
-        -d $page_dir or mkpath $page_dir or die "Can't mkpath $page_dir: $!";
-
-        set_contents("$page_dir/json", $json);
-        $r->accept('text/x.socialtext-wiki');
-        set_contents("$page_dir/wikitext", $r->get_page($page));
+        my $page_file = $self->page_file($page_id);
+        set_contents($page_file, $json);
     }
 }
 
-sub page_dir {
+sub page_file {
     my $self = shift;
     my $page_id = shift;
-    return "$self->{cache_dir}/pages/" 
-          . $self->{rester}->workspace
-          . "/$page_id";
+    my $workspace_dir = "$self->{cache_dir}/" . $self->{rester}->workspace;
+
+    unless (-d $workspace_dir) {
+        mkpath $workspace_dir or die "Can't mkpath $workspace_dir: !";
+    }
+
+    return "$workspace_dir/$page_id";
 }
 
 
