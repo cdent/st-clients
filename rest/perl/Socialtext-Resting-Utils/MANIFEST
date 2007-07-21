@@ -6,6 +6,7 @@ lib/Socialtext/EditPage.pm
 lib/Socialtext/WikiObject.pm
 lib/Socialtext/WikiObject/YAML.pm
 lib/Socialtext/WikiObject/PreBlock.pm
+lib/Socialtext/WikiObject/TableConfig.pm
 lib/Socialtext/WikiObject/Factory.pm
 lib/Socialtext/Resting/DefaultRester.pm
 lib/Socialtext/Resting/Utils.pm
@@ -29,4 +30,5 @@ t/yaml-object.t
 t/rester.conf
 t/getopt-test.pl
 t/pre-block.t
+t/table-config.t
 META.yml                                 Module meta-data (added by MakeMaker)

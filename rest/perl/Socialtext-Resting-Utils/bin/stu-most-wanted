@@ -30,8 +30,8 @@ my $new_page = "^^ Most Wanted Pages in " . $r->workspace . " at $now.\n"
              . "| *Wanted Page* | *Count* | *Wanters* |\n";
 for my $i ( sort { @{ $most_wanted{$b} } <=> @{ $most_wanted{$a} } }
             keys %most_wanted ) {
-    $new_page .= "| [$i] | " . @{ $most_wanted{$i} } . " | "
-               . join(", ", map { "[$_]" } @{ $most_wanted{$i} })
+    $new_page .= "| $i | " . @{ $most_wanted{$i} } . " | "
+               . join(", ", map { "$_" } @{ $most_wanted{$i} })
                . " |\n";
 }
 
