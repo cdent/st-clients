@@ -15,6 +15,18 @@ sub new {
         @_,
     };
     bless $self, $class;
+
+    # Make sure our rester is not a wikicache rester
+    if (ref($self->{rester}) eq 'Socialtext::WikiCache::Resting') {
+        # Create a new rester with the same config
+        $self->{rester} = Socialtext::Resting->new(
+            server => $self->{rester}->server,
+            workspace => $self->{rester}->workspace,
+            username => $self->{rester}->username,
+            password => $self->{rester}->password,
+        );
+    }
+
     return $self;
 }
 
@@ -29,8 +41,6 @@ sub sync {
     print "Fetching page list...\n";
     my $pages_json = $r->get_pages;
     my $pages = jsonToObj($pages_json);
-
-    my %tags;
 
     # Fetch details
     $r->json_verbose(1);
@@ -58,12 +68,26 @@ sub sync {
 
         set_contents($page_file, objToJson($data));
 
-        for my $tag (@{ $data->{tags} }) {
-            push @{ $tags{$tag} }, $page->{page_id};
-        }
     }
 
     # save tags for quick lookups
+    $self->cache_taggedpages;
+}
+
+sub cache_taggedpages {
+    my $self = shift;
+
+    my @files = glob($self->workspace_dir . "/*");
+    my %tags;
+    for my $f (@files) {
+        (my $page_id = $f) =~ s#.+/##;
+        my $json = get_contents($f);
+        my $data = jsonToObj($json);
+        for my $t (@{ $data->{tags} || [] }) {
+            push @{ $tags{$t} }, $page_id;
+        }
+    }
+
     print "Writing workspace tag file...\n";
     set_contents($self->tag_file, objToJson(\%tags));
 }
