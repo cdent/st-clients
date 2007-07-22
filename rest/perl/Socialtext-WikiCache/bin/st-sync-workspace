@@ -5,11 +5,10 @@ use lib 'lib';
 use Socialtext::Resting::Getopt qw/get_rester/;
 use Socialtext::WikiCache;
 
+my $r = get_rester();
+
 my $workspace = shift or die "USAGE: $0 <workspace> [--force]";
 my $force = shift;
 
-my $r = get_rester(workspace => $workspace);
-
+$r->workspace($workspace);
 Socialtext::WikiCache->new( rester => $r )->sync($force);
-
-
