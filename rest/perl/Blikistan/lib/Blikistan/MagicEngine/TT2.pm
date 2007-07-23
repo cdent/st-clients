@@ -72,7 +72,11 @@ sub load_rester_utils {
         @posts = splice @posts, 0, $show_latest;
 
         $r->accept('text/html');
-        return [ map { $self->_load_page($_) } @posts ];
+        return [ 
+            grep { defined }
+            map { $self->_load_page($_) } 
+            @posts 
+        ];
     };
 
     $self->{params}{show_page} ||= sub {
@@ -112,12 +116,20 @@ sub linkify {
 sub _load_page {
     my $self = shift;
     my $page = uri_escape(shift);
+    return undef unless $page;
     return $self->{_page}{$page} if $self->{_page}{$page};
 
-    my $r    = $self->{rester};
+    my $r = $self->{rester};
     $r->accept('application/json');
     $r->json_verbose(1);
-    my $p = $self->{_page}{$page} = jsonToObj( $r->get_page($page) );
+    my $content = $r->get_page($page);
+    return undef unless $r->response->code == 200;
+    my $p = $self->{_page}{$page} = jsonToObj( $content );
+    if (ref($p) ne 'HASH') {
+        warn "Expected json object to be a hash!  ($content)";
+        return undef;
+    }
+
     while ($p->{html} =~ s/<a href="([\w_]+)"\s*/'<a href="' . $self->linkify($1) . '"'/eg) {}
 
     $p->{html} =~ s#^<div class="wiki">(.+)</div>\s*$#$1#s;
