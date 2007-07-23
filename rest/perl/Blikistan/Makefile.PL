@@ -1,21 +1,20 @@
 #!/usr/bin/perl -w
 use warnings;
 use strict;
-use inc::Module::Install;
+use ExtUtils::MakeMaker;
 
-name            'Blikistan';
-author          'Luke Closs <cpan@5thplane.com>';
-license         'perl';
-version_from    'lib/Blikistan.pm';
+WriteMakefile(
+    NAME         => 'Blikistan',
+    VERSION_FROM => 'lib/Blikistan.pm',
+    PREREQ_PRINT => 1,
+    'PREREQ_PM' => {
+        'Test::More'                 => '0.42',
+        'Socialtext::Resting::Utils' => '0.11',
+        'Socialtext::Resting'        => '0.20',
+        'Template'                   => 0,
+        'HTML::Scrubber'             => 0,
+    },
+    ABSTRACT => 'Generate static pages based on wiki content',
+    AUTHOR   => 'Luke Closs <luke@socialtext.com>',
 
-build_requires 'Test::More'           => '0.42';
-requires 'Socialtext::Resting::Utils' => '0.11';
-requires 'Socialtext::Resting'        => '0.20';
-requires 'Template';
-requires 'HTML::Scrubber';
-
-# Auto-install all dependencies from CPAN
-auto_install;
-
-# Generate the Makefile
-WriteAll;
+);
