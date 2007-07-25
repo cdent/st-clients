@@ -72,6 +72,35 @@ sub init {
     $self->{selenium_timeout} ||= 10000;
 
     $self->setup_table_variables;
+
+    $self->{selenium}->open($self->{browser_url});
+    $self->remove_selenium_frame;
+}
+
+=head2
+
+This removes the selenium frame accross the top so you can see the whole window
+
+=cut
+sub remove_selenium_frame {
+    my $self = shift;
+    my $cnode = "document.body.childNodes[1].childNodes[1]";
+
+    my $sel = $self->{selenium};
+
+    $sel->get_eval("window.frames[0].resizeTo(screen.width,screen.height)");
+
+    if ($sel->{browser_start_command} =~ /^\*(?:chrome|firefox)$/) {
+        $sel->get_eval("$cnode.firstChild.setAttribute('style','display:none')");
+        $sel->get_eval("$cnode.childNodes[2].style.width = screen.width + 'px'");
+        $sel->get_eval("$cnode.childNodes[2].childNodes[1].style.width = screen.width + 'px'");
+    }
+    elsif ($sel->{browser_start_command} =~ /^\*ie/) {
+        my $iframe = 'document.getElementById("myiframe")';
+        $sel->get_eval("$iframe.contentWindow.moveTo(0,0)");
+        $sel->get_eval("$iframe.outerHeight = screen.availHeight");
+        $sel->get_eval("$iframe.outerWidth = screen.availWidth");
+    }
 }
 
 =head2 setup_table_variables
