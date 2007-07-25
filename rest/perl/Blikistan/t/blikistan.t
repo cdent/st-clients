@@ -42,7 +42,7 @@ Posts:
   date: Today
 
 username=fakeuser
-password=
+password=fakepass
 EOT
 }
 

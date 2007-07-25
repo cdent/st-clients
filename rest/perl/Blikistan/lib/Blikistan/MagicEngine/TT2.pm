@@ -6,6 +6,7 @@ use Template;
 use FindBin;
 use URI::Escape;
 use JSON;
+use HTML::Truncate;
 
 sub render_template {
     my $self = shift;
@@ -26,9 +27,6 @@ sub render_template {
         $content =~ s/^\.pre\n(.+?)\.pre\n?.*/$1/s;
         $tmpl = \$content;
     }
-
-    # Hide password, so it's not visible to the templates
-    $r->{password} = undef;
 
     my $path = join ': ', 
                grep { defined }
@@ -99,11 +97,15 @@ sub load_rester_utils {
     $self->{params}{abbrev_page} ||= sub {
         my $page   = shift;
         my $length = shift || 30;
+
         my $p = $self->_load_page($page);
-        my $small = substr($p->{wikitext}, 0, $length);
-        $small .= " ..." if $small ne $p->{wikitext};
+        my $trunc = HTML::Truncate->new;
+        $trunc->chars($length);
+
+        my $small = $trunc->($p->{html});
+        $small .= " ..." if $small ne $p->{html};
         return $small;
-    }
+    };
 }
 
 sub linkify {
