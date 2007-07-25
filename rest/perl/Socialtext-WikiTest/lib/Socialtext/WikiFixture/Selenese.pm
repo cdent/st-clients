@@ -269,6 +269,38 @@ sub set {
     diag "Set '$name' to '$value'";
 }
 
+=head2 store_value( $name, $locator )
+
+Stores an element's value as a variable for later use.
+
+=cut
+
+sub store_value {
+    my ($self, $name, $locator) = @_;
+    unless (defined $name and defined $locator) {
+        diag "Both name and locator must be defined for set!";
+        return;
+    }
+    $self->{$name} = $self->{selenium}->get_value($locator);
+    diag "Set '$name' to '$self->{$name}'";
+}
+
+=head2 store_text( $name, $locator )
+
+Stores an element's text as a variable for later use.
+
+=cut
+
+sub store_text {
+    my ($self, $name, $locator) = @_;
+    unless (defined $name and defined $locator) {
+        diag "Both name and locator must be defined for set!";
+        return;
+    }
+    $self->{$name} = $self->{selenium}->get_text($locator);
+    diag "Set '$name' to '$self->{$name}'";
+}
+
 =head2 print_page()
 
 Prints the text of the current page loaded into the browser.
