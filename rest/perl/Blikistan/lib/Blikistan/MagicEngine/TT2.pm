@@ -7,6 +7,7 @@ use FindBin;
 use URI::Escape;
 use JSON;
 use HTML::Truncate;
+use Socialtext::Resting;
 
 sub render_template {
     my $self = shift;
@@ -102,7 +103,8 @@ sub load_rester_utils {
         my $trunc = HTML::Truncate->new;
         $trunc->chars($length);
 
-        my $small = $trunc->($p->{html});
+        die "No HTML for $page!" unless $p->{html};
+        my $small = $trunc->truncate($p->{html});
         $small .= " ..." if $small ne $p->{html};
         return $small;
     };
@@ -117,7 +119,7 @@ sub linkify {
 
 sub _load_page {
     my $self = shift;
-    my $page = uri_escape(shift);
+    my $page = Socialtext::Resting::_name_to_id(shift);
     return undef unless $page;
     return $self->{_page}{$page} if $self->{_page}{$page};
 
