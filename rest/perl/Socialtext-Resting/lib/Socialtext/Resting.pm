@@ -752,11 +752,11 @@ sub _request {
     my $self = shift;
     my %p    = @_;
     my $ua   = LWP::UserAgent->new();
-    (my $server = $self->server) =~ s#/$##;
+    my $server = $self->server;
+    die "No server defined!\n" unless $server;
+    $server =~ s#/$##;
     my $uri  = "$server$p{uri}";
-    if ($self->verbose) {
-        warn "uri: $uri\n";
-    }
+    warn "uri: $uri\n" if $self->verbose;
 
     my $request = HTTP::Request->new( $p{method}, $uri );
     $request->authorization_basic( $self->username, $self->password );
