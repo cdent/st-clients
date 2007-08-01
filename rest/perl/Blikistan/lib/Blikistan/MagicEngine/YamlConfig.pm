@@ -7,16 +7,19 @@ use Socialtext::WikiObject::YAML;
 
 sub load_config {
     my $self   = shift;
-    my $rester = $self->{rester};
+    my $rester = shift;
 
-    my $params = {};
+    my $params;
     eval {
         $params = Socialtext::WikiObject::YAML->new(
             rester => $rester,
             page => $self->{config_page},
         )->as_hash;
     };
-    warn "Cannot parse yaml on page '$self->{config_page}': $@" if $@;
+    if ($@) {
+        die __PACKAGE__ 
+            . ": Cannot parse yaml on page '$self->{config_page}': $@";
+    }
     return $params;
 }
 

@@ -9,7 +9,7 @@ sub print_blog {
     my $self = shift;
     my $r = $self->{rester};
     
-    my $params = $self->load_config;
+    my $params = $self->load_config($r);
     $params->{rester} = $r;
     $params->{blog_tag} ||= $self->{blog_tag};
 

@@ -6,66 +6,91 @@ use base 'Blikistan::MagicEngine::YamlConfig';
 use URI::Escape;
 use JSON;
 
-=head1 NAME
-
-Blikistan::MagicEngine::PerlSite
-
-=head1 SYNOPSIS
-
-use Blikistan;
-my $b = Blikistan->new(
-              magic_engine => 'perlSite',
-              rester => $rester,
-              magic_opts => \%magic_opts,
-           );
-      
-=head1 DESCRIPTION
-
-MagicEngine for Blikistan designed for presenting Wiki content as a web 1.0 website.
-
-=cut
-
 sub print_blog {
-    my $self = shift;
-    my $r = $self->{rester};
-    
-    my $params = $self->load_config($r);
-    $params->{rester} = $r;
-    $params->{blog_tag} ||= $self->{blog_tag};
+	my $self = shift;
+	my $r = $self->{rester};
 
-    my $page = $self->{subpage} || $params->{start_page};
+ 	$self->{config_page} = "Site Config";
+        $self->{template_page} = "Site Template";
+	my $params = $self->load_config($r);
+	my $rewrite = Socialtext::WikiObject::YAML->new(
+			page => "Rewrite Map",
+			rester => $r,
+			)->as_hash;
 
-    # Need to get the metadata here
-    $r->accept('application/json');
-    my $return = _get_page($r, $page);
-    my $page_obj = jsonToObj($return);
-    my $page_name = $page_obj->{name};
-    my $page_uri = $page_obj->{page_uri};
+	$params->{rester} = $r;
+	$params->{blog_tag} ||= $self->{blog_tag};
+	warn "Blog tag is " . $params->{blog_tag} . "\n";
+	$params->{base_uri} ||= '/hydra';
+        $params->{nav_page} = 'navigation';
+        $params->{start_page} = 'the_perl_foundation';
 
-    # If we're searching, do the search thing
-    $r->accept('text/html');
-    my $nav  = _get_page($r, 
+	my $page = $self->{subpage} || $params->{start_page};
+
+# Need to get the metadata here
+	$r->accept('application/json');
+       warn "Going to get page for $page now\n";
+	my $return = _get_page($r, $page);
+	if ($return =~ /not found/) {
+		if ($page = _redirect_uri($page, $rewrite)) {
+		    return;
+		}
+		$r->accept('text/html');
+		$params->{nav} = _get_page ($r,
+					    $params->{nav_page},
+					    '','');
+		$params->{page} = _get_page ($r,
+					     "Page Not Found",
+					     '','');
+		return $self->render_template($params);
+	}
+	my $page_obj = jsonToObj($return);
+	my $page_name = $page_obj->{name};
+	my $page_uri = $page_obj->{page_uri};
+	
+	$r->accept('text/html');
+	my $nav  = _get_page($r, 
 			$params->{nav_page},
 			$params->{base_uri},
 			$page_uri);
 
-    my ($page_content);
-    if ( $self->{search} ) {
-   	$page_content = _search($r, 
+	my ($page_content);
+	if ( $self->{search} ) {
+		$page_content = _search($r, 
 				$self->{search},
 				$params->{base_uri},
 				'search');
-    } else {
-    	$page_content = _get_page($r, 
+	} elsif ( $self->{tag} ) {
+		warn "I have a tag!\n";
+		$page_content = _tag($r, $self->{tag}, $params->{base_uri}, 'tag');
+	} elsif ( $self->{attachment} ) {
+		warn "Trying for $self->{attachment} on $self->{page} now\n";
+		$r->accept("application/json");
+		my $attach_json = $r->get_page_attachments( $self->{page} );
+		my $attach_objs = jsonToObj($attach_json);
+		foreach my $attachment ( @$attach_objs ) {
+		    next unless ($attachment->{name} eq $self->{attachment});
+		    my $content_type = $attachment->{"content-type"};
+		    my $content_id = $attachment->{"id"};
+		    $self->{request}->content_type( $content_type );
+		    $self->{request}->status_line("201 OK");
+		    $self->{request}->send_http_header;
+		    my $attach_content = 
+		 	$r->get_pageattachment( $self->{page}, $content_id, $self->{attachment} );
+		    $self->{request}->print( $attach_content );
+		    return;
+		}	    
+	} else {
+		$page_content = _get_page($r, 
 				$page,
 				$params->{base_uri},
 				$page_uri);
-    	$page_content = "<h1>$page_name</h1>\n$page_content";
-    }
+		$page_content = "<h1>$page_name</h1>\n$page_content";
+	}
 
-    $params->{nav} = $nav;
-    $params->{page} = $page_content;	
-    return $self->render_template( $params );
+	$params->{nav} = $nav;
+	$params->{page} = $page_content;	
+	return $self->render_template( $params );
 }
 
 sub _fix_links {
@@ -82,15 +107,18 @@ sub _fix_links {
 
     # Now we can build the internal REST links
     my $rest_page_uri = "/data/workspaces/$workspace/pages/";
+    my $rest_tag_uri  = "/data/workspaces/$workspace/tags";
     my @links = ($page_content =~ m/href=["']([^'"]+)["']/g);
 
     foreach my $link (@links) {
 	if ( $link =~ m#^[^/]+$# ) {
 		$page_content =~ s/href=(.)$link/href=$1$base_uri$link/g;
+	} elsif ( $link =~ m/^$rest_tag_uri/ ) {
+		$page_content =~ s#$rest_tag_uri/([^\/]+)/pages#/tag/$1#g;
 	} elsif ( $link =~ m/^$rest_page_uri/ ) {
 		$page_content =~ s/$rest_page_uri/$base_uri/g;
-	} elsif ( $link =~ m/^pages/ ) {
-		$page_content =~ s/href='pages\//href='$base_uri/g;
+	} elsif ( $link =~ m/^[\.\/]*pages/ ) {
+		$page_content =~ s/href=.*pages\//href='$base_uri/g;
 	}
     }
 
@@ -107,7 +135,40 @@ sub _fix_links {
     }
     return $page_content;
 }
-   
+
+sub _redirect_uri {
+	my $page = shift;
+	my $rewrite = shift;
+
+	warn "Heading through rewrites for $page now\n";
+	my @rewrites = keys %$rewrite;
+	my $original = $page;
+	foreach my $key (reverse sort @rewrites) {
+		$page =~ s#^$key.*$#$$rewrite{$key}#g;
+		warn "I got $page after $key\n";
+		last if ($original ne $page);
+	}
+	if ($original ne $page) {
+		my $app = Socialtext::WebApp->NewForNLW;
+		$app->redirect("/$page");			
+		return 1;
+	}	
+}
+
+sub _tag {
+    my $r = shift;
+    my $tag = shift;
+    my $base_uri = shift;
+    my $page_uri = shift;
+    $r->accept('text/html'); 
+    my $return = $r->get_taggedpages($tag);
+    $return = _fix_links ($r,
+                        $base_uri,
+                        $page_uri,
+                        $return);
+    return $return;
+}
+
 sub _search {
     my $r = shift;
     my $query_string = shift;
@@ -135,22 +196,8 @@ sub _get_page {
 			$base_uri,
 			$page_uri,
 			$html);
-
     return $html;
 }
-
-=head1 AUTHOR
-
-Kirsten L. Jones<< <synedra at cpan.org> >>
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2006 Kirsten L. Jones, all rights reserved.
-
-This program is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;
 
