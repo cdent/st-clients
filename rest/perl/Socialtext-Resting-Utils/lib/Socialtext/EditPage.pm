@@ -138,6 +138,7 @@ sub edit_page {
         $new_content = $self->_process_special_wafls($new_content);
 
         eval { 
+            $page =~ s#/#-#g; # cannot have /'s in the page name
             $rester->put_page($page, $new_content);
         };
         last unless $@;
