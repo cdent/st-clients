@@ -5,7 +5,7 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 8;
+plan tests => 10;
 
 my $Strutter = Socialtext::Resting->new(
         username => 'rest-tester@socialtext.com',
@@ -65,6 +65,13 @@ SKIP: {
         is $Strutter->get_homepage, undef;
     }
 }
+
+Name_to_id: {
+    is $Strutter->name_to_id('Water bottle'), 'water_bottle';
+    is Socialtext::Resting::name_to_id('Water bottle'), 'water_bottle';
+}
+
+exit;
 
 sub readfile {
     my ($filename) = shift;

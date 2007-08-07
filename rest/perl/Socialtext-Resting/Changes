@@ -1,3 +1,8 @@
+0.21 - not yet released
+ - check if server is set, die if not
+ - make name_to_id method public, as many things already use
+   _name_to_id.
+
 0.20 - Thu Jun 21 15:30:30 PDT 2007
  - added json_verbose flag to return json + wikitext in get_page()
  - fixed warning when an invalid workspace is used with get_homepage()
