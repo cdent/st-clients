@@ -2,6 +2,7 @@
  - check if server is set, die if not
  - make name_to_id method public, as many things already use
    _name_to_id.
+ - store etag_cache per-workspace
 
 0.20 - Thu Jun 21 15:30:30 PDT 2007
  - added json_verbose flag to return json + wikitext in get_page()

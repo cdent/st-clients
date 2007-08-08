@@ -128,9 +128,10 @@ sub get_page {
     $pname = name_to_id($pname);
     my $accept = $self->accept || 'text/x.socialtext-wiki';
 
+    my $workspace = $self->workspace;
     my $uri = $self->_make_uri(
         'page',
-        { pname => $pname, ws => $self->workspace }
+        { pname => $pname, ws => $workspace }
     );
     $uri .= '?verbose=1' if $self->json_verbose;
 
@@ -141,7 +142,7 @@ sub get_page {
     );
 
     if ( $status == 200 || $status == 404 ) {
-        $self->{etag_cache}{$pname} = $response->header('etag');
+        $self->{etag_cache}{$workspace}{$pname} = $response->header('etag');
         return $content;
     }
     else {
@@ -421,9 +422,10 @@ sub put_page {
     my $pname        = shift;
     my $page_content = shift;
 
+    my $workspace = $self->workspace;
     my $uri = $self->_make_uri(
         'page',
-        { pname => $pname, ws => $self->workspace }
+        { pname => $pname, ws => $workspace }
     );
 
     my $type = 'text/x.socialtext-wiki';
@@ -434,7 +436,7 @@ sub put_page {
 
     my %extra_opts;
     my $page_id = name_to_id($pname);
-    if (my $prev_etag = $self->{etag_cache}{$page_id}) {
+    if (my $prev_etag = $self->{etag_cache}{$workspace}{$page_id}) {
         $extra_opts{if_match} = $prev_etag;
     }
 
