@@ -96,6 +96,7 @@ sub run_tests {
     eval "require $fixture_class";
     die "Can't load fixture $fixture_class $@\n" if $@;
 
+    $self->{fixture_args}{testplan} ||= $self;
     my $fix = $fixture_class->new( %{ $self->{fixture_args} } );
     $fix->run_test_table($self->{table});
 }
