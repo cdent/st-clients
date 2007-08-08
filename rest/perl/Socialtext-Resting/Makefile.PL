@@ -20,7 +20,7 @@ my %config = (
         'Pod::Usage'      => 0,
         'App::Options'    => 0,
         'IPC::Run'        => 0,
-        'Test::Mock::LWP' => '0.04',
+        'Test::Mock::LWP' => '0.05',
     },    # e.g., Module::Name => 1.1
     (
         $] >= 5.005
