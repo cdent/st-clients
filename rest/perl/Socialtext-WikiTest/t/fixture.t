@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Test::More qw/no_plan/;
 use Socialtext::Resting::Mock;
+use Socialtext::WikiFixture::TestUtils qw/fixture_ok/;
 use lib 't/lib';
 use Test::WWW::Selenium qw/$SEL/; # mocked
 
@@ -45,4 +46,52 @@ EOT
     $plan->run_tests;
     is $plan->{fixture}{calls}{include}, 3;
     is $plan->{fixture}{calls}{comment}, 3;
+}
+
+Special_functions: {
+    no warnings qw/redefine once/;
+    my $f = Socialtext::WikiFixture->new;
+    my $diag = '';
+    *Socialtext::WikiFixture::diag = sub { $diag .= "$_[0]\n" };
+
+    Comment: {
+        $f->comment('foo');
+        is $diag, "\ncomment: foo\n";
+    }
+
+    Set: {
+        $diag = '';
+        $f->set('foo', 'bar');
+        is $diag, "Set 'foo' to 'bar'\n";
+        is $f->{foo}, 'bar';
+    }
+
+    Set_default: {
+        $diag = '';
+        $f->set_default('poop', 'bar');
+        is $diag, "Set 'poop' to 'bar'\n";
+        is $f->{poop}, 'bar';
+
+        $diag = '';
+        $f->set_default('poop', 'baz');
+        is $diag, '';
+        is $f->{poop}, 'bar';
+
+        $diag = '';
+        $f->set('poop', 'baz');
+        is $diag, "Set 'poop' to 'baz'\n";
+        is $f->{poop}, 'baz';
+    }
+    exit;
+
+    Bad_set: {
+        $diag = '';
+        $f->set('bar');
+        like $diag, qr/Both name and value/;
+        is $f->{bar}, undef;;
+
+        $diag = '';
+        $f->set(undef, 'bar');
+        like $diag, qr/Both name and value/;
+    }
 }

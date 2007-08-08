@@ -117,36 +117,6 @@ Quote_as_regex: {
     is $f->quote_as_regex('qr/foo/'), qr/foo/s;
 }
 
-Special_functions: {
-    no warnings qw/redefine once/;
-    my $f = Socialtext::WikiFixture::Selenese->new(selenium => 'fake');
-    my $diag = '';
-    *Socialtext::WikiFixture::Selenese::diag = sub { $diag .= "$_[0]\n" };
-
-    Comment: {
-        $f->comment('foo');
-        is $diag, "\ncomment: foo\n";
-    }
-
-    Set: {
-        $diag = '';
-        $f->set('foo', 'bar');
-        is $diag, "Set 'foo' to 'bar'\n";
-        is $f->{foo}, 'bar';
-    }
-
-    Bad_set: {
-        $diag = '';
-        $f->set('bar');
-        like $diag, qr/Both name and value/;
-        is $f->{bar}, undef;;
-
-        $diag = '';
-        $f->set(undef, 'bar');
-        like $diag, qr/Both name and value/;
-    }
-}
-
 sub sel_fixture_ok {
     my %args = @_;
 

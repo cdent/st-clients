@@ -2,6 +2,7 @@ package Socialtext::WikiFixture;
 use strict;
 use warnings;
 use Test::WWW::Selenium;
+use Test::More;
 
 =head1 NAME
 
@@ -110,6 +111,46 @@ sub include {
     my $tp = $self->{testplan}->new_testplan($page_name);
 
     unshift @{ $self->{table} }, @{ $tp->{table} };
+}
+
+=head2 set( $name, $value )
+
+Stores a variable for later use.
+
+=cut
+
+sub set {
+    my ($self, $name, $value, $default) = @_;
+    unless (defined $name and defined $value) {
+        diag "Both name and value must be defined for set!";
+        return;
+    }
+
+    # Don't set the value if the default flag was passed in
+    return if $default and defined $self->{$name};
+
+    $self->{$name} = $value;
+    diag "Set '$name' to '$value'";
+}
+
+=head2 set_default( $name, $value )
+
+Stores a variable for later use, but only if it is not already set.
+
+=cut
+
+sub set_default { shift->set(@_, 1) }
+
+=head2 comment( $comment )
+
+Prints $comment to test output.
+
+=cut
+
+sub comment {
+    my ($self, $comment) = @_;
+    diag '';
+    diag "comment: $comment";
 }
 
 =head1 AUTHOR

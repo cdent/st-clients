@@ -242,34 +242,6 @@ sub text_present_like {
     $self->{selenium}->text_like('//body', $opt1);
 }
 
-=head2 comment( $comment )
-
-Prints $comment to test output.
-
-=cut
-
-sub comment {
-    my ($self, $comment) = @_;
-    diag '';
-    diag "comment: $comment";
-}
-
-=head2 set( $name, $value )
-
-Stores a variable for later use.
-
-=cut
-
-sub set {
-    my ($self, $name, $value) = @_;
-    unless (defined $name and defined $value) {
-        diag "Both name and value must be defined for set!";
-        return;
-    }
-    $self->{$name} = $value;
-    diag "Set '$name' to '$value'";
-}
-
 =head2 store_value( $name, $locator )
 
 Stores an element's value as a variable for later use.
