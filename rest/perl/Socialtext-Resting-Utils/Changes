@@ -1,10 +1,11 @@
 Revision history for Socialtext-Utils
 
-0.16 - not yet released
+0.16 - Wed Aug  8 14:37:47 PDT 2007
   - fixed bug when PUTting pages with a '/' in the name
   - Added a WikiObject to return a .pre block on a page
   - refactored YAML WikiObject to use PreBlock package
   - Added a WikiObject for parsing two column tables into a hash
+  - removed Socialtext::EditBlog
 
 0.15 - Thu Jun 21 15:40:45 PDT 2007
   - fixed typo in .wikeditrc docs
