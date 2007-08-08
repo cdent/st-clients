@@ -90,6 +90,7 @@ sub remove_selenium_frame {
 
     $sel->get_eval("window.frames[0].resizeTo(screen.width,screen.height)");
 
+    $sel->{browser_start_command} ||= '';
     if ($sel->{browser_start_command} =~ /^\*(?:chrome|firefox)$/) {
         $sel->get_eval("$cnode.firstChild.setAttribute('style','display:none')");
         $sel->get_eval("$cnode.childNodes[2].style.width = screen.width + 'px'");
