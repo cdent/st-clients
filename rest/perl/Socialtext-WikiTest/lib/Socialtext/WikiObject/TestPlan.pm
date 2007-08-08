@@ -98,6 +98,7 @@ sub run_tests {
 
     $self->{fixture_args}{testplan} ||= $self;
     my $fix = $fixture_class->new( %{ $self->{fixture_args} } );
+    $self->{fixture} = $fix;
     $fix->run_test_table($self->{table});
 }
 
@@ -118,15 +119,22 @@ sub _recurse_testplans {
         next unless $i =~ /^\[([^\]]+)\]/;
         my $page = $1;
         warn "# Loading test plan $page...\n";
-        my $plan = Socialtext::WikiObject::TestPlan->new(
-            page => $page,
-            rester => $self->{rester},
-            default_fixture => $self->{default_fixture},
-            fixture_args => $self->{fixture_args},
-        );
+        my $plan = $self->new_testplan($page);
         eval { $plan->run_tests };
         ok 0, "Error during test plan $page: $@" if $@;
     }
+}
+
+sub new_testplan {
+    my $self = shift;
+    my $page = shift;
+
+    return Socialtext::WikiObject::TestPlan->new(
+        page => $page,
+        rester => $self->{rester},
+        default_fixture => $self->{default_fixture},
+        fixture_args => $self->{fixture_args},
+    );
 }
 
 1;
