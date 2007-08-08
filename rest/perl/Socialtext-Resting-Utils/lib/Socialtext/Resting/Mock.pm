@@ -241,7 +241,7 @@ Retrieve a fake response object.
 # hack so we don't need to create a new fake class
 sub response {
     my $self = shift;
-    $self->{response} = shift if $@;
+    $self->{response} = shift if @_;
     $self->{response} ||= HTTP::Response->new;
     return $self->{response};
 }
