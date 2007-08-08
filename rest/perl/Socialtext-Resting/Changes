@@ -1,4 +1,4 @@
-0.21 - not yet released
+0.21 - Wed Aug  8 14:29:38 PDT 2007
  - check if server is set, die if not
  - make name_to_id method public, as many things already use
    _name_to_id.
