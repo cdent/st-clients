@@ -32,6 +32,7 @@ sub handle_command {
     }
     $CALLS++;
     $self->{calls}{$command}++;
+    push @{ $self->{args}{$command} }, \@_;
     die if $command eq 'die';
 }
 

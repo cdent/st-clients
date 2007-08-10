@@ -67,6 +67,8 @@ sub run_test_table {
         $row->[0] =~ s/^\s*//;
         next unless $row->[0];
         next if $row->[0] =~ /^\*?command\*?$/i; # header
+
+        _escape_options($row);
         $self->handle_command(@$row);
     }
 
@@ -76,6 +78,18 @@ sub run_test_table {
 sub _next_row {
     my $self = shift;
     return shift @{ $self->{table} };
+}
+
+sub _escape_options {
+    my $row = shift;
+
+    for my $cell (@$row) {
+        # Trim backticks
+        $cell =~ s/^`(.+)`$/$1/;
+
+        # un-escape backticks
+        $cell =~ s/^\\`(.+)\\`$/`$1`/;
+    }
 }
 
 =head2 end_hook()

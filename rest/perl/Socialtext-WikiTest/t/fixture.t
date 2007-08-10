@@ -82,7 +82,6 @@ Special_functions: {
         is $diag, "Set 'poop' to 'baz'\n";
         is $f->{poop}, 'baz';
     }
-    exit;
 
     Bad_set: {
         $diag = '';
@@ -93,5 +92,28 @@ Special_functions: {
         $diag = '';
         $f->set(undef, 'bar');
         like $diag, qr/Both name and value/;
+    }
+}
+
+
+Escaping_options: {
+    my @testcases = (
+        [ '`foo`'   => 'foo' ],
+        [ '\`foo\`' => '`foo`' ],
+    );
+
+    for my $t (@testcases) {
+        $rester->put_page('Foo', <<EOT);
+* Fixture: Null
+| comment | $t->[0] |
+EOT
+        my $plan = Socialtext::WikiObject::TestPlan->new(
+            rester => $rester,
+            page => 'Foo',
+        );
+
+        $plan->run_tests;
+        is_deeply $plan->{fixture}{args}{comment}, [[$t->[1]]];
+        is $plan->{fixture}{calls}{comment}, 1;
     }
 }
