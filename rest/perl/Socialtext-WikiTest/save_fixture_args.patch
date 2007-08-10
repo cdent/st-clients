@@ -1,0 +1,214 @@
+=== lib/Socialtext/WikiFixture/Null.pm
+==================================================================
+--- lib/Socialtext/WikiFixture/Null.pm	(revision 5959)
++++ lib/Socialtext/WikiFixture/Null.pm	(local)
+@@ -36,4 +36,10 @@
+     die if $command eq 'die';
+ }
+ 
++sub args_to_save {
++    my $self = shift;
++    return unless $self->{save_me};
++    return { save_me => $self->{save_me} };
++}
++
+ 1;
+=== lib/Socialtext/WikiFixture/Selenese.pm
+==================================================================
+--- lib/Socialtext/WikiFixture/Selenese.pm	(revision 5959)
++++ lib/Socialtext/WikiFixture/Selenese.pm	(local)
+@@ -189,7 +189,6 @@
+     my @opts;
+     for (@_) {
+         my $var = defined $_ ? $_ : '';
+-        $var =~ s/%%(\w+)%%/exists $self->{$1} ? $self->{$1} : 'undef' /eg;
+         $var =~ s/\\n/\n/g;
+         push @opts, $var;
+     }
+@@ -286,6 +285,21 @@
+     print $self->get_text('//body');
+ }
+ 
++=head2 args_to_save
++
++This method can return a hashref of arguments that should be passed
++into additional fixtures.  Using this, we could re-use heavy objects
++(such as WWW::Selenium browsers)
++
++=cut
++
++sub args_to_save { 
++    my $self = shift;
++    return {
++        selenium => $self->{selenium},
++    };
++}
++
+ =head2 AUTOLOAD
+ 
+ Any functions not specified are passed to Test::WWW::Selenium
+=== lib/Socialtext/WikiFixture/TestUtils.pm
+==================================================================
+--- lib/Socialtext/WikiFixture/TestUtils.pm	(revision 5959)
++++ lib/Socialtext/WikiFixture/TestUtils.pm	(local)
+@@ -44,6 +44,9 @@
+ 
+     $SEL->method_args_ok('stop', undef);
+     $SEL->empty_ok($args{extra_calls_ok});
++
++    my $method = $args{post_check};
++    $method->($plan) if $method;
+ }
+ 
+ 1;
+=== lib/Socialtext/WikiFixture.pm
+==================================================================
+--- lib/Socialtext/WikiFixture.pm	(revision 5959)
++++ lib/Socialtext/WikiFixture.pm	(local)
+@@ -68,7 +68,7 @@
+         next unless $row->[0];
+         next if $row->[0] =~ /^\*?command\*?$/i; # header
+ 
+-        _escape_options($row);
++        $self->_munge_options($row);
+         $self->handle_command(@$row);
+     }
+ 
+@@ -80,7 +80,8 @@
+     return shift @{ $self->{table} };
+ }
+ 
+-sub _escape_options {
++sub _munge_options {
++    my $self = shift;
+     my $row = shift;
+ 
+     for my $cell (@$row) {
+@@ -89,6 +90,9 @@
+ 
+         # un-escape backticks
+         $cell =~ s/^\\`(.+)\\`$/`$1`/;
++
++        # Expand variables
++        $cell =~ s/%%(\w+)%%/exists $self->{$1} ? $self->{$1} : 'undef' /eg;
+     }
+ }
+ 
+@@ -167,6 +171,16 @@
+     diag "comment: $comment";
+ }
+ 
++=head2 args_to_save
++
++This method can return a hashref of arguments that should be passed
++into additional fixtures.  Using this, we could re-use heavy objects
++(such as WWW::Selenium browsers)
++
++=cut
++
++sub args_to_save { return undef }
++
+ =head1 AUTHOR
+ 
+ Luke Closs, C<< <luke.closs at socialtext.com> >>
+=== lib/Socialtext/WikiObject/TestPlan.pm
+==================================================================
+--- lib/Socialtext/WikiObject/TestPlan.pm	(revision 5959)
++++ lib/Socialtext/WikiObject/TestPlan.pm	(local)
+@@ -97,9 +97,12 @@
+     die "Can't load fixture $fixture_class $@\n" if $@;
+ 
+     $self->{fixture_args}{testplan} ||= $self;
+-    my $fix = $fixture_class->new( %{ $self->{fixture_args} } );
++    my $fix = $fixture_class->new( 
++        %{ $self->{fixture_args} },
++    );
+     $self->{fixture} = $fix;
+     $fix->run_test_table($self->{table});
++    $self->{saved_fixture_args} = $fix->args_to_save;
+ }
+ 
+ # Find the fixture in the page
+@@ -122,6 +125,8 @@
+         my $plan = $self->new_testplan($page);
+         eval { $plan->run_tests };
+         ok 0, "Error during test plan $page: $@" if $@;
++        $self->{saved_fixture_args} = $plan->{saved_fixture_args};
++        push @{ $self->{testplans} }, $plan;
+     }
+ }
+ 
+@@ -129,11 +134,17 @@
+     my $self = shift;
+     my $page = shift;
+ 
++    my $saved_args = $self->{saved_fixture_args} || {};
++    my %fixture_args = (
++        %$saved_args,
++        %{ $self->{fixture_args} || {} },
++    );
++
+     return Socialtext::WikiObject::TestPlan->new(
+         page => $page,
+         rester => $self->{rester},
+         default_fixture => $self->{default_fixture},
+-        fixture_args => $self->{fixture_args},
++        fixture_args => \%fixture_args,
+     );
+ }
+ 
+=== t/fixture-selenese.t
+==================================================================
+--- t/fixture-selenese.t	(revision 5959)
++++ t/fixture-selenese.t	(local)
+@@ -120,8 +120,18 @@
+ sub sel_fixture_ok {
+     my %args = @_;
+ 
++    my $saves_selenium_ok = sub {
++        my $plan = shift;
++        my $saved = $plan->{saved_fixture_args};
++        ok $saved, 'selenium saved some args';
++        ok $saved->{selenium}, 'selenium saved the selenium object';
++        use Data::Dumper;
++        warn Dumper $saved;
++    };
++
+     fixture_ok( 
+         default_fixture => 'Selenese',
+         %args,
++        post_check => $saves_selenium_ok,
+     );
+ }
+=== t/fixture.t
+==================================================================
+--- t/fixture.t	(revision 5959)
++++ t/fixture.t	(local)
+@@ -117,3 +117,27 @@
+         is $plan->{fixture}{calls}{comment}, 1;
+     }
+ }
++
++Saved_fixture_args: {
++    $rester->put_page('Test Plan', <<EOT);
++* [Foo]
++* [Bar]
++EOT
++    $rester->put_page('Foo', <<EOT);
++* Fixture: Null
++| set | save_me | luke |
++EOT
++    $rester->put_page('Bar', <<'EOT');
++* Fixture: Null
++| comment | %%save_me%% |
++EOT
++    my $plan = Socialtext::WikiObject::TestPlan->new(
++        rester => $rester,
++        page => 'Test Plan',
++    );
++
++    $plan->run_tests;
++    my $bar_fixture = $plan->{testplans}[1]{fixture};
++    is_deeply $bar_fixture->{args}{comment}, [['luke']];
++    is $bar_fixture->{calls}{comment}, 1;
++}
