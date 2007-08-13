@@ -66,6 +66,7 @@ sub init {
             port        => $self->{port} || 4444,
             browser_url => $self->{browser_url},
             browser     => $ENV{selenium_browser} || '*firefox',
+            verbose     => $self->{verbose},
         );
         $self->{_started_selenium}++;
     }
@@ -209,8 +210,9 @@ sub quote_as_regex {
     my $var = shift || '';
 
     Encode::_utf8_on($var) unless Encode::is_utf8($var);
-    if ($var =~ qr{^qr/(.+?)/$}) {
-        return qr/$1/s;
+    if ($var =~ qr{^qr/(.+?)/([imosx]*)$}) {
+        my $mods = $2 || 's';
+        return eval "qr/$1/$mods";
     }
     return qr/\Q$var\E/;
 }
