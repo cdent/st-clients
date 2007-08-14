@@ -74,8 +74,7 @@ sub init {
 
     $self->setup_table_variables;
 
-    $self->{selenium}->open($self->{browser_url});
-    $self->remove_selenium_frame;
+    $self->remove_selenium_frame if $self->{maximize};
 }
 
 =head2
@@ -88,6 +87,8 @@ sub remove_selenium_frame {
     my $cnode = "document.body.childNodes[1].childNodes[1]";
 
     my $sel = $self->{selenium};
+
+    $sel->open('/');
 
     $sel->get_eval("window.frames[0].resizeTo(screen.width,screen.height)");
 
