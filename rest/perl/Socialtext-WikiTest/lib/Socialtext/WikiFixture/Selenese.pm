@@ -88,7 +88,7 @@ sub remove_selenium_frame {
 
     my $sel = $self->{selenium};
 
-    $sel->open('/');
+    $sel->open('about:blank');
 
     $sel->get_eval("window.frames[0].resizeTo(screen.width,screen.height)");
 
