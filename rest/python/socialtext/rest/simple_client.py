@@ -29,8 +29,9 @@ class RESTClient:
     order = ''
     count = ''
 
-    def __init__(self, server, username, password):
+    def __init__(self, server, workspace, username=None, password=None):
         self.server = server
+        self.workspace = workspace
         self.username = username
         self.password = password
         self.etag_cache = {}
@@ -264,8 +265,11 @@ class RESTClient:
 
         connection = connector(server, port=port)
 
-        headers = {'Authorization': "Basic %s" % base64.encodestring('%s:%s' %
-            (self.username, self.password))[:-1]}
+        headers = {}
+
+        if self.username and self.password:
+            headers.update({'Authorization': "Basic %s" % base64.encodestring('%s:%s' %
+                (self.username, self.password))[:-1]})
         if type:
             headers.update({'Content-type': type})
         if accept:
