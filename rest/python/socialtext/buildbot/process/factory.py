@@ -1,3 +1,5 @@
+import re
+
 from socialtext.buildbot.common import nlwShellStep, multiProveStep, proveStep
 from socialtext.buildbot.steps.source import SocialtextSVN
 
