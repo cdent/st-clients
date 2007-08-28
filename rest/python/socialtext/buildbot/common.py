@@ -1,3 +1,5 @@
+import re
+
 import yaml
 
 from socialtext.buildbot.steps.shell import PrvShellCommand
