@@ -1,5 +1,8 @@
 Revision history for Socialtext-Utils
 
+0.17 - not yet released
+  - improved/tweaked stu-most-wanted output to link to non-existent pages
+
 0.16 - Wed Aug  8 14:37:47 PDT 2007
   - fixed bug when PUTting pages with a '/' in the name
   - Added a WikiObject to return a .pre block on a page
