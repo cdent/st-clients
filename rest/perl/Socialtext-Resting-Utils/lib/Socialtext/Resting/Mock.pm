@@ -232,6 +232,14 @@ sub set_taggedpages {
     $self->{taggedpages}{$tag} = shift;
 }
 
+=head2 json_verbose
+
+Set the json_verbose flag.
+
+=cut
+
+sub json_verbose { $_[0]->{json_verbose} = $_[1] }
+
 =head2 response
 
 Retrieve a fake response object.

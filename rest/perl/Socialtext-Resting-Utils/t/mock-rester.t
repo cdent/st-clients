@@ -35,3 +35,11 @@ Tags: {
         "Collection methods behave smart in scalar context" );
 
 }
+
+Misc: {
+    my $r = Socialtext::Resting::Mock->new;
+    eval { $r->json_verbose(1) };
+    is $@, '';
+    is $r->{json_verbose}, 1;
+}
+
