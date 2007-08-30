@@ -1,0 +1,42 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Socialtext::Resting::Getopt qw/get_rester/;
+use Socialtext::Resting::LocalCopy;
+use Getopt::Long;
+
+sub usage {
+    my $msg = shift || '';
+    die <<EOT;
+$msg
+USAGE: $0 [--to <dir>] [--from <dir>] <rester options>
+
+Saves wiki content to a local directory, or from a local directory.
+
+Either --to or --from must be specified.
+
+EOT
+}
+
+my $r = get_rester();
+
+my ($to, $from);
+GetOptions(
+    'to=s' => \$to,
+    'from=s' => \$from,
+) or usage;
+
+usage unless $to or $from;
+usage("$to is not a directory!\n") if $to and !-d $to;
+usage("$from is not a directory!\n") if $from and !-d $from;
+
+
+my $lc = Socialtext::Resting::LocalCopy->new( rester => $r );
+if ($to) {
+    print "Pulling content from " . $r->workspace . " into $to\n";
+    $lc->pull($to);
+}
+else {
+    print "Pushing content from $from into " . $r->workspace . "\n";
+    $lc->push($from);
+}
