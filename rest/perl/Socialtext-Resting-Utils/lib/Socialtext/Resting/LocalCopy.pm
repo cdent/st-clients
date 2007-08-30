@@ -15,11 +15,13 @@ sub new {
 
 sub pull {
     my $self = shift;
-    my $dir  = shift;
+    my %opts = @_;
+    my $dir  = $opts{dir};
+    my $tag  = $opts{tag};
     my $r    = $self->{rester};
 
     $r->accept('text/plain');
-    my @pages = $r->get_pages();
+    my @pages = $tag ? $r->get_taggedpages($tag) : $r->get_pages();
     $r->accept('application/json');
     $r->json_verbose(1);
     for my $p (@pages) {
@@ -44,8 +46,12 @@ sub keys_to_keep { qw/page_id name wikitext tags/ }
 
 sub push {
     my $self = shift;
-    my $dir  = shift;
+    my %opts = @_;
+    my $dir  = $opts{dir};
+    my $tag  = $opts{tag};
     my $r    = $self->{rester};
+
+    die "Sorry - push by tag is not yet implemented!" if $tag;
 
     my @files = glob("$dir/*");
     for my $f (@files) {

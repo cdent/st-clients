@@ -13,48 +13,70 @@ BEGIN {
 }
 
 # Test data
-my $foo = {
-    json => <<'EOT',
+my %testdata = (
+    foo => {
+        json => <<'EOT',
 {"page_uri":"https://www.socialtext.net/st-sandbox/index.cgi?foo","page_id":"foo","name":"Foo","wikitext":"Foocontent\n","modified_time":1188427118,"tags":["Footag"],"uri":"foo","revision_id":20070829223838,"html":"<div class=\"wiki\">\n<p>\nFoocontent</p>\n</div>\n","last_edit_time":"2007-08-29 22:38:38 GMT","last_editor":"luke.closs@socialtext.com","revision_count":15}
 EOT
-    tag => 'Footag',
-    expected => {
-        page_id => 'foo',
-        name => 'Foo',
-        wikitext => "Foocontent\n",
-        tags => ['Footag'],
+        tag => 'Footag',
+        expected => {
+            page_id => 'foo',
+            name => 'Foo',
+            wikitext => "Foocontent\n",
+            tags => ['Footag'],
+        },
     },
-};
+    bar => {
+        json => <<'EOT',
+{"page_uri":"https://www.socialtext.net/st-sandbox/index.cgi?bar","page_id":"bar","name":"Bar","wikitext":"Barcontent\n","modified_time":1188427118,"tags":["Bartag"],"uri":"bar","revision_id":20070829223838,"html":"<div class=\"wiki\">\n<p>\nBarcontent</p>\n</div>\n","last_edit_time":"2007-08-29 22:38:38 GMT","last_editor":"luke.closs@socialtext.com","revision_count":15}
+EOT
+        tag => 'Bartag',
+        expected => {
+            page_id => 'bar',
+            name => 'Bar',
+            wikitext => "Barcontent\n",
+            tags => ['Bartag'],
+        },
+    },
+);
 
 Simple_pull_push: {
-    my $src = Socialtext::Resting::Mock->new;
-    $src->put_page('Foo', $foo->{json});
-    $src->put_pagetag('Foo', $foo->{tag});
+    my $data = $testdata{foo};
+    my $src = _setup_rester('foo');
     my $src_lc = Socialtext::Resting::LocalCopy->new( rester => $src );
     my $tmpdir = _make_tempdir();
-    $src_lc->pull($tmpdir);
-
+    $src_lc->pull(dir => $tmpdir);
 
     # Test that the content was saved
-    my $file = "$tmpdir/foo";
-    ok -e $file, "-e $file";
-    my $json;
-    eval { $json = jsonToObj( Socialtext::EditPage::_read_file($file) ) };
-    is $@, '';
-    is_deeply $json, $foo->{expected}, 'json object matches';
+    _saved_ok($tmpdir, $data);
 
     # Push the content up to a workspace
     my $dst = Socialtext::Resting::Mock->new;
     my $dst_lc = Socialtext::Resting::LocalCopy->new( rester => $dst );
-    $dst_lc->push($tmpdir);
+    $dst_lc->push(dir => $tmpdir);
 
     # Test that the workspace was populated correctly
-    is $dst->get_page($foo->{expected}{name}), $foo->{expected}{wikitext}, 'dst wikitext';
-    is_deeply [ $dst->get_pagetags($foo->{expected}{name}) ], 
-        $foo->{expected}{tags}, 'dst tags';
+    is $dst->get_page($data->{expected}{name}), $data->{expected}{wikitext}, 'dst wikitext';
+    is_deeply [ $dst->get_pagetags($data->{expected}{name}) ], 
+        $data->{expected}{tags}, 'dst tags';
+}
+
+Pull_by_tag: {
+    my $data = $testdata{foo};
+    my $tag = $data->{expected}{tags}[0];
+    my $src = _setup_rester('foo', 'bar');
+    my $src_lc = Socialtext::Resting::LocalCopy->new( rester => $src );
+    my $tmpdir = _make_tempdir();
+    $src_lc->pull(dir => $tmpdir, tag => $tag);
+
+    # Test that the content was saved
+    _saved_ok($tmpdir, $data);
+    # Test that the other page wasn't saved
+    ok !-e "$tmpdir/bar", 'bar does not exist';
 }
 
 # Note Attachment handling is not yet implemented
+
 
 
 exit;
@@ -67,3 +89,25 @@ sub _make_tempdir {
     return $dir;
 }
 
+sub _setup_rester {
+    my $r = Socialtext::Resting::Mock->new;
+    for (@_) {
+        my $name = $_;
+        my $data = $testdata{$name};
+        $r->put_page($data->{expected}{name}, $data->{json});
+        $r->put_pagetag($data->{expected}{name}, $data->{tag});
+    };
+    return $r;
+}
+
+sub _saved_ok {
+    my $tmpdir = shift;
+    my $data = shift;
+
+    my $file = "$tmpdir/$data->{expected}{page_id}";
+    ok -e $file, "-e $file";
+    my $json;
+    eval { $json = jsonToObj( Socialtext::EditPage::_read_file($file) ) };
+    is $@, '';
+    is_deeply $json, $data->{expected}, 'json object matches';
+}
