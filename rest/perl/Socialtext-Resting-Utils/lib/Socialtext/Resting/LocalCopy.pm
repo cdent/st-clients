@@ -1,8 +1,29 @@
 package Socialtext::Resting::LocalCopy;
 use strict;
 use warnings;
-use Fatal qw/open close/;
 use JSON;
+
+=head1 NAME
+
+Socialtext::Resting::LocalCopy - Maintain a copy on disk of a workspace
+
+=head1 SYNOPSIS
+
+Socialtext::Resting::LocalCopy allows one to copy a workspace into files
+on the local disk, and to update a workspace from files on disk.
+
+=cut
+
+our $VERSION = '0.01';
+
+=head1 METHODS
+
+=head2 new
+
+Create a new LocalCopy object.  Requires a C<rester> parameter, which should
+be a Socialtext::Rester-like object.
+
+=cut
 
 sub new {
     my $class = shift;
@@ -12,6 +33,21 @@ sub new {
     bless $self, $class;
     return $self;
 }
+
+=head2 pull
+
+Reads a workspace and pulls all of the pages into files in the specified
+directory.  Options are passed in as a list of named options:
+
+=over 4
+
+=item dir - The directory the files should be saved to.
+
+=item tag - an optional tag.  If specified, only tagged files will be pulled.
+
+=back
+
+=cut
 
 sub pull {
     my $self = shift;
@@ -30,19 +66,36 @@ sub pull {
         my $obj = jsonToObj($json);
 
         # Trim the content
-        my %to_keep = map { $_ => 1 } $self->keys_to_keep;
+        my %to_keep = map { $_ => 1 } $self->_keys_to_keep;
         for my $k (keys %$obj) {
             delete $obj->{$k} unless $to_keep{$k};
         }
 
         my $file = "$dir/$obj->{page_id}";
-        open(my $fh, ">$file");
+        open(my $fh, ">$file") or die "Can't open $file: $!";
         print $fh objToJson($obj);
-        close $fh;
+        close $fh or die "Can't write $file: $!";
     }
 }
 
-sub keys_to_keep { qw/page_id name wikitext tags/ }
+sub _keys_to_keep { qw/page_id name wikitext tags/ }
+
+=head2 push
+
+Reads a directory and pushes all the files in that directory up to
+the specified workspace.  Options are passed in as a list of named options:
+
+=over 4
+
+=item dir - The directory the files should be saved to.
+
+=item tag - an optional tag.  If specified, only tagged files will be pushed.
+
+Note - tag is not yet implemented.
+
+=back
+
+=cut
 
 sub push {
     my $self = shift;
@@ -55,7 +108,7 @@ sub push {
 
     my @files = glob("$dir/*");
     for my $f (@files) {
-        open(my $fh, $f);
+        open(my $fh, $f) or die "Can't open $f: $!";
         local $/ = undef;
         my $obj = jsonToObj(<$fh>);
         close $fh;
@@ -65,5 +118,23 @@ sub push {
         $r->put_pagetag($obj->{name}, $_) for @{ $obj->{tags} };
     }
 }
+
+=head1 BUGS
+
+Attachments are not yet supported.
+Push by tag is not yet supported.
+
+=head1 AUTHOR
+
+Luke Closs, C<< <luke.closs at socialtext.com> >>
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2007 Luke Closs, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
 
 1;
