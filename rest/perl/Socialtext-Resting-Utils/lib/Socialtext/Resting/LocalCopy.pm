@@ -71,10 +71,15 @@ sub pull {
             delete $obj->{$k} unless $to_keep{$k};
         }
 
-        my $file = "$dir/$obj->{page_id}";
-        open(my $fh, ">$file") or die "Can't open $file: $!";
-        print $fh objToJson($obj);
-        close $fh or die "Can't write $file: $!";
+        my $wikitext_file = "$dir/$obj->{page_id}";
+        open(my $fh, ">$wikitext_file") or die "Can't open $wikitext_file: $!";
+        print $fh delete $obj->{wikitext};
+        close $fh or die "Can't write $wikitext_file: $!";
+
+        my $json_file = "$wikitext_file.json";
+        open(my $jfh, ">$json_file") or die "Can't open $json_file: $!";
+        print $jfh objToJson($obj);
+        close $jfh or die "Can't write $json_file: $!";
     }
 }
 
@@ -106,12 +111,17 @@ sub push {
 
     die "Sorry - push by tag is not yet implemented!" if $tag;
 
-    my @files = glob("$dir/*");
+    my @files = glob("$dir/*.json");
     for my $f (@files) {
         open(my $fh, $f) or die "Can't open $f: $!";
         local $/ = undef;
         my $obj = jsonToObj(<$fh>);
         close $fh;
+
+        (my $wikitext_file = $f) =~ s/\.json$//;
+        open(my $wtfh, $wikitext_file) or die "Can't open $wikitext_file: $!";
+        $obj->{wikitext} = <$wtfh>;
+        close $wtfh;
 
         print "Putting $obj->{page_id} ...\n";
         $r->put_page($obj->{name}, $obj->{wikitext});

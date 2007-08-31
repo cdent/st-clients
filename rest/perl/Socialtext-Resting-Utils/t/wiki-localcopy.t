@@ -104,10 +104,13 @@ sub _saved_ok {
     my $tmpdir = shift;
     my $data = shift;
 
-    my $file = "$tmpdir/$data->{expected}{page_id}";
-    ok -e $file, "-e $file";
+    my $wikitext_file = "$tmpdir/$data->{expected}{page_id}";
+    ok -e $wikitext_file, "-e $wikitext_file";
+    my $json_file = "$wikitext_file.json";
+    ok -e $json_file, "-e $json_file";
     my $json;
-    eval { $json = jsonToObj( Socialtext::EditPage::_read_file($file) ) };
+    eval { $json = jsonToObj( Socialtext::EditPage::_read_file($json_file) ) };
     is $@, '';
+    $json->{wikitext} = Socialtext::EditPage::_read_file($wikitext_file);
     is_deeply $json, $data->{expected}, 'json object matches';
 }
