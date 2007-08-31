@@ -20,6 +20,7 @@ WriteMakefile(
         'bin/wikedit', 
         'bin/stu-save-pages',
         'bin/stu-most-wanted',
+        'bin/stu-local-copy',
     ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Socialtext-Resting-Utils-*' },
