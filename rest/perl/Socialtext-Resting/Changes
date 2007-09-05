@@ -1,3 +1,7 @@
+0.22 - Not yet released
+ - Add undocumented 'perl_hash' accept type.  The type may change in the
+   future.
+
 0.21 - Wed Aug  8 14:29:38 PDT 2007
  - check if server is set, die if not
  - make name_to_id method public, as many things already use

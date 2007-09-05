@@ -11,7 +11,7 @@ use JSON;
 
 use Readonly;
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 =head1 NAME
 
@@ -135,6 +135,7 @@ sub get_page {
     );
     $uri .= '?verbose=1' if $self->json_verbose;
 
+    $accept = 'application/json' if $accept eq 'perl_hash';
     my ( $status, $content, $response ) = $self->_request(
         uri    => $uri,
         method => 'GET',
@@ -143,6 +144,7 @@ sub get_page {
 
     if ( $status == 200 || $status == 404 ) {
         $self->{etag_cache}{$workspace}{$pname} = $response->header('etag');
+        return jsonToObj($content) if $self->accept eq 'perl_hash';
         return $content;
     }
     else {
@@ -584,6 +586,7 @@ sub _get_things {
         }
     }
 
+    $accept = 'application/json' if $accept eq 'perl_hash';
     my ( $status, $content ) = $self->_request(
         uri    => $uri,
         method => 'GET',
@@ -594,6 +597,7 @@ sub _get_things {
         return ( grep defined, ( split "\n", $content ) );
     }
     elsif ( $status == 200 ) {
+        return jsonToObj($content) if $self->accept eq 'perl_hash';
         return $content;
     }
     elsif ( $status == 404 ) {

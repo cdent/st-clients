@@ -5,17 +5,10 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 10;
-
-my $Strutter = Socialtext::Resting->new(
-        username => 'rest-tester@socialtext.com',
-        password => 'dozing',
-        server   => 'http://www.socialtext.net',
-);
-
-$Strutter->workspace('st-rest-test');
+plan tests => 13;
 
 # Put the page
+my $Strutter = new_strutter();
 my $page_content = "This is a\nfile thing here\n";
 eval { $Strutter->put_page("Test page", $page_content);};
 my $network_skip = 1 if $@;
@@ -71,7 +64,24 @@ Name_to_id: {
     is Socialtext::Resting::name_to_id('Water bottle'), 'water_bottle';
 }
 
+Perl_hash_accept_type: {
+    my $r = new_strutter();
+    $r->accept('perl_hash');
+    isa_ok scalar($r->get_page('Test Page')), 'HASH';
+    isa_ok scalar($r->get_pagetags('Test Page')), 'ARRAY';
+    isa_ok scalar($r->get_taggedpages('Taggy')), 'ARRAY';
+}
+
 exit;
+
+sub new_strutter {
+    return Socialtext::Resting->new(
+        username  => 'rest-tester@socialtext.com',
+        password  => 'dozing',
+        server    => 'http://www.socialtext.net',
+        workspace => 'st-rest-test',
+    );
+}
 
 sub readfile {
     my ($filename) = shift;
