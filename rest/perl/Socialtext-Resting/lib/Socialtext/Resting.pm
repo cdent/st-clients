@@ -144,7 +144,8 @@ sub get_page {
 
     if ( $status == 200 || $status == 404 ) {
         $self->{etag_cache}{$workspace}{$pname} = $response->header('etag');
-        return jsonToObj($content) if $self->accept eq 'perl_hash';
+        return jsonToObj($content)
+            if (($self->accept || '') eq 'perl_hash');
         return $content;
     }
     else {
@@ -597,7 +598,8 @@ sub _get_things {
         return ( grep defined, ( split "\n", $content ) );
     }
     elsif ( $status == 200 ) {
-        return jsonToObj($content) if $self->accept eq 'perl_hash';
+        return jsonToObj($content) 
+            if (($self->accept || '') eq 'perl_hash');
         return $content;
     }
     elsif ( $status == 404 ) {
