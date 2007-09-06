@@ -5,9 +5,10 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 13;
+plan tests => 14;
 
 # Put the page
+my $strut_user = 'rest-tester@socialtext.com';
 my $Strutter = new_strutter();
 my $page_content = "This is a\nfile thing here\n";
 eval { $Strutter->put_page("Test page", $page_content);};
@@ -57,6 +58,11 @@ SKIP: {
         $Strutter->workspace('st-no-existy');
         is $Strutter->get_homepage, undef;
     }
+
+    Get_user: {
+        my $user = $Strutter->get_user( $strut_user );
+        is $user->{ email_address }, $strut_user;
+    }
 }
 
 Name_to_id: {
@@ -76,7 +82,7 @@ exit;
 
 sub new_strutter {
     return Socialtext::Resting->new(
-        username  => 'rest-tester@socialtext.com',
+        username  => $strut_user,
         password  => 'dozing',
         server    => 'http://www.socialtext.net',
         workspace => 'st-rest-test',

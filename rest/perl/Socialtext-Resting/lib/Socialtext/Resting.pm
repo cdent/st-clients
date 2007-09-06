@@ -772,6 +772,148 @@ sub get_workspaces {
     return $self->_get_things('workspaces');
 }
 
+=head2 get_user
+
+    my $userinfo = $Rester->get_user($username);
+    print $userinfo->{email_address};
+
+Get information about a username
+
+=cut
+
+sub get_user {
+    my $self = shift;
+    my $uname = shift;
+
+    my $uri = $self->_make_uri(
+        'user',
+        { user_id => $uname, ws => $self->workspace }
+    );
+    
+    my ( $status, $content ) = $self->_request(
+        uri    => $uri,
+        accept => 'application/json',
+        method => 'GET'
+    );
+
+    if ( $status == 200 ) {
+        return JSON->new->jsonToObj( $content );
+    } elsif ( $status == 404 ) {
+        return $content;
+    } else {
+        die "$status: $content\n";
+    }
+}
+
+=head2 create_user
+
+    $Rester->create_user( { username => $username,
+                            email_address => $email,
+                            password => $password } );
+
+Create a new user. Other parameters can be specified, see POD for
+Socialtext::User. username is optional and will default to the email address,
+as in most cases username and email_address will be the same.
+
+=cut
+
+sub create_user {
+    my $self = shift;
+    my $args = shift;
+
+    $args->{ username } ||= $args->{ email_address };
+    $args = JSON->new->objToJson($args);
+
+    warn "content $args\n";
+
+    my ( $status, $content ) = $self->_request(
+        uri     => $ROUTES{'users'},
+        method  => 'POST',
+        type    => 'application/json',
+        content => $args
+    );
+
+    if ( $status == 201 || $status == 400 || $status == 409 ) {
+        return $content;
+    } else {
+        die "$status: $content\n";
+    }
+}
+
+=head2 add_user_to_workspace
+
+    $Rester->add_user_to_workspace( $workspace, { username => $user, 
+                                      rolename => $role,
+                                      send_confirmation_invitation => 0 || 1,
+                                      from_address => $from_email } );
+
+Add a user that already exists to a workspace. rolename defaults to 'member',
+send_confirmation_invitation defaults to '0'. from_address must refer to a
+valid existing user, and is only needed if send_confirmation_invitation is set
+to '1'. If the user is already a member of the workspace, this will reset their
+role if you specify a role that's different from their current role.
+
+=cut
+
+sub add_user_to_workspace {
+    my $self = shift;
+    my $workspace = shift;
+    my $args = shift;
+
+    my $uri = $self->_make_uri(
+        'workspaceusers',
+        { ws => $workspace }
+    );
+
+    $args->{rolename} ||= 'member';
+    $args->{send_confirmation_invitation} ||= 0;
+    $args = JSON->new->objToJson($args);
+
+    my ( $status, $content ) = $self->_request(
+        uri     => $uri,
+        method  => 'POST',
+        type    => 'application/json',
+        content => $args
+    );
+
+    if ( $status == 201 || $status == 400 ) {
+        return $content;
+    } else {
+        die "$status: $content\n";
+    }
+}
+    
+=head2 get_users_for_workspace
+
+    my @users = $Rester->get_users_for_workspace( $workspace );
+    for ( @users ) { print "$_->{name}, $_->{role}, $->{is_workspace_admin}\n" }
+
+Get a list of users in a workspace, and their roles and admin status.
+
+=cut
+
+sub get_users_for_workspace {
+    my $self = shift;
+    my $workspace = shift;
+
+    my $uri = $self->_make_uri(
+        'workspaceusers',
+        { ws => $workspace }
+    );
+    
+    my ( $status, $content ) = $self->_request(
+        uri     => $uri,
+        method  => 'GET',
+        accept  => 'application/json'
+    );
+
+    if ( $status == 200 ) {
+        return @{ JSON->new->jsonToObj( $content ) };
+    } else {
+        die "$status: $content\n";
+    }
+}
+
 sub _request {
     my $self = shift;
     my %p    = @_;
