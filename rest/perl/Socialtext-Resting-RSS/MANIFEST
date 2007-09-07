@@ -1,0 +1,6 @@
+bin/st-rss
+Makefile.PL
+t/rss.t
+util/make-rss.pl
+lib/Socialtext/Resting/RSS.pm
+MANIFEST
