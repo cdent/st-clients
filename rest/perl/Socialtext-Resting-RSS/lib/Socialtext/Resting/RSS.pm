@@ -112,11 +112,11 @@ sub _calculate_changed_pages {
         my $obj = $new->{$p};
         my $desc;
         if (!exists $old->{$p}) {
-            warn "  $p is new!\n";
+            print "  $p is new!\n";
             $desc = $obj->{wikitext} = _fetch_wikitext($r, $obj->{page_id});
         }
         elsif ($obj->{revision_id} != $old->{$p}{revision_id}) {
-            warn "  $p has changed!\n";
+            print "  $p has changed!\n";
             $obj->{wikitext} = _fetch_wikitext($r, $obj->{page_id});
             $desc = $self->_diff_content($old->{$p}, $obj);
             $desc = "Differences between revision $old->{$p}{revision_count} and $obj->{revision_count}:\n$desc";
@@ -171,7 +171,7 @@ sub _rewrite_cache {
 
     # Write new and changed pages
     for my $p (keys %$new) {
-        warn "  writing cache - $p\n";
+        print "  writing cache - $p\n";
         my $filename = "$dir/$new->{$p}{page_id}";
         open(my $fh, ">$filename") or die "Can't write $filename: $!";
         print $fh objToJson($new->{$p});
