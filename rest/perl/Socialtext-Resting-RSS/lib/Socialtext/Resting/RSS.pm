@@ -220,11 +220,15 @@ sub _fetch_wikitext {
     return $r->get_page($page);
 }
 
-=head1 KNOWN ISSUES
+=head1 KNOWN ISSUES OR IMPROVEMENTS
 
 It rewrites the rss feed every time it is run, losing previous entries.  It should keep some count of entries in the rss feed at all time.
 
 It could also only check pages with a given tag.
+
+Handle changing tags (without wikitext changes) better.
+
+Include the page author and change author in the item.
 
 =head1 AUTHOR
 
