@@ -824,8 +824,6 @@ sub create_user {
     $args->{ username } ||= $args->{ email_address };
     $args = JSON->new->objToJson($args);
 
-    warn "content $args\n";
-
     my ( $status, $content ) = $self->_request(
         uri     => $ROUTES{'users'},
         method  => 'POST',
