@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 29;
 use lib 'lib';
 use JSON;
 
@@ -217,3 +217,50 @@ Template_when_page_already_exists: {
 
     is $r->get_page('Foo'), 'MONKEY';
 }
+
+Failed_Edit: {
+    my $r = Socialtext::Resting::Mock->new;
+    $r->workspace('Foo');
+
+    # Successful edit
+    my $ep = Socialtext::EditPage->new(rester => $r);
+
+    unlink "baz.sav";
+    unlink "baz.sav.1";
+
+    {
+        no warnings 'redefine';
+        *Socialtext::Resting::Mock::put_page = sub { die "shoot" };
+    }
+
+    eval {
+        # Failed edit
+        $ep->edit_page(page => 'Baz', callback => sub {"Failed"});
+    };
+
+    ok $@, "Edit failed";
+    is $r->get_page('Baz'), 'Baz not found';
+
+    ok -f 'baz.sav', "baz.sav exists";
+    is _read_file('baz.sav'), 'Failed', "content is correct";
+
+    eval {
+        # Failed edit
+        $ep->edit_page(page => 'Baz', callback => sub {"Failed again"});
+    };
+    ok -f 'baz.sav.1', "baz.sav exists";
+    is _read_file('baz.sav.1'), 'Failed again', "content is correct";
+}
+
+sub _read_file {
+    my $filename = shift;
+    open(my $fh, $filename) or die "unable to open $filename $!\n";
+    my $new_content;
+    {
+        local $/;
+        $new_content = <$fh>;
+    }
+    close $fh;
+    return $new_content;
+}
+

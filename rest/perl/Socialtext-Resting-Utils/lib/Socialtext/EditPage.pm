@@ -162,7 +162,7 @@ sub edit_page {
             $content = _read_file($our_file);
         }
         else {
-            die $@;
+            $self->_handle_error($@, $page, $new_content);
         }
     }
 
@@ -286,11 +286,7 @@ sub _edit_content {
             eval {
                 $rester->put_page($page, $new_content);
             };
-            if ($@) {
-                my $file = Socialtext::Resting::_name_to_id($page) . ".sav";
-                warn "Failed to write '$page', saving to $file\n";
-                _write_file($file, $new_content);
-            }
+            $self->_handle_error($@, $page, $new_content) if $@;
         }
 
         # Unescape special wafls
@@ -304,6 +300,19 @@ sub _edit_content {
         return $text;
     }
 
+}
+
+sub _handle_error {
+    my ($self, $err, $page, $content) = @_;
+    my $file = Socialtext::Resting::_name_to_id($page) . ".sav";
+    my $i = 0;
+    while (-f $file) {
+        $i++;
+        $file =~ s/\.sav(?:\.\d+)?$/\.sav\.$i/;
+    }
+    warn "Failed to write '$page', saving to $file\n";
+    _write_file($file, $content);
+    die "$err\n";
 }
 
 sub _write_file {
