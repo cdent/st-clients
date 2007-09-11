@@ -65,7 +65,7 @@ sub init {
             host        => $self->{host},
             port        => $self->{port} || 4444,
             browser_url => $self->{browser_url},
-            browser     => $ENV{selenium_browser} || '*firefox',
+            browser     => $ENV{selenium_browser} || $self->{browser}  || '*firefox',
             verbose     => $self->{verbose},
         );
         $self->{_started_selenium}++;
