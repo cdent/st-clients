@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Curses::UI;
 use Carp qw/croak/;
+use File::Path qw/mkpath/;
 use base 'Exporter';
 our @EXPORT_OK = qw/$App/;
 
@@ -26,6 +27,7 @@ sub new {
     my $class = shift;
     $App = { 
         history => [],
+        output_dir => "$ENV{HOME}/wikrad",
         @_ ,
     };
     die 'rester is mandatory' unless $App->{rester};
@@ -44,6 +46,15 @@ sub run {
 
     $self->{cui}->reset_curses;
     $self->{cui}->mainloop;
+}
+
+sub output_dir { 
+    my $self = shift;
+    my $dir = $self->{output_dir};
+    unless (-d $dir) {
+        mkpath $dir or die "Can't mkpath $dir: $!";
+    }
+    return $dir;
 }
 
 sub set_page {

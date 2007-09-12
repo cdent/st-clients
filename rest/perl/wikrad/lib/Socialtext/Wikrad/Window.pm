@@ -29,6 +29,7 @@ sub new {
     $v->set_binding( \&add_pagetag,              'T' );
     $v->set_binding( \&new_blog_post,            'P' );
     $v->set_binding( \&change_server,            'S' );
+    $v->set_binding( \&output_page_to_file,      'o' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
@@ -361,6 +362,25 @@ EOT
     if ($new_server and $new_server ne $old_server) {
         $r->server($new_server);
     }
+}
+
+sub output_page_to_file {
+    my $r = $App->{rester};
+    my $filename;
+    eval {
+        my $output_dir = $App->output_dir;
+        my $page_name = Socialtext::Resting::name_to_id($App->get_page);
+
+        $filename = $App->output_dir . "/$page_name.wiki";
+        open(my $fh, ">$filename") or die "Can't open $filename: $!";
+        print $fh $App->{win}{viewer}->text;
+        close $fh or die "Couldn't write $filename: $!";
+    };
+    my $msg = $@ ? "Error: $@" : "Saved to $filename";
+    $App->{cui}->dialog(
+        -title => "Output page to disk",
+        -message => $msg,
+    );
 }
 
 sub toggle_editable {

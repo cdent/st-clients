@@ -2,6 +2,7 @@ Changelog:
 
 0.06 - not yet released
  - Added ability to change REST server - 'S'
+ - Output the current page to disk - 'o'
 
 0.05 - Tue Jun  5 19:24:15 PDT 2007
  - wikrad now works in 80 column terminals
