@@ -27,7 +27,7 @@ sub new {
     my $class = shift;
     $App = { 
         history => [],
-        output_dir => "$ENV{HOME}/wikrad",
+        save_dir => "$ENV{HOME}/wikrad",
         @_ ,
     };
     die 'rester is mandatory' unless $App->{rester};
@@ -48,9 +48,9 @@ sub run {
     $self->{cui}->mainloop;
 }
 
-sub output_dir { 
+sub save_dir { 
     my $self = shift;
-    my $dir = $self->{output_dir};
+    my $dir = $self->{save_dir};
     unless (-d $dir) {
         mkpath $dir or die "Can't mkpath $dir: $!";
     }
