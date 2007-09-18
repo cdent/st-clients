@@ -112,7 +112,7 @@ sub edit_page {
                  . "exists.\n";
         }
         $rester->accept('text/plain');
-        my @tmpl_tags = $rester->get_pagetags($args{template});
+        my @tmpl_tags = grep { !/^template$/ } $rester->get_pagetags($args{template});
         push @$tags, @tmpl_tags;
     }
 
