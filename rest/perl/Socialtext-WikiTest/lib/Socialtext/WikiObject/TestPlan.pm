@@ -96,10 +96,26 @@ sub run_tests {
     eval "require $fixture_class";
     die "Can't load fixture $fixture_class $@\n" if $@;
 
+    $self->_raise_permissions;
+
     $self->{fixture_args}{testplan} ||= $self;
     my $fix = $fixture_class->new( %{ $self->{fixture_args} } );
     $self->{fixture} = $fix;
     $fix->run_test_table($self->{table});
+}
+
+sub _raise_permissions {
+    my $self = shift;
+    my %browsers = (
+        '*firefox' => '*chrome',
+        '*iexplore' => '*iehta',
+    );
+    my $browser = $self->{fixture_args}{browser};
+    for (@{ $self->{items} || [] }) {
+        if (/^highpermissions$/i and $browsers{$browser}) {
+            $self->{fixture_args}{browser} = $browsers{$browser};
+        }
+    }
 }
 
 # Find the fixture in the page

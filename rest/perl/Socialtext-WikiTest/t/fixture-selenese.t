@@ -125,3 +125,33 @@ sub sel_fixture_ok {
         %args,
     );
 }
+
+Higher_permissions: {
+    my %browsers = (
+        '*firefox' => '*chrome',
+        '*iexplore' => '*iehta',
+    );
+    while (my ($low,$high) = each %browsers) {
+        my $rester = Socialtext::Resting::Mock->new;
+        $rester->put_page('Test Plan', <<EOT);
+* Fixture: Selenese
+* HighPermissions
+| open | / |
+EOT
+        my $plan = Socialtext::WikiObject::TestPlan->new(
+            rester => $rester,
+            page => 'Test Plan',
+            fixture_args => {
+                browser => $low,
+                host => 'selenium-server',
+                username => 'testuser',
+                password => 'password',
+                browser_url => 'http://server',
+                workspace => 'foo',
+            },
+        );
+
+        $plan->run_tests;
+        is $plan->{fixture}{browser}, $high;
+    }
+}
