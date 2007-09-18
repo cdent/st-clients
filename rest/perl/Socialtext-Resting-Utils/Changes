@@ -6,6 +6,8 @@ Revision history for Socialtext-Utils
     disk
   - made it so that a $pagename.sav file is always written to before the code
     dies --kevinj
+  - don't add the tag template to pages when creating them from an actual
+    template --kevinj
 
 0.16 - Wed Aug  8 14:37:47 PDT 2007
   - fixed bug when PUTting pages with a '/' in the name
