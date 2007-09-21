@@ -161,8 +161,7 @@ sub new_blog_post {
 
 sub show_uri {
     my $r = $App->{rester};
-    my $uri = $r->server . '/' . $r->workspace 
-              . '/index.cgi?' 
+    my $uri = $r->server . '/' . $r->workspace . '/?' 
               . Socialtext::Resting::_name_to_id($App->get_page);
     $App->{cui}->dialog( -title => "Current page:", -message => " $uri" );
 }
