@@ -30,7 +30,6 @@ sub execute {
     my $repo = _short_repo_name($self->{repos_path});
     my $page_name = "$repo - r$self->{revision}";
     my $branch = $self->_branch_prefix || 'trunk';
-    my @tags = ('revision', "author:$author", "branch:$branch", "repo:$repo");
     my $page = <<EOT;
 ^^ r$self->{revision} - $author, $date
 *Comment:*
@@ -45,9 +44,6 @@ EOT
         no strict 'refs';
         for my $file (@{ $$type }) {
             $page .= "* $file\n";
-	    next if @{ $$type } > 50;
-	    (my $filetag = $file) =~ s/\//_/g;
-            push @tags, "path:$filetag";
         }
     }
 
@@ -66,6 +62,8 @@ EOT
     $| = 1;
     print "Putting page $page_name ... ";
     $r->put_page($page_name, $page);
+
+    my @tags = ('revision', "author:$author", "branch:$branch", "repo:$repo");
     for (grep { length } @tags) {
         print "($_), ";
         $r->put_pagetag($page_name, $_);
