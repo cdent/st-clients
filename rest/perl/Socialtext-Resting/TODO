@@ -2,3 +2,5 @@
   create users (which can't be deleted) on prod every time the tests are run. 
 * Write mocked test for add_user_to_workspace and get_users_for_workspace.
   These require an admin user to run, and rest-tester isn't one.
+
+* add_pagetag should accept multiple tags, and use a json PUT
