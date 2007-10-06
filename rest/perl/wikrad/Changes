@@ -1,6 +1,7 @@
 Changelog:
 
 0.06 - not yet released
+ - Added '--latest <tag>' option
  - Added ability to change REST server - 'S'
  - Save the current page to disk - 's'
 

@@ -10,13 +10,20 @@ my $r = get_rester(); # reads @ARGV and ~/.wikeditrc
 $r->server('https://www.socialtext.net') unless $r->server;
 $r->workspace('open') unless $r->workspace;
 
+my %opts;
 GetOptions(
+    'l|latest=s' => \$opts{latest_tagged_page},
 ) or usage();
 usage() unless $r->username and $r->password;
 
 my $app = Socialtext::Wikrad->new(rester => $r);
-my $start_page = shift;
-$app->set_page($start_page);
+if (@ARGV) {
+    $app->set_page(shift);
+}
+elsif ($opts{latest_tagged_page}) {
+    $app->set_last_tagged_page($opts{latest_tagged_page});
+}
+
 $app->run;
 exit;
 
@@ -24,6 +31,9 @@ sub usage {
     my $rester_usage = rester_usage();
     die <<EOT;
 USAGE: wikrad [<rester options>] ['Page Name']
+
+Wikrad options:
+  -l or --latest <tag>  Jump to the most recently modified page with that tag
 
 $rester_usage
 EOT

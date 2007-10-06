@@ -82,6 +82,16 @@ sub set_page {
     $self->load_page;
 }
 
+sub set_last_tagged_page {
+    my $self = shift;
+    my $tag  = shift;
+    my $r = $self->{rester};
+
+    $r->accept('text/plain');
+    my @pages = $r->get_taggedpages($tag);
+    $self->set_page(shift @pages);
+}
+
 sub set_workspace {
     my $self = shift;
     my $wksp = shift;
