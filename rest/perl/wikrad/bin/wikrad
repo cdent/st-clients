@@ -17,11 +17,12 @@ GetOptions(
 usage() unless $r->username and $r->password;
 
 my $app = Socialtext::Wikrad->new(rester => $r);
-if (@ARGV) {
-    $app->set_page(shift);
-}
-elsif ($opts{latest_tagged_page}) {
+
+if ($opts{latest_tagged_page}) {
     $app->set_last_tagged_page($opts{latest_tagged_page});
+}
+else {
+    $app->set_page(shift);
 }
 
 $app->run;
