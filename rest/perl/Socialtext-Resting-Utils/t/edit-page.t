@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 32;
 use lib 'lib';
 use JSON;
 
@@ -110,6 +110,29 @@ Extraclude: {
 Monkey
 {include: [Foo Bar]}
 {include: [Bar Baz]}
+EOT
+    is $r->get_page('Foo Bar'), "Cows\n";
+    is $r->get_page('Bar Baz'), "Bears are godless killing machines\n";
+}
+
+Extralink: {
+    my $r = Socialtext::Resting::Mock->new;
+    $r->put_page('Foo', "Monkey\n");
+
+    # Load up a fancy faked editor that copies in an extralink.
+    my $fancy_cp = File::Temp->new();
+    chmod 0755, $fancy_cp->filename;
+    print $fancy_cp "#!/bin/sh\ncp t/extralink.txt \$1\n";
+    $fancy_cp->close();
+    local $ENV{EDITOR} = $fancy_cp->filename;
+
+    my $ep = Socialtext::EditPage->new(rester => $r);
+    $ep->edit_page(page => 'Foo');
+
+    is $r->get_page('Foo'), <<EOT;
+Monkey
+[Foo Bar]
+[Bar Baz]
 EOT
     is $r->get_page('Foo Bar'), "Cows\n";
     is $r->get_page('Bar Baz'), "Bears are godless killing machines\n";

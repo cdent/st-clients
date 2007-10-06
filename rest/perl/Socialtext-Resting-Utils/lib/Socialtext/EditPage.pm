@@ -280,8 +280,27 @@ sub _edit_content {
         my $text = shift;
         my $rester = $self->{rester};
 
-        while ($text =~ s/\.extraclude \[([^\]]+)\]\n(.+?)\.extraclude\n/{include: [$1]}\n/ism) {
-            my ($page, $new_content) = ($1, $2);
+        my $included_content = sub {
+            my $type    = lc shift;
+            my $name    = shift;
+            my $newline = shift || '';
+
+            if ($type eq 'clude') {
+                return "{include: [$name]}\n";
+            }
+            elsif ($type eq 'link') {
+                return "[$name]$newline";
+            }
+            die "Unknown extrathing: $type";
+        };
+
+        while ($text =~ s/\.extra(clude|link)\s     # $1 is title
+                          \[([^\]]+)\]              # $2 is [name]
+                          (\n?)                      # $3 is extra newline
+                          (.+?)
+                          \.extra(?:clude|link)\n
+                         /$included_content->($1, $2, $3)/ismex) {
+            my ($page, $new_content) = ($2, $4);
             print "Putting extraclude '$page'\n";
             eval {
                 $rester->put_page($page, $new_content);

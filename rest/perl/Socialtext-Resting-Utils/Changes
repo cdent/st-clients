@@ -1,6 +1,7 @@
 Revision history for Socialtext-Utils
 
 0.17 - not yet released
+  - added extralink wafl
   - improved/tweaked stu-most-wanted output to link to non-existent pages
   - added stu-local-copy tool for moving content between a workspace and local
     disk
