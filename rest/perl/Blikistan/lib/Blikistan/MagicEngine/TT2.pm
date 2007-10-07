@@ -32,7 +32,10 @@ sub render_template {
     my $path = join ': ', 
                grep { defined }
                ($self->{template_path}, $FindBin::Bin);
-    my $template = Template->new( { INCLUDE_PATH => $path } );
+    my $template = Template->new( { 
+        INCLUDE_PATH => $path,
+        ABSOLUTE => 1,
+    } );
     $template->process( $tmpl, $params, \$output) or
         die $template->error;
 

@@ -90,15 +90,7 @@ Creates a MagicEngine and asks it to print the page.
 sub print_blog {
     my $self = shift;
 
-    my $magic_class = "Blikistan::MagicEngine::"
-                       . ucfirst($self->{magic_engine});
-    eval "require $magic_class";
-    die if $@;
-
-    my $me = $magic_class->new(
-        rester => $self->{rester},
-        %{ $self->{magic_opts} },
-    );
+    my $me = $self->magic_engine;
     my $output;
     eval {
         $output = $me->print_blog;
@@ -106,6 +98,30 @@ sub print_blog {
     warn $@ if $@;
     return $output;
 }
+
+=head2 magic_engine
+
+Returns a MagicEngine object
+
+=cut
+
+sub magic_engine {
+    my $self = shift;
+
+    unless ($self->{_me}) {
+        my $magic_class = "Blikistan::MagicEngine::"
+                           . ucfirst($self->{magic_engine});
+        eval "require $magic_class";
+        die if $@;
+
+        $self->{_me} = $magic_class->new(
+            rester => $self->{rester},
+            %{ $self->{magic_opts} },
+        );
+    }
+    return $self->{_me};
+}
+
 
 =head1 AUTHOR
 
