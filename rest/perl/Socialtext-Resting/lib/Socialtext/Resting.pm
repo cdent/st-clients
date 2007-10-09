@@ -111,6 +111,18 @@ representation in future requests.
 Standard representations:
 http://www.socialtext.net/st-rest-docs/index.cgi?standard_representations
 
+Common representations:
+
+=over 4
+
+=item text/x.socialtext-wiki
+
+=item text/html
+
+=item application/json
+
+=back
+
 =head2 get_page
 
     $Rester->workspace('wikiname');
