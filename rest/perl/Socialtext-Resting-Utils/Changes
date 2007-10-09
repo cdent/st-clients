@@ -1,6 +1,6 @@
 Revision history for Socialtext-Utils
 
-0.17 - not yet released
+0.17 - Tue Oct  9 10:03:23 PDT 2007
   - added extralink wafl
   - improved/tweaked stu-most-wanted output to link to non-existent pages
   - added stu-local-copy tool for moving content between a workspace and local
@@ -9,6 +9,7 @@ Revision history for Socialtext-Utils
     dies --kevinj
   - don't add the tag template to pages when creating them from an actual
     template --kevinj
+  - limited stu-most-wanted to only show the first 100 most wanted pages
 
 0.16 - Wed Aug  8 14:37:47 PDT 2007
   - fixed bug when PUTting pages with a '/' in the name
