@@ -11,7 +11,7 @@ use JSON;
 
 use Readonly;
 
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 =head1 NAME
 
@@ -21,9 +21,9 @@ Socialtext::Resting - module for accessing Socialtext REST APIs
 
   use Socialtext::Resting;
   my $Rester = Socialtext::Resting->new(
-    username => $opts{username},
-    password => $opts{password},
-    server   => $opts{server},
+    username => 'matthew@cows.com',
+    password => 'bovine',
+    server   => 'http://www.socialtext.net',
   );
   $Rester->workspace('wikiname');
   $Rester->get_page('my_page');
@@ -84,9 +84,10 @@ field 'cookie';
 =head2 new
 
     my $Rester = Socialtext::Resting->new(
-        username => $opts{username},
-        password => $opts{password},
-        server   => $opts{server},
+        username  => 'matthew@cows.com',
+        password  => 'bovine',
+        server    => 'http://www.socialtext.net',
+        workspace => 'monkey',
     );
 
 Creates a Socialtext::Resting object for the specified
