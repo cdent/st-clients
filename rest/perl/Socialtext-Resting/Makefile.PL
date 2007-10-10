@@ -21,7 +21,8 @@ my %config = (
         'App::Options'    => 0,
         'IPC::Run'        => 0,
         'Test::Mock::LWP' => '0.05',
-    },    # e.g., Module::Name => 1.1
+        'JSON'            => 0,
+    },
     (
         $] >= 5.005
         ?    ## Add these new keywords supported since 5.005
