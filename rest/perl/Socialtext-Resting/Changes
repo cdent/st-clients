@@ -1,3 +1,6 @@
+0.23 - Wed Oct 10 09:09:54 PDT 2007
+ - Added missing JSON dependency
+
 0.22 - Tue Oct  9 10:03:42 PDT 2007
  - Add undocumented 'perl_hash' accept type.  The type may change in the
    future.
