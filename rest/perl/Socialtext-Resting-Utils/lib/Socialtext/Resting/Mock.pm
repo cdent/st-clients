@@ -130,6 +130,7 @@ Retrieve a list of pages in the current workspace.
 
 sub get_pages {
     my ($self) = @_;
+    return $self->{_get_pages} if $self->{_get_pages}; # testing shortcut
     return keys %{ $self->{page} };
 }
 

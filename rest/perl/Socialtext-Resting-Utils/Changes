@@ -1,5 +1,8 @@
 Revision history for Socialtext-Utils
 
+0.18 - not yet released
+  - Added stu-tagged-pages utility
+
 0.17 - Tue Oct  9 10:03:23 PDT 2007
   - added extralink wafl
   - improved/tweaked stu-most-wanted output to link to non-existent pages

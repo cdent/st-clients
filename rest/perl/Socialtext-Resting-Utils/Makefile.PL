@@ -21,6 +21,7 @@ WriteMakefile(
         'bin/stu-save-pages',
         'bin/stu-most-wanted',
         'bin/stu-local-copy',
+        'bin/stu-tagged-pages',
     ],
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Socialtext-Resting-Utils-*' },

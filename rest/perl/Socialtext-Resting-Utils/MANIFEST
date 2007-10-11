@@ -2,6 +2,7 @@ bin/wikedit
 bin/stu-local-copy
 bin/stu-most-wanted
 bin/stu-save-pages
+bin/stu-tagged-pages
 Changes
 lib/Socialtext/EditPage.pm
 lib/Socialtext/WikiObject.pm
@@ -14,6 +15,7 @@ lib/Socialtext/Resting/Utils.pm
 lib/Socialtext/Resting/Mock.pm
 lib/Socialtext/Resting/Getopt.pm
 lib/Socialtext/Resting/LocalCopy.pm
+lib/Socialtext/Resting/TaggedPages.pm
 Makefile.PL
 MANIFEST
 README
@@ -21,6 +23,7 @@ t/00-load.t
 t/default-rester.t
 t/edit-page.t
 t/extraclude.txt
+t/extralink.txt
 t/mock-editor.pl
 t/object.t
 t/pod-coverage.t
@@ -33,5 +36,5 @@ t/rester.conf
 t/getopt-test.pl
 t/pre-block.t
 t/table-config.t
+t/tagged-pages.t
 t/wiki-localcopy.t
-META.yml                                 Module meta-data (added by MakeMaker)
