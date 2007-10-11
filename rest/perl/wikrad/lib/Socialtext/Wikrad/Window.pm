@@ -359,8 +359,10 @@ sub search {
     $App->{cui}->status("Looking for pages matching your query");
     $r->accept('text/plain');
     $r->query($query);
+    $r->order('newest');
     my @matches = $r->get_pages;
-    $r->query();
+    $r->query('');
+    $r->order('');
     $App->{cui}->nostatus;
     $App->{win}->listbox(
         -title => 'Choose a page link',
