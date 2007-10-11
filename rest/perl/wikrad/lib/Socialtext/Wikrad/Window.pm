@@ -14,8 +14,8 @@ sub new {
 
     $self->_create_ui_widgets;
 
-    my ($v, $p, $w, $t, $q) = map { $self->{$_} } 
-                          qw/viewer page_box workspace_box tag_box find_box/;
+    my ($v, $p, $w, $t) = map { $self->{$_} } 
+                          qw/viewer page_box workspace_box tag_box/;
     $v->focus;
     $v->set_binding( \&choose_frontlink,         'g' );
     $v->set_binding( \&choose_backlink,          'B' );
@@ -29,13 +29,13 @@ sub new {
     $v->set_binding( \&add_pagetag,              'T' );
     $v->set_binding( \&new_blog_post,            'P' );
     $v->set_binding( \&change_server,            'S' );
-    $v->set_binding( \&save_to_file,             's' );
+    $v->set_binding( \&save_to_file,             'W' );
+    $v->set_binding( \&search,                   's' );
 
     $v->set_binding( sub { editor() },                  'e' );
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
     $v->set_binding( sub { $v->focus },                 'v' );
     $v->set_binding( sub { $p->focus; $self->{cb}{page}->($p) },      'p' );
-    $v->set_binding( sub { $q->focus; $self->{cb}{find}->($q) },     'f' );
     $v->set_binding( sub { $w->focus; $self->{cb}{workspace}->($w) }, 'w' );
     $v->set_binding( sub { $t->focus; $self->{cb}{tag}->($t) },       't' );
 
@@ -76,7 +76,7 @@ Awesome Commands:
  w   - set workspace
  p   - set page
  t   - tagged pages
- f   - find pages matching a query
+ s   - search
  g   - frontlinks
  B   - backlinks
  E   - open page for edit (--pull-includes)
@@ -89,10 +89,10 @@ Awesome Commands:
  P   - New blog post (read tags from current page)
  S   - Change REST server
 
-Search:
- / - search forward
- ? - search backwards 
- (Bad: search n/N conflicts with next/prev link)
+Find:
+ / - find forward
+ ? - find backwards 
+ (Bad: find n/N conflicts with next/prev link)
 
 Ctrl-q / Ctrl-c / q - quit
 EOT
@@ -349,13 +349,16 @@ sub tag_change {
     }
 }
 
-sub find_change {
+sub search {
     my $r = $App->{rester};
-    my $find = $App->{win}{find_box}->text;
+
+    my $query = $App->{cui}->question( 
+        -question => "Search"
+    ) || return;
 
     $App->{cui}->status("Looking for pages matching your query");
     $r->accept('text/plain');
-    $r->query($find);
+    $r->query($query);
     my @matches = $r->get_pages;
     $r->query();
     $App->{cui}->nostatus;
@@ -446,12 +449,8 @@ sub _create_ui_widgets {
             -width => 15,
             -x     => 85,
         },
-        find_field => {
-            -width => 15,
-            -x     => 107
-        },
         help_label => {
-            -x => 122,
+            -x => 107,
         },
         page_viewer => {
             -y => 1,
@@ -466,13 +465,8 @@ sub _create_ui_widgets {
             -y     => 1,
             label_padding => 6,
         };
-        $widget_positions{find_field} = {
-            -x     => 32,
-            -y     => 1,
-            -width => 26,
-        };
         $widget_positions{help_label} = {
-            -x => 67,
+            -x => 32,
             -y => 1,
         };
         $widget_positions{page_viewer}{-y} = 2;
@@ -504,15 +498,6 @@ sub _create_ui_widgets {
     $self->{cb}{tag} = $tag_cb;
     $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
         %{ $widget_positions{tag_field} },
-    );
-
-    #######################################
-    # Create the find label and field
-    #######################################
-    my $find_cb = sub { toggle_editable( shift, \&find_change ) };
-    $self->{cb}{find} = $find_cb;
-    $self->{find_box} = $self->add_field('Find:', $find_cb,
-        %{ $widget_positions{find_field} },
     );
 
     $self->add(undef, 'Label',
