@@ -14,8 +14,8 @@ sub new {
 
     $self->_create_ui_widgets;
 
-    my ($v, $p, $w, $t) = map { $self->{$_} } 
-                          qw/viewer page_box workspace_box tag_box/;
+    my ($v, $p, $w, $t, $q) = map { $self->{$_} } 
+                          qw/viewer page_box workspace_box tag_box find_box/;
     $v->focus;
     $v->set_binding( \&choose_frontlink,         'g' );
     $v->set_binding( \&choose_backlink,          'B' );
@@ -35,6 +35,7 @@ sub new {
     $v->set_binding( sub { editor('--pull-includes') }, 'E' );
     $v->set_binding( sub { $v->focus },                 'v' );
     $v->set_binding( sub { $p->focus; $self->{cb}{page}->($p) },      'p' );
+    $v->set_binding( sub { $q->focus; $self->{cb}{find}->($q) },     'f' );
     $v->set_binding( sub { $w->focus; $self->{cb}{workspace}->($w) }, 'w' );
     $v->set_binding( sub { $t->focus; $self->{cb}{tag}->($t) },       't' );
 
@@ -75,6 +76,7 @@ Awesome Commands:
  w   - set workspace
  p   - set page
  t   - tagged pages
+ f   - find pages matching a query
  g   - frontlinks
  B   - backlinks
  E   - open page for edit (--pull-includes)
@@ -347,6 +349,26 @@ sub tag_change {
     }
 }
 
+sub find_change {
+    my $r = $App->{rester};
+    my $find = $App->{win}{find_box}->text;
+
+    $App->{cui}->status("Looking for pages matching your query");
+    $r->accept('text/plain');
+    $r->query($find);
+    my @matches = $r->get_pages;
+    $r->query();
+    $App->{cui}->nostatus;
+    $App->{win}->listbox(
+        -title => 'Choose a page link',
+        -values => \@matches,
+        change_cb => sub {
+            my $link = shift;
+            $App->set_page($link) if $link;
+        },
+    );
+}
+
 sub change_server {
     my $r = $App->{rester};
     my $old_server = $r->server;
@@ -424,8 +446,12 @@ sub _create_ui_widgets {
             -width => 15,
             -x     => 85,
         },
+        find_field => {
+            -width => 15,
+            -x     => 107
+        },
         help_label => {
-            -x => 107,
+            -x => 122,
         },
         page_viewer => {
             -y => 1,
@@ -440,8 +466,13 @@ sub _create_ui_widgets {
             -y     => 1,
             label_padding => 6,
         };
+        $widget_positions{find_field} = {
+            -x     => 32,
+            -y     => 1,
+            -width => 26,
+        };
         $widget_positions{help_label} = {
-            -x => 32,
+            -x => 67,
             -y => 1,
         };
         $widget_positions{page_viewer}{-y} = 2;
@@ -473,6 +504,15 @@ sub _create_ui_widgets {
     $self->{cb}{tag} = $tag_cb;
     $self->{tag_box} = $self->add_field('Tag:', $tag_cb,
         %{ $widget_positions{tag_field} },
+    );
+
+    #######################################
+    # Create the find label and field
+    #######################################
+    my $find_cb = sub { toggle_editable( shift, \&find_change ) };
+    $self->{cb}{find} = $find_cb;
+    $self->{find_box} = $self->add_field('Find:', $find_cb,
+        %{ $widget_positions{find_field} },
     );
 
     $self->add(undef, 'Label',
