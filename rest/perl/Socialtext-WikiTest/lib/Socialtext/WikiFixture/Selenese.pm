@@ -206,7 +206,7 @@ sub _try_condition {
     $arg =~ s/'/\\'/;
 
     my $cmd = "try { $condition('$arg') ? true : false } catch(e) { false }";
-    $self->{selenium}->wait_for_condition($cmd, $timeout);
+    $self->{selenium}->wait_for_condition_ok($cmd, $timeout);
 }
 
 
@@ -313,68 +313,68 @@ sub pause {
     sleep $timeout;
 }
 
-=head2 wait_for_text_present($text, $timeout)
+=head2 wait_for_text_present_ok($text, $timeout)
 
 Waits until $text is present in the html source
 
 =cut
 
-sub wait_for_text_present {
+sub wait_for_text_present_ok {
     my $self = shift;
     $self->_try_condition('selenium.isTextPresent',@_);
 }
 
-=head2 wait_for_element_present($locator, $timeout)
+=head2 wait_for_element_present_ok($locator, $timeout)
 
 Waits until $locator is present
 
 =cut
 
-sub wait_for_element_present {
+sub wait_for_element_present_ok {
     my $self = shift;
     $self->_try_condition('selenium.isElementPresent',@_);
 }
 
-=head2 wait_for_element_visible($locator, $timeout)
+=head2 wait_for_element_visible_ok($locator, $timeout)
 
 Waits until $locator is visible
 
 =cut
 
-sub wait_for_element_visible {
+sub wait_for_element_visible_ok {
     my $self = shift;
     $self->_try_condition('selenium.isVisible',@_);
 }
 
-=head2 wait_for_text_not_present($text, $timeout)
+=head2 wait_for_text_not_present_ok($text, $timeout)
 
 Waits until $text is not present in the html source
 
 =cut
 
-sub wait_for_text_not_present {
+sub wait_for_text_not_present_ok {
     my $self = shift;
     $self->_try_condition('!selenium.isTextPresent',@_);
 }
 
-=head2 wait_for_element_not_present($locator, $timeout)
+=head2 wait_for_element_not_present_ok($locator, $timeout)
 
 Waits until $locator is not present
 
 =cut
 
-sub wait_for_element_not_present {
+sub wait_for_element_not_present_ok {
     my $self = shift;
     $self->_try_condition('!selenium.isElementPresent',@_);
 }
 
-=head2 wait_for_element_not_visible($locator, $timeout)
+=head2 wait_for_element_not_visible_ok($locator, $timeout)
 
 Waits until $locator is not visible
 
 =cut
 
-sub wait_for_element_not_visible {
+sub wait_for_element_not_visible_ok {
     my $self = shift;
     $self->_try_condition('!selenium.isVisible',@_);
 }
@@ -384,7 +384,6 @@ sub wait_for_element_not_visible {
 Any functions not specified are passed to Test::WWW::Selenium
 
 =cut
-
 our $AUTOLOAD;
 sub AUTOLOAD {
     my $name = $AUTOLOAD;
