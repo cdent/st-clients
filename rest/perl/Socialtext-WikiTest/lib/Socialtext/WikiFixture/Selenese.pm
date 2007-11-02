@@ -4,6 +4,7 @@ use warnings;
 use base 'Socialtext::WikiFixture';
 use Encode;
 use Test::More;
+use Carp qw(croak);
 
 =head1 NAME
 
@@ -198,6 +199,16 @@ sub _munge_options {
     return @opts;
 }
 
+sub _try_condition {
+    my ($self, $condition, $arg, $timeout) = @_;
+
+    $timeout = $self->{selenium_timeout} unless defined $timeout;
+    $arg =~ s/'/\\'/;
+
+    my $cmd = "try { $condition('$arg') ? true : false } catch(e) { false }";
+    $self->{selenium}->wait_for_condition($cmd, $timeout);
+}
+
 
 =head2 quote_as_regex( $option )
 
@@ -287,6 +298,85 @@ sub print_page {
     my ($self) = @_;
 
     print $self->get_text('//body');
+}
+
+=head2 pause($timeout)
+
+Waits $timeout milliseconds (default: 1 second)
+
+=cut
+
+sub pause {
+    my ($self,$timeout) = @_;
+    $timeout = 1000  unless defined $timeout;
+    $timeout /= 1000;
+    sleep $timeout;
+}
+
+=head2 wait_for_text_present($text, $timeout)
+
+Waits until $text is present in the html source
+
+=cut
+
+sub wait_for_text_present {
+    my $self = shift;
+    $self->_try_condition('selenium.isTextPresent',@_);
+}
+
+=head2 wait_for_element_present($locator, $timeout)
+
+Waits until $locator is present
+
+=cut
+
+sub wait_for_element_present {
+    my $self = shift;
+    $self->_try_condition('selenium.isElementPresent',@_);
+}
+
+=head2 wait_for_element_visible($locator, $timeout)
+
+Waits until $locator is visible
+
+=cut
+
+sub wait_for_element_visible {
+    my $self = shift;
+    $self->_try_condition('selenium.isVisible',@_);
+}
+
+=head2 wait_for_text_not_present($text, $timeout)
+
+Waits until $text is not present in the html source
+
+=cut
+
+sub wait_for_text_not_present {
+    my $self = shift;
+    $self->_try_condition('!selenium.isTextPresent',@_);
+}
+
+=head2 wait_for_element_not_present($locator, $timeout)
+
+Waits until $locator is not present
+
+=cut
+
+sub wait_for_element_not_present {
+    my $self = shift;
+    $self->_try_condition('!selenium.isElementPresent',@_);
+}
+
+=head2 wait_for_element_not_visible($locator, $timeout)
+
+Waits until $locator is not visible
+
+=cut
+
+sub wait_for_element_not_visible {
+    my $self = shift;
+    $self->_try_condition('!selenium.isVisible',@_);
 }
 
 =head2 AUTOLOAD
