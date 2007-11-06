@@ -40,6 +40,22 @@ for my $i ( sort { @{ $most_wanted{$b} } <=> @{ $most_wanted{$a} } }
     last if $max_most_wanted == 0;
 }
 
-warn "Putting most wanted pages page...\n";
-$r->put_page('Most Wanted Pages', $new_page);
+# Check if the page has changed
+my $page_name = 'Most Wanted Pages';
+my $prev_page = strip_date_from_page($r->get_page($page_name));
+my $new_page_dateless = strip_date_from_page($new_page);
+
+if ($prev_page ne $new_page_dateless) {
+    warn "Putting most wanted pages page...\n";
+    $r->put_page($page_name, $new_page);
+}
+else {
+    warn "Most wanted didn't change...\n";
+}
 exit;
+
+sub strip_date_from_page {
+    my $content = shift;
+    $content =~ s/Most Wanted Pages in \S+ at [^.]+.//;
+    return $content;
+}
