@@ -3,6 +3,7 @@ Revision history for Socialtext-Utils
 0.18 - not yet released
   - Added stu-tagged-pages utility
   - stu-most-wanted won't update the page if it didn't change.
+  - create a default ~/.wikeditrc if it doesn't exist
 
 0.17 - Tue Oct  9 10:03:23 PDT 2007
   - added extralink wafl

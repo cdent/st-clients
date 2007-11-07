@@ -9,7 +9,7 @@ Socialtext::Resting::DefaultRester - load a rester from a config file.
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -80,18 +80,28 @@ sub new {
 sub _load_config {
     my $file = shift;
 
-    my %opts;
-    if (-e $file) {
-        open(my $fh, $file) or die "Can't open $file: $!";
-        while(<$fh>) {
-            if (/^(\w+)\s*=\s*(\S+)\s*$/) {
-                my ($key, $val) = (lc($1), $2);
-                $val =~ s#/$## if $key eq 'server';
-                $opts{$key} = $val;
-            }
-        }
-        close $fh;
+    unless (-e $file) {
+        open(my $fh, ">$file") or die "Can't open $file: $!";
+        print $fh <<EOT;
+server = http://www.socialtext.net
+workspace = open
+username = 
+password = 
+EOT
+        close $fh or die "Couldn't write basic config to $file: $!";
+        warn "Created an initial wiki config file in $file.\n";
     }
+
+    my %opts;
+    open(my $fh, $file) or die "Can't open $file: $!";
+    while(<$fh>) {
+        if (/^(\w+)\s*=\s*(\S+)\s*$/) {
+            my ($key, $val) = (lc($1), $2);
+            $val =~ s#/$## if $key eq 'server';
+            $opts{$key} = $val;
+        }
+    }
+    close $fh;
     return %opts;
 }
 
