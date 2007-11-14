@@ -132,26 +132,36 @@ Higher_permissions: {
         '*iexplore' => '*iehta',
     );
     while (my ($low,$high) = each %browsers) {
-        my $rester = Socialtext::Resting::Mock->new;
-        $rester->put_page('Test Plan', <<EOT);
-* Fixture: Selenese
-* HighPermissions
-| open | / |
-EOT
-        my $plan = Socialtext::WikiObject::TestPlan->new(
-            rester => $rester,
-            page => 'Test Plan',
-            fixture_args => {
-                browser => $low,
-                host => 'selenium-server',
-                username => 'testuser',
-                password => 'password',
-                browser_url => 'http://server',
-                workspace => 'foo',
-            },
-        );
+        for my $on (1, 0) {
+            my $rester = Socialtext::Resting::Mock->new;
+            my $text = join("",
+                "* Fixture: Selenese\n",
+                $on ? "* HighPermissions\n" : "",
+                "| open | / |\n",
+            );
 
-        $plan->run_tests;
-        is $plan->{fixture}{browser}, $high;
+            $rester->put_page('Test Plan', $text);
+
+            my $plan = Socialtext::WikiObject::TestPlan->new(
+                rester => $rester,
+                page => 'Test Plan',
+                fixture_args => {
+                    browser => $low,
+                    host => 'selenium-server',
+                    username => 'testuser',
+                    password => 'password',
+                    browser_url => 'http://server',
+                    workspace => 'foo',
+                },
+            );
+
+            my $wanted = $on ? $high : $low,
+            my $not = $on ? '' : 'not ';
+
+            $plan->run_tests;
+            is  $plan->{fixture}{browser}, 
+                $wanted, 
+                "${not}HighPermissions causes = $wanted",
+        }
     }
 }
