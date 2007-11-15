@@ -195,6 +195,17 @@ sub accept {
     $self->{accept} = shift;
 }
 
+=head2 order( $order )
+
+Stores the requested order.
+
+=cut
+
+sub order {
+    my $self = shift;
+    $self->{order} = shift;
+}
+
 =head2 get_taggedpages( $tag )
 
 Retrieves the taggedpages stored in the object.

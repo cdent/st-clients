@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More qw/no_plan/;
+use Test::More tests => 14;
 
 BEGIN {
     use_ok 'Socialtext::Resting::Mock';
@@ -38,8 +38,15 @@ Tags: {
 
 Misc: {
     my $r = Socialtext::Resting::Mock->new;
-    eval { $r->json_verbose(1) };
-    is $@, '';
-    is $r->{json_verbose}, 1;
+    my %misc_functions = (
+        json_verbose => 1,
+        accept => 'poop',
+        order => 'latest',
+    );
+    for my $method (keys %misc_functions) {
+        eval { $r->$method($misc_functions{$method}) };
+        is $@, '';
+        is $r->{$method}, $misc_functions{$method};
+    }
 }
 
