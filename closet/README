@@ -1,0 +1,3 @@
+
+If you want this to work you'll need to make a directory called
+'storage' in the working directory of the running web server.
