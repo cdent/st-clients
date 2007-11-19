@@ -1,0 +1,7 @@
+Alias /dashboard/ /var/www/socialtext/dashboard/
+<Directory /var/www/socialtext/dashboard>
+    DirectoryIndex index.html
+</Directory>
+
+# Rewrite / to /dashboard
+RewriteRule    ^/$ /dashboard/index.html  [L]

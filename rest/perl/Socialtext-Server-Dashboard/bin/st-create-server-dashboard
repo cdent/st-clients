@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Socialtext::Resting::Getopt qw/get_rester/;
+use Socialtext::File qw/set_contents/;
+use Blikistan;
+
+# Must run as www-data
+my ($name) = getpwuid $<;
+unless ($name eq 'www-data') {
+    print "$name is not www-data, re-exec with sudo...\n";
+    exec('/usr/bin/sudo', '-u', 'www-data', $0);
+}
+
+my $r = get_rester('rester-config' => '/etc/socialtext/dashboard-rester.conf');
+
+my $blikistan = Blikistan->new(
+    rester => $r,
+    magic_engine => 'Dashboard',
+    magic_opts => {
+        scrubber => undef, # no scrubbing for us, we're living dangerously!
+    },
+);
+
+my $output_file = "/var/www/socialtext/dashboard/index.html";
+my $tmp_file = "$output_file.new";
+my $content = $blikistan->print_blog;
+if ($content) {
+    print "Creating $output_file ...\n";
+    set_contents($tmp_file, $content);
+    rename $tmp_file, $output_file or die "Can't rename $tmp_file => $output_file: $!";
+}
