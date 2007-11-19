@@ -1,4 +1,4 @@
-Source: libsocialtext-orrick-perl
+Source: libsocialtext-server-dashboard-perl
 Section: perl
 Priority: optional
 Build-Depends: debhelper (>= 4.0.2)
@@ -6,7 +6,7 @@ Build-Depends-Indep: perl (>= 5.8.0-7)
 Maintainer: lukec <lukec@talc.socialtext.net>
 Standards-Version: 3.6.1
 
-Package: libsocialtext-orrick-perl
+Package: libsocialtext-server-dashboard-perl
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, libblikistan-perl
-Description: Orrick Homepage and Blog generating tools
+Description: Server Dashboard homepage generating tools

@@ -59,7 +59,7 @@ install-stamp:
 	mkdir -p $(TMP)/etc/apache2/conf.d
 	cp etc/apache2/conf.d/rewrite-server-dashboard $(TMP)/etc/apache2/conf.d/rewrite-server-dashboard
 
-	# Install cgi script to re-create orrick homepage
+	# Install cgi script to re-create dashboard homepage
 	mkdir -p $(TMP)/var/www/socialtext/webplugin/dashboard/cgi
 	cp cgi/update.cgi $(TMP)/var/www/socialtext/webplugin/dashboard/cgi
 
