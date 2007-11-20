@@ -8,5 +8,5 @@ Standards-Version: 3.6.1
 
 Package: libsocialtext-server-dashboard-perl
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}, libblikistan-perl
+Depends: ${perl:Depends}, ${misc:Depends}, libblikistan-perl (>= 0.07)
 Description: Server Dashboard homepage generating tools
