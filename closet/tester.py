@@ -34,16 +34,23 @@ def test():
 
     sent_content = "hello\n"
 
-    print "going to post hello"
-    response, content = h.request(poster_server, 'POST', body=sent_content)
+    print "going to post hello with auth"
+    response, content = h.request(poster_server, 'POST', body=sent_content, headers={'X-Closet-Cookie': 'holdem'})
     print content
+    assert response['status'] == '201'
     assert 'http' in content
     assert '8002' in content
     
-    print "goint to get hello from " + response['location']
+    print "going to get hello from " + response['location']
     response, content = h.request(response['location'], 'GET')
     print content
     assert content == sent_content
+
+    print "going to post hello without auth"
+    response, content = h.request(poster_server, 'POST', body=sent_content)
+    print content
+    assert response['status'] == '403'
+    assert 'Denied' in content
 
 def teardown():
     """Make sure the servers are killed off when done."""

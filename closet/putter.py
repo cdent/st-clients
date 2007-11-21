@@ -7,11 +7,9 @@ import closet
 
 def putter(environ, start_response):
     """accept input stream from PUT request and write it at the given uuid"""
-    try: 
-        uuid = environ['selector.vars']['uuid'] # wsgi.routing_args coming soon?
-        input = environ['wsgi.input']
-        length = environ['CONTENT_LENGTH']
-    catch 
+    uuid = environ['selector.vars']['uuid'] # wsgi.routing_args coming soon?
+    input = environ['wsgi.input']
+    length = environ['CONTENT_LENGTH']
 
     _write(input, int(length), uuid)
     uri = _uri(uuid)

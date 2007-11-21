@@ -18,3 +18,35 @@ getter_server = host_url + ':' + str(getter_port) + '/'
 # where are we putting stuff
 file_store = 'storage/'
 
+# what cookie must the client provide for write access
+auth_cookie = 'holdem'
+
+def write_access():
+    """
+Decorate a wsgi action method with some auth handling.
+"""
+    def entangle(f):
+        def write_access(environ, start_response, *args, **kwds):
+            if _write_access(environ):
+                return f(environ, start_response)
+            else:
+                return _http_403(environ, start_response)
+        return write_access
+    return entangle
+
+def _write_access(environ):
+    """
+Look in the headers to see if we've got proper creds
+"""
+    try:
+        cookie = environ['HTTP_X_CLOSET_COOKIE']
+    except KeyError:
+        cookie = ''
+    if cookie == auth_cookie:
+        return 1
+    return 0
+
+def _http_403(environ, start_response):
+    start_response("403 Forbidden", ([]))
+    return ['Access Denied']
+

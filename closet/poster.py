@@ -12,6 +12,7 @@ import httplib2
 import closet
 from uuid import uuid4
 
+@closet.write_access()
 def poster(environ, start_response):
     """accept input stream from POST request and send it to the putter"""
     input = environ['wsgi.input']
