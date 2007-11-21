@@ -19,22 +19,23 @@ getter_server = host_url + ':' + str(getter_port) + '/'
 file_store = 'storage/'
 
 # what cookie must the client provide for write access
-auth_cookie = 'holdem'
+public_auth_cookie = 'holdem'
+private_auth_cookie = 'storem'
 
-def write_access():
+def write_access(auth_cookie):
     """
 Decorate a wsgi action method with some auth handling.
 """
     def entangle(f):
         def write_access(environ, start_response, *args, **kwds):
-            if _write_access(environ):
+            if _write_access(auth_cookie, environ):
                 return f(environ, start_response)
             else:
                 return _http_403(environ, start_response)
         return write_access
     return entangle
 
-def _write_access(environ):
+def _write_access(auth_cookie, environ):
     """
 Look in the headers to see if we've got proper creds
 """

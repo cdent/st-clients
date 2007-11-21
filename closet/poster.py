@@ -12,28 +12,31 @@ import httplib2
 import closet
 from uuid import uuid4
 
-@closet.write_access()
+@closet.write_access(closet.public_auth_cookie)
 def poster(environ, start_response):
     """accept input stream from POST request and send it to the putter"""
     input = environ['wsgi.input']
     length = environ['CONTENT_LENGTH']
 
     # mom wants exception handling here!
-    uri = _put(input, int(length), uuid4().hex)
+    response = _put(input, int(length), uuid4().hex)
 
-    start_response("201 Created", [('Location', uri)])
-
-    return [uri]
+    status = response['status']
+    if status == '204':
+        uri = response['location']
+        start_response("201 Created", [('Location', uri)])
+        return [uri]
+    else:
+        start_response("502 Proxy Error", [])
+        return [status]
 
 def _put(input, length, uuid):
     h = httplib2.Http()
 # JJP notes we badly need an explicit timeout and handling 
 # structure here, or get ourselves in heap big trouble
-    response, content = h.request(closet.putter_server + uuid, 'PUT', input.read(length))
+    response, content = h.request(closet.putter_server + uuid, 'PUT', body=input.read(length), headers={'X-Closet-Cookie': closet.private_auth_cookie})
 
-    assert response.status == 204
-
-    return response['location']
+    return response
 
 port = closet.poster_port
 urls = selector.Selector()

@@ -5,6 +5,7 @@ Accept a PUT byte stream and uuid and write content to disk.
 import selector
 import closet
 
+@closet.write_access(closet.private_auth_cookie)
 def putter(environ, start_response):
     """accept input stream from PUT request and write it at the given uuid"""
     uuid = environ['selector.vars']['uuid'] # wsgi.routing_args coming soon?
