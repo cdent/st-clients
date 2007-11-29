@@ -9,4 +9,3 @@ t/filename.txt
 t/resting.t
 t/resting-mocked.t
 Changes
-META.yml                                 Module meta-data (added by MakeMaker)

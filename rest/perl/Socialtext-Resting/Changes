@@ -1,5 +1,6 @@
 0.24 - Not yet released
  - Updated docs based on some ingy feedback
+ - Add a customizable user agent string
 
 0.23 - Wed Oct 10 09:09:54 PDT 2007
  - Added missing JSON dependency

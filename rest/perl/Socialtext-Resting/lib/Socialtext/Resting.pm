@@ -80,6 +80,7 @@ field 'http_header_debug';
 field 'response';
 field 'json_verbose';
 field 'cookie';
+field 'agent_string';
 
 =head2 new
 
@@ -928,7 +929,7 @@ sub get_users_for_workspace {
 sub _request {
     my $self = shift;
     my %p    = @_;
-    my $ua   = LWP::UserAgent->new();
+    my $ua   = LWP::UserAgent->new(agent => $self->agent_string);
     my $server = $self->server;
     die "No server defined!\n" unless $server;
     $server =~ s#/$##;
