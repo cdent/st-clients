@@ -31,6 +31,7 @@ sub new {
         @_ ,
     };
     die 'rester is mandatory' unless $App->{rester};
+    $App->{rester}->agent_string("wikrad/$VERSION");
     bless $App, $class;
     $App->_setup_ui;
     return $App;

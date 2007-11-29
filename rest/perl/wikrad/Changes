@@ -1,6 +1,7 @@
 Changelog:
 
 0.06 - not yet released
+ - Use a wikrad user agent string
  - Added 's' for search!
  - Added '--latest <tag>' option
  - Added ability to change REST server - 'S'

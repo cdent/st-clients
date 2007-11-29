@@ -9,7 +9,7 @@ WriteMakefile(
     ABSTRACT_FROM       => 'lib/Socialtext/Wikrad.pm',
     PL_FILES            => {},
     PREREQ_PM => {
-        'Socialtext::Resting'         => '0.19',
+        'Socialtext::Resting'         => '0.24',
         'Socialtext::EditPage'        => '0.04',
         'Socialtext::Resting::Getopt' => '0',
         'Curses::UI'                  => '0.95',
