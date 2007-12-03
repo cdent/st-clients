@@ -5,7 +5,7 @@ Better would be some real unit tests, but this
 is just a harness to manage the spike development.
 """
 
-import manage
+import closet.manage as manage
 import os
 import time
 import httplib2
