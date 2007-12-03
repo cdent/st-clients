@@ -24,7 +24,7 @@ def poster(environ, start_response):
     status = response['status']
     if status == '204':
         uri = response['location']
-        start_response("201 Created", [('Location', uri)])
+        start_response("201 Created", [('Location', uri), closet.cache_control])
         return [uri]
     else:
         start_response("502 Proxy Error", [])

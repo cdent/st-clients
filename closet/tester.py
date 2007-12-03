@@ -28,7 +28,7 @@ def startup():
     # sleep a bit to get things rolling
     time.sleep(3)
 
-def test():
+def test_basic():
     """Send content to poster, the GET the learned URI"""
     h = httplib2.Http()
 
@@ -52,6 +52,39 @@ def test():
     assert response['status'] == '403'
     assert 'Denied' in content
 
+def test_cache():
+    """Use a cache, with etags, does it go?"""
+    h = httplib2.Http('.cache')
+
+    sent_content = "i can haz cash?\n"
+    response, content1 = h.request(poster_server, 'POST', body=sent_content, headers={'X-Closet-Cookie': 'holdem'})
+    print response
+    uri = response['location']
+
+    response, content2 = h.request(uri, 'GET')
+
+    etag = response.get('etag')
+
+    print etag
+
+# here we watch the test output and cackle with glee as no requests are made
+# to the server
+    response, content3 = h.request(uri, 'GET')
+    print content3
+    assert content2 == content3
+
+    response, content4 = h.request(uri, 'GET')
+    print content4
+
+    assert content3 == content4
+
+# and now we wait
+    time.sleep(15)
+    response, content5 = h.request(uri, 'GET')
+    print content5
+    assert content4 == content5
+
+
 def teardown():
     """Make sure the servers are killed off when done."""
     for server in pids:
@@ -61,4 +94,5 @@ def teardown():
 if __name__ == '__main__':
     atexit.register(teardown)
     startup()
-    test()
+    test_basic()
+    test_cache()

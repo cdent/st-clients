@@ -22,6 +22,11 @@ file_store = 'storage/'
 public_auth_cookie = 'holdem'
 private_auth_cookie = 'storem'
 
+# how are we managing the outgoing cache headers
+# XXX: change 10 to something large when really using this business
+# XXX: need some of this config in config file
+cache_control = ('Cache-control', 'max-age=10')
+
 def write_access(auth_cookie):
     """
 Decorate a wsgi action method with some auth handling.
