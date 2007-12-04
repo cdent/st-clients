@@ -21,15 +21,15 @@ def getter(environ, start_response):
         return []
 
     f = _read(uuid)
-    start_response("200 OK", [('ETag', etag), closet.cache_control])
+    start_response("200 OK", [('ETag', etag), ('Cache-Control', closet.config['cache_control'])])
     return f
 
 def _read(uuid):
     """Read a file from the store given uuid"""
-    f = open(closet.file_store + uuid, 'rb')
+    f = open(closet.config['file_store'] + uuid, 'rb')
     return f
 
-port = closet.getter_port
+port = closet.config['getter']['port']
 urls = selector.Selector()
 urls.add('/{uuid}', GET=getter)
 

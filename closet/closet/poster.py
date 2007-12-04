@@ -12,7 +12,7 @@ import httplib2
 import closet
 from uuid import uuid4
 
-@closet.write_access(closet.public_auth_cookie)
+@closet.write_access(closet.config['public_auth_cookie'])
 def poster(environ, start_response):
     """accept input stream from POST request and send it to the putter"""
     input = environ['wsgi.input']
@@ -24,7 +24,7 @@ def poster(environ, start_response):
     status = response['status']
     if status == '204':
         uri = response['location']
-        start_response("201 Created", [('Location', uri), closet.cache_control])
+        start_response("201 Created", [('Location', uri)])
         return [uri]
     else:
         start_response("502 Proxy Error", [])
@@ -34,10 +34,11 @@ def _put(input, length, uuid):
     h = httplib2.Http()
 # JJP notes we badly need an explicit timeout and handling 
 # structure here, or get ourselves in heap big trouble
-    response, content = h.request(closet.putter_server + uuid, 'PUT', body=input.read(length), headers={'X-Closet-Cookie': closet.private_auth_cookie})
+    putter_server = '%s:%s/' % (closet.config['host_url'], closet.config['putter']['port'])
+    response, content = h.request(putter_server + uuid, 'PUT', body=input.read(length), headers={'X-Closet-Cookie': closet.config['private_auth_cookie']})
 
     return response
 
-port = closet.poster_port
+port = closet.config['poster']['port']
 urls = selector.Selector()
 urls.add('/', POST=poster)

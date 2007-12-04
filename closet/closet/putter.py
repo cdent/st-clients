@@ -5,7 +5,7 @@ Accept a PUT byte stream and uuid and write content to disk.
 import selector
 import closet
 
-@closet.write_access(closet.private_auth_cookie)
+@closet.write_access(closet.config['private_auth_cookie'])
 def putter(environ, start_response):
     """accept input stream from PUT request and write it at the given uuid"""
     uuid = environ['selector.vars']['uuid'] # wsgi.routing_args coming soon?
@@ -20,13 +20,14 @@ def putter(environ, start_response):
     return [uri]
 
 def _write(input, length, uuid):
-    f = open(closet.file_store + uuid, 'wb')
+    f = open(closet.config['file_store'] + uuid, 'wb')
     f.write(input.read(length))
     f.close
 
 def _uri(uuid):
-    return closet.getter_server + uuid
+    getter_server = '%s:%s/' % (closet.config['host_url'], closet.config['getter']['port'])
+    return getter_server + uuid
 
-port = closet.putter_port
+port = closet.config['putter']['port']
 urls = selector.Selector()
 urls.add('/{uuid}', PUT=putter)

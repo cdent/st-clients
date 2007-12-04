@@ -1,3 +1,11 @@
 
 If you want this to work you'll need to make a directory called
 'storage' in the working directory of the running web server.
+
+Look in closet.yaml to see if there are any settings you would like
+to change. If you change the file_store, make sure the indicated 
+location exists.
+
+If you wish to run your poster on a separate host from your getter
+and putter, it won't yet work, we'll need to adjust how the config
+system works.

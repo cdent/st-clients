@@ -2,30 +2,11 @@
 """Configuration for closet, a generic web store for content 
 objects."""
 
-# where do our servers run
-host_url = 'http://0.0.0.0'
-
-# on what ports
-poster_port = 8000
-putter_port = 8001
-getter_port = 8002
-
-# what are their urls
-poster_server = host_url + ':' + str(poster_port) + '/'
-putter_server = host_url + ':' + str(putter_port) + '/'
-getter_server = host_url + ':' + str(getter_port) + '/'
-
-# where are we putting stuff
-file_store = 'storage/'
-
-# what cookie must the client provide for write access
-public_auth_cookie = 'holdem'
-private_auth_cookie = 'storem'
-
-# how are we managing the outgoing cache headers
-# XXX: change 10 to something large when really using this business
-# XXX: need some of this config in config file
-cache_control = ('Cache-control', 'max-age=10')
+def get_config(config_filename):
+    import yaml
+    print "getting config#################"
+    f = open(config_filename)
+    return yaml.load(f)
 
 def write_access(auth_cookie):
     """
@@ -55,4 +36,7 @@ Look in the headers to see if we've got proper creds
 def _http_403(environ, start_response):
     start_response("403 Forbidden", ([]))
     return ['Access Denied']
+
+config_file = './closet.yaml'
+config = get_config(config_file)
 

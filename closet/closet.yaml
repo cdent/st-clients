@@ -1,0 +1,27 @@
+
+# path relative to CWD where data is to be stored
+file_store: storage/
+
+# the base url for all servers, this may be better
+# in each poster, putter, getter section
+host_url: http://0.0.0.0
+
+# the cache control information we want to send
+# on retrieved things
+cache_control: 'max-age=10'
+
+# auth cookie required to POST (from clients)
+public_auth_cookie: holdem
+
+# auth cookie required to PUT (from poster to putter)
+private_auth_cookie: storem
+
+# information specific to each class of server
+poster:
+    port: 8000
+
+putter:
+    port: 8001
+
+getter:
+    port: 8002
