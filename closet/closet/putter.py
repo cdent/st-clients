@@ -25,7 +25,7 @@ def _write(input, length, uuid):
     f.close
 
 def _uri(uuid):
-    getter_server = '%s:%s/' % (closet.config['host_url'], closet.config['getter']['port'])
+    getter_server = '%s:%s/' % (closet.config['getter']['host_url'], closet.config['getter']['port'])
     return getter_server + uuid
 
 port = closet.config['putter']['port']

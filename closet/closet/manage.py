@@ -17,6 +17,7 @@ def run(selector):
                 .run(urls)
     else:
         from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
+# with the code like this we are binding to no particular interface, matter?
         httpd = WSGIServer(('', port), WSGIRequestHandler)
         httpd.set_app(urls)
         print "Serving HTTP on %s port %s ..." % httpd.socket.getsockname()

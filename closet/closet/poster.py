@@ -34,7 +34,7 @@ def _put(input, length, uuid):
     h = httplib2.Http()
 # JJP notes we badly need an explicit timeout and handling 
 # structure here, or get ourselves in heap big trouble
-    putter_server = '%s:%s/' % (closet.config['host_url'], closet.config['putter']['port'])
+    putter_server = '%s:%s/' % (closet.config['putter']['host_url'], closet.config['putter']['port'])
     response, content = h.request(putter_server + uuid, 'PUT', body=input.read(length), headers={'X-Closet-Cookie': closet.config['private_auth_cookie']})
 
     return response
