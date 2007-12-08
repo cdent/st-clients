@@ -22,11 +22,11 @@ EOT
 
 my $r = get_rester();
 
-my ($to, $from, $tag);
+my ($to, $from, @tags);
 GetOptions(
     'to=s'   => \$to,
     'from=s' => \$from,
-    'tag=s'  => \$tag,
+    'tag=s'  => \@tags,
 ) or usage;
 
 usage unless $to or $from;
@@ -36,9 +36,13 @@ usage("$from is not a directory!\n") if $from and !-d $from;
 my $lc = Socialtext::Resting::LocalCopy->new( rester => $r );
 if ($to) {
     print "Pulling content from " . $r->workspace . " into $to\n";
-    $lc->pull(dir => $to, tag => $tag);
+    for my $tag (@tags) {
+        $lc->pull(dir => $to, tag => $tag);
+    }
 }
 else {
     print "Pushing content from $from into " . $r->workspace . "\n";
-    $lc->push(dir => $from, tag => $tag);
+    for my $tag (@tags) {
+        $lc->push(dir => $from, tag => $tag);
+    }
 }

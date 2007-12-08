@@ -5,6 +5,7 @@ Revision history for Socialtext-Utils
   - stu-most-wanted won't update the page if it didn't change.
   - Added order() to the mock rester
   - create a default ~/.wikeditrc if it doesn't exist
+  - stu-local-copy accepts multiple tags
 
 0.17 - Tue Oct  9 10:03:23 PDT 2007
   - added extralink wafl
