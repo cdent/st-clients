@@ -33,6 +33,9 @@ usage unless $to or $from;
 usage("$to is not a directory!\n") if $to and !-d $to;
 usage("$from is not a directory!\n") if $from and !-d $from;
 
+# if no tags are supplied, we still want to push/pull changes.
+push @tags, undef unless @tags;
+
 my $lc = Socialtext::Resting::LocalCopy->new( rester => $r );
 if ($to) {
     print "Pulling content from " . $r->workspace . " into $to\n";
