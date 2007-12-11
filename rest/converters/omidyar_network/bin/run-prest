@@ -1,0 +1,8 @@
+perl -I ~/Work/convert-restructured-text/lib    \
+    /usr/bin/prest                              \
+        -D generator=0                          \
+        -D date=0                               \
+        -D time=0                               \
+        -D source-link=0                        \
+        $*
+

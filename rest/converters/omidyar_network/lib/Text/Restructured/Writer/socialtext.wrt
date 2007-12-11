@@ -1,0 +1,1219 @@
+# -*-perl-*-
+#
+
+=pod
+=begin reST
+=begin Description
+Converts a reST DOM to Socialtext wiki markup
+=end Description
+=end reST
+=cut
+
+=pod
+
+* ON’s content will be split into two wikis – on-archive and on-dev
+* The groups on omidyar.net named on-internal, on-internal2, and on-archives will be merged into the on-archive wiki
+* In merging multiple groups into a single wiki, we want to make it easy for people to find their old content.  So we would like the group name abbreviation to be prepended to the page name. 
+    o Group name abbreviations as follows: on-internal = int1, on-internal2 = int2, on-archives = int3.   For example if the page name was “people.php” in the  on-internal group, then it becomes “int1-people.php”. 
+    o Additionally, we would like each converted page to be tagged with the group that it belonged to. 
+
+* The group sitedev converts to a wiki named on-dev.
+* Finally, we would like an empty wiki created named ONet.  This will be the new workspace for ON staff after we migrate to Socialtext.
+
+=cut
+
+
+
+# The 'sub' keyword is necessary here, to avoid uninitialized string warnings
+# from Text::Restructured::Writer.pm
+#
+sub BEGIN {
+
+    # My -W flags
+    use vars (
+        '$source_server',       # Ex: https://www.omidyar.net/
+        '$source_group_name',   # Ex: hu-internal
+        '$dest_workspace_name', # Ex: humanityunited
+        '$page_prefix',         # Ex: int1-, int2-, int3- (include the dash)
+        '$file_log',            # Ex: /tmp/list-of-files.log
+    );
+
+    # Sample URLs:
+    #
+    # Group itself:
+    # https://www.omidyar.net/group/hu-internal/
+    #
+    # Image (or any file, really):
+    # https://www.omidyar.net/group/hu-internal/file/1.21.11757047211/get/HumanityUnited_logo_FINAL.gif
+    # 
+
+    # Defaults for -W flags
+    $source_server      ||= '';
+    $source_group_name  ||= '';
+
+=pod
+    warn "-W flag values:\n";
+
+    for my $var (
+        $source_server,
+        $source_group_name,
+        $dest_workspace_name,
+        $page_prefix
+    ) {
+        warn "  Value: " . (defined $var ? "[$var]" : '<undef>') . "\n";
+    }
+=cut
+
+
+    # Globals
+    use vars qw(
+        @Fixed_Problematics
+        $Citation_Text
+        $Footnote_Text
+
+        $Source_Group_Base_URL
+
+        @Attached_Files
+    );
+
+    # Build the entire group URL, for easier comparisons in some routines below.
+    #
+    # The server should contain the necessary trailing slash already.
+    #
+    $Source_Group_Base_URL = $source_server . 'group/' . $source_group_name . '/';
+
+    # XXX: Not necessary right now, since problematics and system messages
+    # are currently ignored. May come back in the future, though.
+    #
+    @Fixed_Problematics = ();
+
+    # The list of files, images, figures, etc., associated with this page.
+    @Attached_Files = ();
+
+    $Footnote_Text = '';
+    $Citation_Text = '';
+}
+
+# Returns all the "paragraphs" from the DOM's contents (everything except
+# comments, targets, substitution_definitions
+# Arguments: DOM object
+# Returns: list of DOM objects
+sub Paras {
+    my ($dom) = @_;
+
+    grep($_->tag !~ /^(comment|target|substitution_definition)$/,
+        $dom->contents);
+}
+
+
+sub _filename_from_uri {
+    my $uri = shift;
+
+    # This is loaded here to keep prest from choking on a use statement
+    # at the package level.
+    #
+    use URI::Escape ();
+    
+    my ($filename) = ($uri =~ m{/([^/]+)$}); # everything after the last slash
+
+    return URI::Escape::uri_unescape($filename);
+}
+
+
+sub _remember_attachment_uri {
+    my $uri = shift;
+   
+    warn "Remembering [$uri] for attachment upload\n";
+
+    # Remember this URI, so it can be attached to the page later.  Record the
+    # full URI (instead of just the name), so subdirectories can be respected.
+    #
+    push @Attached_Files, $uri;
+}
+
+
+sub _is_internal_link {
+#
+# Returns true if the specified URL is "within" the current group, determined
+# by comparing the URL to the base URL of the current group.
+#
+    my $uri = shift;
+
+    $uri = lc(trim($uri));
+
+    # warn "Checking\n  [$uri]\n  [$Source_Group_Base_URL]\n";
+
+    # Start with the base URL...
+    #
+    my $base_uri_pattern = $Source_Group_Base_URL;
+    
+    # ...but allow for both http and https URLs.
+    #
+    $base_uri_pattern =~ s{^https?:}{}i;
+
+    # Protect any metacharacters before using the pattern as a regex.
+    #
+    $base_uri_pattern = 'https?:' . quotemeta($base_uri_pattern);
+
+    # File/image URLs look like this:
+    # https://www.omidyar.net/group/hu-internal/file/1.21.11757047211/get/HumanityUnited_logo_FINAL.gif
+    #
+    if ($uri =~ m{^$base_uri_pattern}ix
+    ) {
+        # warn "Match found!\n";
+
+        return 1;
+    }
+
+}
+
+sub _is_file_link {
+    my $uri = shift;
+
+    # This is very simplistic, but should work well enough for the Omidyar data.
+    #
+    return $uri =~ m{/file/}i;
+}
+
+
+# The fallback case for anything we don't understand. Just outputs
+# the string wrapped in .pre markers, so the original text is preserved.
+#
+sub _default_passthru {
+    my $str = shift;
+
+    # Deal with any existing .pre markers in the string.
+    #
+    # XXX: Is this the best way to handle any existing .pre markers?
+    #
+    $str =~ s/^\.pre\s*$/{{.pre}}/g;
+
+    return fix_block(".pre\n$str\n.pre");
+}
+
+sub _attribute_contains_value {
+    my $attr = shift;
+    my $value = shift;
+
+    # warn "Checking to see if [$attr] contains [$value]\n";
+
+    return unless $attr;
+
+    if (ref($attr) eq 'ARRAY') {
+        return(grep {$_ eq $value} @{$attr});
+    }
+    else {
+        return $attr eq $value;
+    }
+}
+
+sub _get_attribute {
+    my $dom = shift;
+    my $attr = shift;
+
+    return '' unless defined $dom->{attr};
+
+    if (exists $dom->{attr}{$attr}) {
+        return $dom->{attr}{$attr};
+    }
+    else {
+        return '';
+    }
+
+}
+
+
+sub _dump_attributes {
+    my $dom = shift;
+
+    use Data::Dumper;
+
+    warn Dumper($dom);
+}
+
+
+sub trim {
+    my $string = shift;
+    my $char = shift || '\s';
+
+    $string =~ s/^$char+//;
+    $string =~ s/$char+$//;
+
+    return $string;
+}
+
+
+sub remove_linebreaks {
+    my $string = shift;
+
+    # warn "Before [$string]\n";
+
+    $string =~ s/\n/ /g;
+
+    $string = trim($string);
+
+    # warn "After [$string]\n";
+
+    return $string;
+}
+
+
+sub wrap_in_rules {
+    my $string = shift;
+
+    return
+          fix_block('----')
+        . fix_block($string)
+        . fix_block('----')
+        ;
+}
+
+
+sub fix_newline {
+    my $string = shift;
+
+    # Append a newline, unless the last character is already a newline.
+    #
+    $string .= "\n"
+        unless substr($string, -1) eq "\n";
+
+    return $string;
+}
+
+
+sub fix_block {
+    my $string = shift;
+
+    # Make sure the string ends with two, and only two, newlines.
+    #
+    $string =~ s/\n*\Z/\n\n/;
+
+    return $string;
+}
+
+
+# XXX: Refactor fix_bold/italic/monospace a bit.
+
+sub fix_bold {
+    my $string = shift;
+
+    # Remove any leading or trailing asterisks, to avoid
+    # "double-bolding".
+    #
+    $string = trim($string, '\*');
+
+    # $string =~ s/^\*+//;
+    # $string =~ s/\*+$//;
+
+    return '*' . $string . '*';
+}
+
+
+sub fix_italic {
+    my $string = shift;
+
+    # Remove any leading or trailing underscores, to avoid
+    # double-italicizing.
+    #
+    $string = trim($string, '_');
+
+    return '_' . $string . '_';
+}
+
+sub fix_monospace {
+    my $string = shift;
+
+    # Remove any leading or trailing backticks, to avoid
+    # double-monospacing.
+    #
+    $string = trim($string, q(`));
+    
+    return q(`) . $string . q(`);
+}
+
+
+sub fix_pre {
+    my $string = shift;
+
+    return ".pre\n" . fix_newline($string) . ".pre\n";
+}
+
+
+sub make_block_quote {
+    my $string = shift;
+
+    # Prefix every line of the string with the indentation character.
+    #
+    $string =~ s/^/>/gm;
+
+    # If the last line is a lone '>' (with the newline), get rid of it.
+    # 
+    $string =~ s/>\n\Z//g;
+
+    $string = fix_block($string);
+
+    return $string;
+}
+
+
+# XXX: Change footnotes and citations to use {section: } syntax.
+
+
+sub make_footnote_target {
+    my $string = shift;
+
+    return fix_block("^^^^^^ Footnote $string");
+}
+
+
+sub make_citation_target {
+    my $string = shift;
+
+    return fix_block("^^^^^^ Citation $string");
+}
+
+
+sub _is_within {
+# 
+# Returns true if the current DOM element is within another element
+# with the specified tag name.
+#
+    my $dom = shift;
+    my $tag = shift;
+
+    while (my $parent = $dom->parent) {
+
+        # warn 'checking... ' . $parent->tag . "\n";
+
+        if ($parent->tag eq $tag) {
+            # warn "Found it!\n";
+            return 1;
+        }
+
+        $dom = $parent;
+    }
+
+    return;
+
+}
+
+sub reference_text {
+    my $string = shift;
+
+    $string =~ m/^`(.+)`_$|^(.+)_$/;
+
+    return $1 || $2;
+}
+
+
+# This phase preprocesses the file, to
+# - track nesting of section/title elements
+# - track nesting of lists
+#
+phase PREPROCESS {
+
+    sub document = { # PREPROCESS
+        my ($dom) = @_;
+
+        my %list_item_prefixes = (
+            bullet_list     => '*',
+            enumerated_list => '#',
+        );
+
+        my $nesting = 0;
+
+        # Compute the nesting levels for titles, so it can be
+        # used to determine the header level during the PROCESS
+        # phase.
+        #
+        $dom->Recurse(
+            sub {
+                my ($dom, $when) = @_;
+
+                # Adjust the nesting on section elements...
+                #
+                if ($dom->tag eq 'section') {
+                    $nesting += $when eq 'pre' ? 1 : -1;
+                }
+                # ...and attach the nesting to title elements.
+                #
+                elsif ($dom->tag eq 'title') {
+                    $dom->{_socialtext}{nesting} = $nesting;
+                }
+
+                return 0;
+            },
+            'both'
+        );
+
+        my $list_nesting = 0;
+        my $list_item_prefix;
+
+
+        # XXX: This comingles bullet and enumerated lists, which Socialtext markup can't
+        # currently handle. Will only be an issue if the source documents get fancy
+        # with lists.
+        #
+        $dom->Recurse(
+            sub {
+                my ($dom, $when) = @_;
+
+                if ($dom->tag eq 'bullet_list'
+                or  $dom->tag eq 'enumerated_list'
+                ) {
+                    $list_nesting += $when eq 'pre' ? 1 : -1;
+                    $list_item_prefix = $list_item_prefixes{$dom->tag};
+                }
+                elsif ($dom->tag eq 'list_item') {
+                    $dom->{_socialtext}{list_nesting}     = $list_nesting;
+                    $dom->{_socialtext}{list_item_prefix} = $list_item_prefix;
+                }
+
+                return 0;
+            },
+            'both'
+        );
+
+        return;
+    }
+
+    sub problematic {
+        my ($dom, $str) = @_;
+
+        # warn 'Found a problematic: ' . $dom->tag . "\n";
+
+        # _dump_attributes($dom);
+
+        # Extract the string associated with this problematic.
+        #
+        my $string;
+
+        for my $item (@{ $dom->{content} }) {
+            $string = reference_text($item->{text});
+
+            last if $string;
+        }
+
+        # If this isn't an untargeted link, then don't change anything,
+        # and leave now.
+        #
+        return unless $string;
+
+        # warn "Replacing problematic element with reference and target\n";
+
+        # Remember the id for this problematic, so the associated
+        # system message can be removed.
+        #
+        # XXX: Not really necessary for the moment, since I'm just nuking the
+        # entire system messages section.  That's temporary, however, so this
+        # will probably come back.
+        #
+        push @Fixed_Problematics, @{ $dom->{attr}{ids} };
+
+        my $refuri = $Source_Group_Base_URL . 'ws/' . Text::Restructured->NormalizeId($string);
+
+        my $new_dom = Text::Restructured::DOM->new(
+            'reference',
+            name   => Text::Restructured->NormalizeId($string),
+            refuri => $refuri
+        );
+
+        $new_dom->append(
+            Text::Restructured::DOM->newPCDATA($string)
+        );
+
+        # FIXME: ids and names are stubs
+        #
+        $new_dom->append(
+            Text::Restructured::DOM->new(
+                'target',
+                refuri => $refuri,
+                ids    => ['index'],
+                names  => ['index'],
+            )
+        );
+
+        $dom->substitute($new_dom);
+    }
+
+    sub section {
+        my ($dom, $str) = @_;
+
+        # _dump_attributes($dom->{attr}{classes});
+
+        # Remove the system messages section entirely.
+        # This will probably change later, so that errors and warnings
+        # aren't silently ignored, but for the purposes of this
+        # conversion, it just gets in the way.
+        #
+        if (_attribute_contains_value($dom->{attr}{classes}, 'system-messages')) {
+
+            # warn "Removing system messages section.\n";
+
+            $dom->substitute();
+        }
+    }
+
+=pod
+    sub system_message {
+        my ($dom, $str) = @_;
+
+        warn 'Found a system message: ' . $dom->tag . "\n";
+
+        _dump_attributes($dom);
+
+        # Remove it.
+        #
+        if (exists $dom->{attr}{backrefs}) {
+            my @backrefs = @{ $dom->{attr}{backrefs} };
+
+            FIXED_PROBLEMATICS:
+            for my $p_refid (@Fixed_Problematics) {
+            
+                for my $backref (@backrefs) {
+
+                    warn "Checking backref [$backref]\n";
+
+                    if ($backref eq $p_refid) {
+                        warn "Removing system message [$backref] for fixed problematic\n";
+
+                        $dom->substitute();
+
+                        last FIXED_PROBLEMATICS;
+                    }
+                }
+            }
+        }
+
+        # Remove warnings.
+        #
+        if ($dom->{attr}{type} eq 'WARNING') {
+        }
+    }
+=cut
+
+    sub row {
+        my ($dom, $str) = @_;
+
+        my @entries = grep {$_->tag eq 'entry'} $dom->contents;
+
+        return unless scalar(@entries) > 0;
+
+        $entries[0]->{_socialtext}{first} = 1;
+        $entries[-1]->{_socialtext}{last} = 1;
+
+        # warn 'First entry in row: ' . $entries[ 0]->tag . ' - ' . $entries[ 0]->{val} . "\n";
+        # warn 'Last entry in row: '  . $entries[-1]->tag . ' - ' . $entries[-1]->{val} . "\n";
+
+    }
+
+    # sub definition|field_body|description|entry = { # PREPROCESS
+
+    sub entry = { # PREPROCESS
+        my ($dom, $str) = @_;
+        my @paras = Paras($dom);
+        if (@paras > 1) {
+            push @{$paras[0]{attr}{classes}}, 'first';
+            push @{$paras[-1]{attr}{classes}}, 'last';
+        }
+        return $str; # was: Default($dom, $str);
+    }
+
+}
+
+
+
+phase PROCESS {
+
+    sub document {
+        my ($dom, $str) = @_;
+
+        my $output = $str;
+
+        if ($Citation_Text) {
+            $output .=
+                fix_block('----')
+                . fix_block($Citation_Text)
+            ;
+        }
+
+        if ($Footnote_Text) {
+            $output .=
+                fix_block('----')
+                . fix_block($Footnote_Text)
+            ;
+        }
+
+        # If there's a place to put it, record the attached-files log.
+        #
+        if ($file_log) {
+            open my $fh, '>', $file_log
+                or die "Unable to open file log [$file_log] -- $!\n";
+
+            warn "Writing to file log [$file_log]:\n";
+
+            for my $f (@Attached_Files) {
+                warn "- $f\n";
+            }
+
+            print {$fh} "$_\n" for @Attached_Files;
+
+            close $fh
+                or warn "Unable to close [$file_log] -- $!\n";
+        }
+
+        return $output;
+    }
+
+    sub \#PCDATA = {
+        my ($dom, $str) = @_;
+
+        my $text = $dom->{text};
+
+        # XXX: Removed for now; may be necessary to put it back.
+        #
+        # $text =~ s/([\x00-\x09\x0b-\x1f\x7f-\xff\x{0100}-\x{ffff}])/sprintf '\u%04x', ord $1/ge;
+
+        # If this is a list item, get rid of any newlines, since
+        # Socialtext markup can't handle them in list items.
+        #
+        if ( _is_within($dom, 'list_item') ) {
+            # $text = remove_linebreaks($text);
+        }
+
+        return $text;
+    }
+
+    # XXX: See if this is necessary.
+    #
+    sub mathml {
+        my ($dom, $str) = @_;
+        return $dom->{attr}{mathml} ? $dom->{attr}{mathml}->text . "\n" : $str;
+    }
+
+    sub transition {
+        return fix_block('----');
+    }
+
+    sub strong {
+        my ($dom, $str) = @_;
+
+        return fix_bold($str);
+    }
+
+    sub emphasis {
+        my ($dom, $str) = @_;
+
+        return '_' . $str . '_';
+    }
+
+    sub literal {
+        my ($dom, $str) = @_;
+
+        return qq({{$str}});
+    }
+
+    # XXX: This becomes a <cite> in HTML, so this may not be the best
+    # representation in Socialtext markup. Consider others.
+    #
+    sub title_reference {
+        my ($dom, $str) = @_;
+
+        return qq(`$str`);
+    }
+
+    sub literal_block {
+        my ($dom, $str) = @_;
+
+        return fix_block(".pre\n$str\n.pre");
+    }
+
+    sub list_item {
+        my ($dom, $str) = @_;
+
+        # XXX: This doesn't properly handle linebreaks in list items.
+        #
+        return ''
+            . ($dom->{_socialtext}{list_item_prefix} x $dom->{_socialtext}{list_nesting})
+            . ' '
+            . $str
+        ;
+    }
+
+    sub line {
+        my ($dom, $str) = @_;
+
+        $str = fix_newline($str);
+
+        return $str;
+    }
+
+    sub block_quote {
+        my ($dom, $str) = @_;
+
+        return make_block_quote($str);
+    }
+
+    sub paragraph {
+        my ($dom, $str) = @_;
+
+=pod
+        if (_is_within($dom, 'footnote')) {
+            $str = make_block_quote($str);
+        }
+=cut
+
+        # Strip all linebreaks, but then make sure the resulting paragraph
+        # is a block.
+        #
+        $str = fix_block( remove_linebreaks($str) );
+
+        return $str;
+    }
+
+    sub topic {
+        my ($dom, $str) = @_;
+
+        # Table of contents
+        #
+        if (_attribute_contains_value($dom->{attr}{classes}, 'contents')) {
+
+            # XXX: will the title element always be the 0th child?
+            #
+            my $output = '';
+
+            my $child = $dom->child(0); # <title> element
+
+            # If the title is something other than "Contents",
+            # output the title above the {toc} widget.
+            #
+            my $title = $child->{val} || '';
+
+            if ($title and lc($title) ne 'contents') {
+                $output .= fix_newline( fix_bold( trim( remove_linebreaks($title) ) ) );
+            }
+
+            $output .= "\n{toc}\n\n";
+
+            return $output;
+        }
+
+        # XXX: Not sure what else to do here. Are there other topic elements we need 
+        # to care about? For now, just dump the string.
+        #
+        return _default_passthru($str);
+    }
+
+
+    # XXX: Deal with this:
+    # A lone top-level (sub)section is lifted up to be the
+    # document's (sub)title.
+    #
+
+    sub title {
+        my ($dom, $str) = @_;
+
+        my $output;
+
+        if ( _is_within($dom, 'sidebar')
+        or   _is_within($dom, 'admonition')
+        or   _is_within($dom, 'table')
+        ) {
+            # Just make it a bold block.
+            #
+            $output = fix_block( fix_bold( trim( remove_linebreaks($str) ) ) );
+        }
+        elsif (_is_within($dom, 'section') ) {
+
+            # Create a header with the proper number of leading carets to
+            # represent the header level.
+            #
+            # XXX: Multiple \n seem to be collapsing
+            #
+            $output = fix_block( ('^' x $dom->{_socialtext}{nesting}) . " $str");
+        }
+        else {
+            
+            # Just pass it through as-is.
+            #
+            $output = $str;
+        }
+        
+        return $output;
+    }
+
+    sub raw {
+        my ($dom, $str) = @_;
+
+        # If this is a raw HTML block, output it as such.
+        #
+        if ( defined( $dom->{attr} ) ) {
+
+            if (exists($dom->{attr}{format}) and $dom->{attr}{format} eq 'HTML') {
+                return fix_block(".html\n$str\n.html");
+            }
+        }
+
+        # Anything else is just a preformatted block, for now.
+        #
+        return _default_passthru($str);
+    }
+
+    sub attention|caution|danger|error|hint|important|note|tip|warning {
+        my ($dom, $str) = @_;
+
+        return wrap_in_rules(fix_block(fix_bold(uc($dom->tag))) . $str);
+    }
+
+    sub sidebar|admonition|line_block {
+        my ($dom, $str) = @_;
+
+        return wrap_in_rules($str);
+    }
+
+    sub reference {
+        my ($dom, $str) = @_;
+
+        # XXX: This is too simple, but it works well enough for now.
+        # It does *not* support internal crossrefs, which may or
+        # may not be a big deal.
+        #
+        # XXX: Does this properly handle plain page-name links, in [brackets]?
+        #
+
+        # Implicit reference, like to a section title.
+        #
+        if (my $refid = $dom->{attr}{refid}) {
+            return qq({link: $str} );
+        }
+
+        # External references
+        #
+        # XXX: doesn't handle all cases yet
+        #
+        if (my $refuri = $dom->{attr}{refuri}) {
+
+            # If the URI is the same as the string, then
+            # it's an unadorned URI, so just use the string.
+            #
+            # XXX: How should this work for documents?
+            #
+            if ($refuri eq $str) {
+                return $str;
+            }
+            # email address -- just use the string
+            #
+            elsif ($refuri eq "mailto:$str") {
+                return $str;
+            }
+            # link to a page or file within the group
+            #
+            elsif (_is_internal_link($refuri)) {
+
+                warn "Found internal link [$refuri]\n";
+
+                # Remember file links (so the corresponding
+                # files can be attached to the page), and use
+                # the appropriate link syntax.
+                #
+                if (_is_file_link($refuri)) {
+
+                    warn "Found file link [$refuri]\n";
+
+                    my $filename = _filename_from_uri($refuri);
+
+                    # If there's a filename, remember the URI for
+                    # later uploading. If not, then just treat this
+                    # as an external link.
+                    #
+                    # XXX: This is not the greatest solution.
+                    #
+                    if ($filename) {
+                        _remember_attachment_uri($refuri);
+                        return qq("$str"{file: $filename});
+                    }
+                    else {
+                        return qq("$str"<$refuri> );
+                    }
+                }
+                # This is just a plain page link.
+                #
+                else {
+                    # warn "Internal page link:\n", Dumper($dom), "\n";
+
+                    my $page_name = (split('/', $refuri))[-1];
+
+                    warn "extracted page name: [$page_name]\n";
+
+                    return qq("$str"[$page_name]);
+                }
+            }
+            # relative link without the server name prefix
+            #
+            # XXX: This probably needs to handle file links, too.
+            #
+            elsif ($refuri =~ m{^/group/}) {
+
+                warn "Found relative link [$refuri]\n";
+
+                return qq("$str"<${source_server}${refuri}>);
+            }
+            # completely external link
+            #
+            else {
+                warn "Found external link [$refuri]\n";
+
+                return qq("$str"<$refuri> );
+            }
+        }
+
+        return $str;
+    }
+
+    sub image {
+        my ($dom, $str) = @_;
+
+        my $uri = $dom->{attr}{uri};
+
+        if (_is_internal_link($uri)) {
+
+            _remember_attachment_uri($uri);
+
+            my $filename = _filename_from_uri($uri);
+
+            return fix_block("{image: $filename}");
+
+        }
+        else {
+            return fix_block('<' . $uri . '>');
+        }
+
+    }
+
+    sub caption {
+        my ($dom, $str) = @_;
+
+        return fix_block($str);
+    }
+
+    sub legend {
+        my ($dom, $str) = @_;
+
+        return fix_block($str);
+    }
+
+    sub comment {
+        my ($dom, $str) = @_;
+
+        my $output = '';
+
+        if ($str ne '') {
+            $output = fix_block(fix_pre($str));
+        }
+
+        return $output;
+    }
+
+    sub table {
+        my ($dom, $str) = @_;
+
+        return fix_block($str);
+    }
+
+    sub entry {
+        my ($dom, $str) = @_;
+
+#        use Data::Dumper;
+#        warn 'entry: ' . Dumper($dom) . "\n";
+
+        my $output;
+
+        if ($dom->{_socialtext}{first}) {
+            $output .= '| ';
+        }
+
+        $str =~ s/\n+$//;
+
+        # Keep stray vertical bars from wrecking the table.
+        # Not sure if this is the best way to handle this,
+        # but perhaps it's good enough for now.
+        #
+        $str =~ s/\|/¦/g;
+
+        $output .= $str . ' |';
+        
+        if (! $dom->{_socialtext}{last}) {
+            $output .= ' ';
+        }
+
+        return $output;
+    }
+
+    sub row {
+        my ($dom, $str) = @_;
+
+        return fix_newline($str);
+    }
+
+    sub system_message {
+        my ($dom, $str) = @_;
+
+        my $output = '';
+
+        if ($str ne '') {
+            $output = fix_block(fix_pre($str));
+        }
+
+        return $output;
+    }
+
+    sub field_name {
+        my ($dom, $str) = @_;
+
+        return fix_block(fix_bold("$str:"));
+    }
+
+    sub field_body {
+        my ($dom, $str) = @_;
+
+        return make_block_quote($str);
+    }
+
+    sub term {
+        my ($dom, $str) = @_;
+
+        return fix_block(fix_bold($str));
+    } 
+
+    sub definition {
+        my ($dom, $str) = @_;
+
+        return make_block_quote($str);
+    }
+
+    sub option_string {
+        my ($dom, $str) = @_;
+
+        return fix_monospace($str);
+    }
+
+    sub option_argument {
+        my ($dom, $str) = @_;
+
+        return(
+            ($dom->{attr}{delimiter} || '' ) . fix_italic($str)
+        );
+    }
+
+    sub option {
+        my ($dom, $str) = @_;
+
+        return fix_block($str);
+    }
+
+    sub option_group {
+        my ($dom, $str) = @_;
+
+        return fix_block($str);
+    }
+
+    # XXX: description is used in more than just option lists,
+    # so there may need to be a little more logic here to handle
+    # extra cases.
+    #
+    sub description {
+        my ($dom, $str) = @_;
+
+        return make_block_quote($str);
+    }
+
+=pod
+    sub option_list {
+        my ($dom, $str) = @_;
+
+        return fix_block(fix_pre($str));
+    }
+=cut
+
+    sub footnote_reference {
+        my ($dom, $str) = @_;
+
+        return "{link: Footnote $str}";
+    }
+
+
+    sub citation_reference {
+        my ($dom, $str) = @_;
+
+        return "{link: Citation $str}";
+    }
+
+
+    sub label {
+        my ($dom, $str) = @_;
+
+        # Suppress footnote and citation labels appearing in the output at this
+        # point.  They're accumulated within the footnote/citation subs, then
+        # output all at once in the document sub.
+        #
+        if (_is_within($dom, 'footnote')
+        or  _is_within($dom, 'citation')        
+        ) {
+            return;
+        }
+
+        # Otherwise, just pass it through.
+        #
+        return $str;
+    }
+
+
+    sub footnote {
+        my ($dom, $str) = @_;
+
+        # The label is (or should always be) the first "grandchild"
+        # of the footnote itself.
+        #
+        my $label = $dom->first->child(0)->{val};
+
+        # Accumulate the footnote in the block that will 
+        # be appended to the main document upon final
+        # output.
+        #
+        $Footnote_Text .= ''
+            . make_footnote_target($label)
+            . fix_block($str)
+        ;
+
+        return '';
+    }
+
+
+    sub citation {
+        my ($dom, $str) = @_;
+
+        # The label is (or should always be) the first "grandchild"
+        # of the footnote itself.
+        #
+        my $label = $dom->first->child(0)->{val};
+
+        # Accumulate the citation in the block that will 
+        # be appended to the main document upon final
+        # output.
+        #
+        $Citation_Text .= ''
+            . make_citation_target($label)
+            . fix_block($str)
+        ;
+
+        return '';
+    }
+
+    # Anything else just falls straight through, unmodified.
+    #
+    sub .* = {
+        my ($dom, $str) = @_;
+
+        return $str; # _default_passthru($str);
+    }
+}

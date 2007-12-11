@@ -1,0 +1,2 @@
+~/Work/convert-restructured-text/bin/run-prest -w socialtext $*
+
