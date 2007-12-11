@@ -268,12 +268,6 @@ my $Rester = Socialtext::Resting->new(
     password => $App::options{password},
     server   => $dest_server,
     'accept' => 'text/x.socialtext-wiki'
-
-#   server       => $App::options{server},
-#   workspace    => $App::options{workspace},
-#   username => 'bill.odom@socialtext.com',
-#   password => '5x.3=1.5',
-
 );
 
 $Rester->workspace($dest_workspace_name);
