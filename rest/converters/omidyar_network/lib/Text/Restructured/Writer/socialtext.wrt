@@ -9,32 +9,16 @@ Converts a reST DOM to Socialtext wiki markup
 =end reST
 =cut
 
-=pod
-
-* ON’s content will be split into two wikis – on-archive and on-dev
-* The groups on omidyar.net named on-internal, on-internal2, and on-archives will be merged into the on-archive wiki
-* In merging multiple groups into a single wiki, we want to make it easy for people to find their old content.  So we would like the group name abbreviation to be prepended to the page name. 
-    o Group name abbreviations as follows: on-internal = int1, on-internal2 = int2, on-archives = int3.   For example if the page name was “people.php” in the  on-internal group, then it becomes “int1-people.php”. 
-    o Additionally, we would like each converted page to be tagged with the group that it belonged to. 
-
-* The group sitedev converts to a wiki named on-dev.
-* Finally, we would like an empty wiki created named ONet.  This will be the new workspace for ON staff after we migrate to Socialtext.
-
-=cut
-
-
-
 # The 'sub' keyword is necessary here, to avoid uninitialized string warnings
 # from Text::Restructured::Writer.pm
 #
 sub BEGIN {
 
-    # My -W flags
+    # Socialtext -W flags
     use vars (
         '$source_server',       # Ex: https://www.omidyar.net/
         '$source_group_name',   # Ex: hu-internal
         '$dest_workspace_name', # Ex: humanityunited
-        '$page_prefix',         # Ex: int1-, int2-, int3- (include the dash)
         '$file_log',            # Ex: /tmp/list-of-files.log
     );
 
@@ -50,20 +34,6 @@ sub BEGIN {
     # Defaults for -W flags
     $source_server      ||= '';
     $source_group_name  ||= '';
-
-=pod
-    warn "-W flag values:\n";
-
-    for my $var (
-        $source_server,
-        $source_group_name,
-        $dest_workspace_name,
-        $page_prefix
-    ) {
-        warn "  Value: " . (defined $var ? "[$var]" : '<undef>') . "\n";
-    }
-=cut
-
 
     # Globals
     use vars qw(
@@ -90,6 +60,10 @@ sub BEGIN {
     # The list of files, images, figures, etc., associated with this page.
     @Attached_Files = ();
 
+    # The accumulated text of footnotes and citations, appended to the
+    # output once all other parts of the document have been processed
+    # and output.
+    #
     $Footnote_Text = '';
     $Citation_Text = '';
 }
@@ -98,6 +72,10 @@ sub BEGIN {
 # comments, targets, substitution_definitions
 # Arguments: DOM object
 # Returns: list of DOM objects
+#
+# Note: This code was lifted from the html.wrt writer included
+# with the prest utility.
+#
 sub Paras {
     my ($dom) = @_;
 
@@ -123,7 +101,7 @@ sub _filename_from_uri {
 sub _remember_attachment_uri {
     my $uri = shift;
    
-    warn "Remembering [$uri] for attachment upload\n";
+    # warn "Remembering [$uri] for attachment upload.\n";
 
     # Remember this URI, so it can be attached to the page later.  Record the
     # full URI (instead of just the name), so subdirectories can be respected.
@@ -147,11 +125,13 @@ sub _is_internal_link {
     #
     my $base_uri_pattern = $Source_Group_Base_URL;
     
-    # ...but allow for both http and https URLs.
+    # ...but strip off any http or https prefix.
     #
     $base_uri_pattern =~ s{^https?:}{}i;
 
-    # Protect any metacharacters before using the pattern as a regex.
+    # ...then put it back as a pattern, since the Omidyar docs use both.
+    # Protect any metacharacters in the remainder of the URI before using
+    # the pattern as a regex.
     #
     $base_uri_pattern = 'https?:' . quotemeta($base_uri_pattern);
 
@@ -164,7 +144,6 @@ sub _is_internal_link {
 
         return 1;
     }
-
 }
 
 sub _is_file_link {
@@ -191,6 +170,7 @@ sub _default_passthru {
     return fix_block(".pre\n$str\n.pre");
 }
 
+
 sub _attribute_contains_value {
     my $attr = shift;
     my $value = shift;
@@ -206,6 +186,7 @@ sub _attribute_contains_value {
         return $attr eq $value;
     }
 }
+
 
 sub _get_attribute {
     my $dom = shift;
@@ -246,13 +227,9 @@ sub trim {
 sub remove_linebreaks {
     my $string = shift;
 
-    # warn "Before [$string]\n";
-
     $string =~ s/\n/ /g;
 
     $string = trim($string);
-
-    # warn "After [$string]\n";
 
     return $string;
 }
@@ -302,9 +279,6 @@ sub fix_bold {
     #
     $string = trim($string, '\*');
 
-    # $string =~ s/^\*+//;
-    # $string =~ s/\*+$//;
-
     return '*' . $string . '*';
 }
 
@@ -319,6 +293,7 @@ sub fix_italic {
 
     return '_' . $string . '_';
 }
+
 
 sub fix_monospace {
     my $string = shift;
@@ -394,8 +369,8 @@ sub _is_within {
     }
 
     return;
-
 }
+
 
 sub reference_text {
     my $string = shift;
@@ -412,7 +387,7 @@ sub reference_text {
 #
 phase PREPROCESS {
 
-    sub document = { # PREPROCESS
+    sub document = {
         my ($dom) = @_;
 
         my %list_item_prefixes = (
@@ -450,9 +425,9 @@ phase PREPROCESS {
         my $list_item_prefix;
 
 
-        # XXX: This comingles bullet and enumerated lists, which Socialtext markup can't
-        # currently handle. Will only be an issue if the source documents get fancy
-        # with lists.
+        # XXX: This comingles bullet and enumerated lists, which
+        # Socialtext markup can't currently handle. Will only be an
+        # issue if the source documents get fancy with lists.
         #
         $dom->Recurse(
             sub {
@@ -510,7 +485,10 @@ phase PREPROCESS {
         #
         push @Fixed_Problematics, @{ $dom->{attr}{ids} };
 
-        my $refuri = $Source_Group_Base_URL . 'ws/' . Text::Restructured->NormalizeId($string);
+        my $refuri = $Source_Group_Base_URL
+            . 'ws/'
+            . Text::Restructured->NormalizeId($string)
+        ;
 
         my $new_dom = Text::Restructured::DOM->new(
             'reference',
@@ -522,7 +500,9 @@ phase PREPROCESS {
             Text::Restructured::DOM->newPCDATA($string)
         );
 
-        # FIXME: ids and names are stubs
+        # XXX: ids and names are stubs, though it doesn't really
+        # matter since the PROCESS phase ignores <target> elements
+        # in preference for <reference> elements.
         #
         $new_dom->append(
             Text::Restructured::DOM->new(
@@ -542,7 +522,8 @@ phase PREPROCESS {
         # _dump_attributes($dom->{attr}{classes});
 
         # Remove the system messages section entirely.
-        # This will probably change later, so that errors and warnings
+        #
+        # This may change later, so that errors and warnings
         # aren't silently ignored, but for the purposes of this
         # conversion, it just gets in the way.
         #
@@ -588,6 +569,7 @@ phase PREPROCESS {
         # Remove warnings.
         #
         if ($dom->{attr}{type} eq 'WARNING') {
+            # ... to be implemented if this code is ever restored
         }
     }
 =cut
@@ -601,26 +583,22 @@ phase PREPROCESS {
 
         $entries[0]->{_socialtext}{first} = 1;
         $entries[-1]->{_socialtext}{last} = 1;
-
-        # warn 'First entry in row: ' . $entries[ 0]->tag . ' - ' . $entries[ 0]->{val} . "\n";
-        # warn 'Last entry in row: '  . $entries[-1]->tag . ' - ' . $entries[-1]->{val} . "\n";
-
     }
 
-    # sub definition|field_body|description|entry = { # PREPROCESS
-
-    sub entry = { # PREPROCESS
+    sub entry = {
+    #
+    # (Mostly lifted from html.wrt.)
+    #
         my ($dom, $str) = @_;
         my @paras = Paras($dom);
         if (@paras > 1) {
             push @{$paras[0]{attr}{classes}}, 'first';
             push @{$paras[-1]{attr}{classes}}, 'last';
         }
-        return $str; # was: Default($dom, $str);
+        return $str;
     }
 
 }
-
 
 
 phase PROCESS {
@@ -630,27 +608,23 @@ phase PROCESS {
 
         my $output = $str;
 
-        if ($Citation_Text) {
-            $output .=
-                fix_block('----')
-                . fix_block($Citation_Text)
-            ;
+        # Append the citations and footnotes blocks,
+        # if there's anything in them.
+        # 
+        for my $text ($Citation_Text, $Footnote_Text) {
+            if ($text) {
+                $output .= fix_block('----') . fix_block($text);
+            }
         }
 
-        if ($Footnote_Text) {
-            $output .=
-                fix_block('----')
-                . fix_block($Footnote_Text)
-            ;
-        }
-
-        # If there's a place to put it, record the attached-files log.
+        # If the caller specified a logfile pathname,
+        # record the list of attached files in the log.
         #
         if ($file_log) {
             open my $fh, '>', $file_log
                 or die "Unable to open file log [$file_log] -- $!\n";
 
-            warn "Writing to file log [$file_log]:\n";
+            warn "Writing to attachment file log [$file_log]:\n";
 
             for my $f (@Attached_Files) {
                 warn "- $f\n";
@@ -668,23 +642,11 @@ phase PROCESS {
     sub \#PCDATA = {
         my ($dom, $str) = @_;
 
-        my $text = $dom->{text};
-
-        # XXX: Removed for now; may be necessary to put it back.
-        #
-        # $text =~ s/([\x00-\x09\x0b-\x1f\x7f-\xff\x{0100}-\x{ffff}])/sprintf '\u%04x', ord $1/ge;
-
-        # If this is a list item, get rid of any newlines, since
-        # Socialtext markup can't handle them in list items.
-        #
-        if ( _is_within($dom, 'list_item') ) {
-            # $text = remove_linebreaks($text);
-        }
-
-        return $text;
+        return $dom->{text};
     }
 
-    # XXX: See if this is necessary.
+    # XXX: This probably isn't necessary for the Omidyar data, but
+    # it doesn't hurt to leave it here.
     #
     sub mathml {
         my ($dom, $str) = @_;
@@ -805,12 +767,15 @@ phase PROCESS {
     }
 
 
-    # XXX: Deal with this:
-    # A lone top-level (sub)section is lifted up to be the
-    # document's (sub)title.
-    #
-
     sub title {
+    #
+    # XXX: This default reST behavior...
+    #
+    #     "A lone top-level (sub)section is lifted up to be the
+    #      document's (sub)title."
+    # 
+    # ...may cause trouble.
+    #
         my ($dom, $str) = @_;
 
         my $output;
@@ -827,8 +792,6 @@ phase PROCESS {
 
             # Create a header with the proper number of leading carets to
             # represent the header level.
-            #
-            # XXX: Multiple \n seem to be collapsing
             #
             $output = fix_block( ('^' x $dom->{_socialtext}{nesting}) . " $str");
         }
@@ -860,12 +823,21 @@ phase PROCESS {
     }
 
     sub attention|caution|danger|error|hint|important|note|tip|warning {
+    #
+    # Output pre-defined admonitions wrapped in rules, with a bolded,
+    # capitalized admonition name (like *Warning* or *Hint*), followed by the
+    # text of the admonition itself.
+    #
         my ($dom, $str) = @_;
 
         return wrap_in_rules(fix_block(fix_bold(uc($dom->tag))) . $str);
     }
 
     sub sidebar|admonition|line_block {
+    #
+    # Sidebars, line blocks, and generic admonitions just get the rules
+    # and the text.
+    #
         my ($dom, $str) = @_;
 
         return wrap_in_rules($str);
@@ -874,43 +846,33 @@ phase PROCESS {
     sub reference {
         my ($dom, $str) = @_;
 
-        # XXX: This is too simple, but it works well enough for now.
-        # It does *not* support internal crossrefs, which may or
-        # may not be a big deal.
-        #
-        # XXX: Does this properly handle plain page-name links, in [brackets]?
-        #
-
         # Implicit reference, like to a section title.
         #
         if (my $refid = $dom->{attr}{refid}) {
             return qq({link: $str} );
         }
 
-        # External references
-        #
-        # XXX: doesn't handle all cases yet
+        # Other references, including external references.
         #
         if (my $refuri = $dom->{attr}{refuri}) {
 
             # If the URI is the same as the string, then
             # it's an unadorned URI, so just use the string.
             #
-            # XXX: How should this work for documents?
-            #
             if ($refuri eq $str) {
                 return $str;
             }
-            # email address -- just use the string
+            # If the URI is an email address, just use the string.
             #
             elsif ($refuri eq "mailto:$str") {
                 return $str;
             }
-            # link to a page or file within the group
+            # Convert internal links appropriately, based on whether
+            # they're file or page links.
             #
             elsif (_is_internal_link($refuri)) {
 
-                warn "Found internal link [$refuri]\n";
+                # warn "Found internal link [$refuri]\n";
 
                 # Remember file links (so the corresponding
                 # files can be attached to the page), and use
@@ -918,15 +880,13 @@ phase PROCESS {
                 #
                 if (_is_file_link($refuri)) {
 
-                    warn "Found file link [$refuri]\n";
+                    # warn "Found file link [$refuri]\n";
 
                     my $filename = _filename_from_uri($refuri);
 
                     # If there's a filename, remember the URI for
                     # later uploading. If not, then just treat this
                     # as an external link.
-                    #
-                    # XXX: This is not the greatest solution.
                     #
                     if ($filename) {
                         _remember_attachment_uri($refuri);
@@ -943,25 +903,24 @@ phase PROCESS {
 
                     my $page_name = (split('/', $refuri))[-1];
 
-                    warn "extracted page name: [$page_name]\n";
+                    # warn "Extracted page name: [$page_name]\n";
 
                     return qq("$str"[$page_name]);
                 }
             }
-            # relative link without the server name prefix
+            # Relative link without the server name prefix.
             #
-            # XXX: This probably needs to handle file links, too.
+            # XXX: This may need to handle file links, too.
             #
             elsif ($refuri =~ m{^/group/}) {
-
-                warn "Found relative link [$refuri]\n";
+                # warn "Found relative link [$refuri]\n";
 
                 return qq("$str"<${source_server}${refuri}>);
             }
-            # completely external link
+            # A completely external link.
             #
             else {
-                warn "Found external link [$refuri]\n";
+                # warn "Found external link [$refuri]\n";
 
                 return qq("$str"<$refuri> );
             }
@@ -971,6 +930,10 @@ phase PROCESS {
     }
 
     sub image {
+    #
+    # XXX: Some of the internal/external resolution
+    # done for references may need to be done here, too.
+    #
         my ($dom, $str) = @_;
 
         my $uri = $dom->{attr}{uri};
@@ -982,7 +945,6 @@ phase PROCESS {
             my $filename = _filename_from_uri($uri);
 
             return fix_block("{image: $filename}");
-
         }
         else {
             return fix_block('<' . $uri . '>');
@@ -1023,25 +985,30 @@ phase PROCESS {
     sub entry {
         my ($dom, $str) = @_;
 
-#        use Data::Dumper;
-#        warn 'entry: ' . Dumper($dom) . "\n";
-
         my $output;
 
+        # If this is the first entry in the row, prepend
+        # the opening vertical bar to indicate the start of
+        # the table row.
+        #
         if ($dom->{_socialtext}{first}) {
             $output .= '| ';
         }
 
         $str =~ s/\n+$//;
 
-        # Keep stray vertical bars from wrecking the table.
-        # Not sure if this is the best way to handle this,
-        # but perhaps it's good enough for now.
+        # Keep stray vertical bars from wrecking the table, by replacing
+        # them with the "broken vertical bar" character. Not sure if
+        # this is the best way to handle this, but it's good enough for
+        # now.
         #
         $str =~ s/\|/¦/g;
 
         $output .= $str . ' |';
-        
+
+        # If this is *not* the last entry in the table row,
+        # append a space, in preparation for the next entry.
+        #
         if (! $dom->{_socialtext}{last}) {
             $output .= ' ';
         }
@@ -1056,6 +1023,10 @@ phase PROCESS {
     }
 
     sub system_message {
+    #
+    # The system messages section is currently removed before output
+    # so this never gets a chance to do anything at the moment.
+    #
         my ($dom, $str) = @_;
 
         my $output = '';
@@ -1117,23 +1088,16 @@ phase PROCESS {
         return fix_block($str);
     }
 
+    sub description {
+    #
     # XXX: description is used in more than just option lists,
     # so there may need to be a little more logic here to handle
     # extra cases.
     #
-    sub description {
         my ($dom, $str) = @_;
 
         return make_block_quote($str);
     }
-
-=pod
-    sub option_list {
-        my ($dom, $str) = @_;
-
-        return fix_block(fix_pre($str));
-    }
-=cut
 
     sub footnote_reference {
         my ($dom, $str) = @_;
@@ -1141,20 +1105,18 @@ phase PROCESS {
         return "{link: Footnote $str}";
     }
 
-
     sub citation_reference {
         my ($dom, $str) = @_;
 
         return "{link: Citation $str}";
     }
 
-
     sub label {
         my ($dom, $str) = @_;
 
         # Suppress footnote and citation labels appearing in the output at this
         # point.  They're accumulated within the footnote/citation subs, then
-        # output all at once in the document sub.
+        # output all at once in the PROCESS phase document sub.
         #
         if (_is_within($dom, 'footnote')
         or  _is_within($dom, 'citation')        
@@ -1167,6 +1129,8 @@ phase PROCESS {
         return $str;
     }
 
+    # XXX: Footnotes and citations are now processed the same way, so there's
+    # duplicate code that needs to be refactored away.
 
     sub footnote {
         my ($dom, $str) = @_;
@@ -1187,7 +1151,6 @@ phase PROCESS {
 
         return '';
     }
-
 
     sub citation {
         my ($dom, $str) = @_;
@@ -1214,6 +1177,6 @@ phase PROCESS {
     sub .* = {
         my ($dom, $str) = @_;
 
-        return $str; # _default_passthru($str);
+        return $str;
     }
 }
