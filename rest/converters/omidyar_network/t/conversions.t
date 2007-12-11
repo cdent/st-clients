@@ -789,7 +789,7 @@ Simple external hyperlink with embedded URI, like `Python <http://www.python.org
 );
 
 $s = q(
-Simple external hyperlink with embedded URI, like "Python"<http://www.python.org/>.
+Simple external hyperlink with embedded URI, like "Python"<http://www.python.org/> .
 );
 
 check($r, $s, 'simple external hyperlink with embedded URI');
@@ -812,7 +812,7 @@ Normal paragraph.
 
 ^ Titles are targets, too
 
-Implicit references, like {link: Titles are targets, too}.
+Implicit references, like {link: Titles are targets, too} .
 
 Normal paragraph.
 );
@@ -844,7 +844,7 @@ Normal paragraph.
 $s = q(
 Normal paragraph.
 
-[This doesn't have a predefined target] so it should resolve to an internal link.
+"This doesn't have a predefined target"[this-doesn-t-have-a-predefined-target] so it should resolve to an internal link.
 
 Normal paragraph.
 );
@@ -885,45 +885,13 @@ End of document
     $s = q(
 Start of document
 
-"Python"<http://www.python.org/> is "a programming language"<http://www.python.org/>. And "Perl"<http://www.perl.org/> is "another one"<http://www.perl.org/>.
+"Python"<http://www.python.org/>  is "a programming language"<http://www.python.org/> . And "Perl"<http://www.perl.org/>  is "another one"<http://www.perl.org/> .
 
 End of document
 );
 
 check($r, $s, 'hyperlinks - anonymous');
 
-
-#########################
-
-=pod
-
-TODO: {
-    local $TODO = 'hyperlinks - cross-references - unimplemented';
-
-    $r = q(
-Internal crossreferences, like example_.
-
-.. _example:
-
-This is an example crossreference target.
-);
-
-    # This is probably a terrible idea... but I don't have a better one
-    # at the moment. ST markup doesn't support random internal hyperlink
-    # targets, so there has to be something to attach them to.
-    #
-    $s = q(
-Internal crossreferences, like {link: example}.
-
-^^^^^^ example
-
-This is an example crossreference target.
-);
-
-    check($r, $s, 'non-section internal hyperlink');
-}
-
-=cut
 
 #########################
 
