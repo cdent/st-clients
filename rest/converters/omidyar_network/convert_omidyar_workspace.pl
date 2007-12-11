@@ -25,8 +25,11 @@ use lib catdir($FindBin::Bin, 'lib');
 
 ## Modules
 
-use App::Options;
+use Carp;
+use File::Find;
 use URI::Escape;
+
+use App::Options;
 use Socialtext::Resting;
 
 
@@ -38,9 +41,21 @@ my $TEMP_INPUT_PATHNAME     = catfile($TMPDIR, 'rst2socialtext-conversion-input.
 my $TEMP_OUTPUT_PATHNAME    = catfile($TMPDIR, 'rst2socialtext-conversion-output.tmp');
 my $TEMP_FILE_LOG_PATHNAME  = catfile($TMPDIR, 'rst2socialtext-conversion-file-log.tmp');
 
-my $Command_Base;
 
-use Carp;
+## Variables
+
+my $Command_Base;
+my $File_Path;
+my %Files;
+my $Rester;
+
+# Command-line arguments
+my $src_path;
+my $dest_path;
+my $source_group_name;
+my $dest_workspace_name;
+my $source_server;
+my $dest_server;
 
 
 ## Subroutines
@@ -72,6 +87,53 @@ sub slurp {
     # scope.
     #
     return <$fh>;
+}
+
+
+sub all_files_in {
+#
+# Returns a hash containing a list of all the files within
+# the specified path. Each entry in the hash has two keys:
+# a count of how many times the filename occurs within the
+# directory, and the pathname to one of the occurrences.
+#
+    my $path = shift;
+
+    my %files = ();
+
+    File::Find::find(
+        sub {
+            # Ignore directories.
+            next if -d $File::Find::name;
+
+            # Remember how many times we've seen this filename.
+            $files{ $_ }{count}++;
+
+            # Remember the full pathname to the file.
+            $files{ $_ }{pathname} = $File::Find::name;
+        },
+        $path
+    );
+
+    return %files;
+}
+
+
+sub guess_filepath {
+    my $relative_filename = shift;
+
+    my $filename = basename($relative_filename);
+
+    # If only one possible pathname exists in the %Files hash,
+    # use it. Otherwise, return undef to indicate that the
+    # name can't be trusted.
+    #
+    if (exists $Files{$filename} and ($Files{$filename}{count} == 1)) {
+        return $Files{$filename}{pathname};
+    }
+    else {
+        return;
+    }
 }
 
 
@@ -197,19 +259,132 @@ sub rfile2sfiles {
 }
 
 
+sub upload_page {
+#
+# Uploads the specified file to the target workspace. If there are attachments
+# listed in the specified file log, uploads the attachments as well.
+#
+    my $dest_pathname       = shift;
+    my $file_log_pathname   = shift;
+
+    my $content = slurp($dest_pathname);
+
+    my $page_name = basename($dest_pathname);
+
+    # Get rid of the group name prefix and the trailing extensions.
+    #
+    $page_name =~ s/^\Q$source_group_name\E-//;
+    $page_name =~ s/\.txt\.st$//;
+
+    print "Uploading page [$page_name] using contents from [$dest_pathname]\n";
+
+    # Upload the page.
+    #
+    $Rester->put_page($page_name, $content);
+
+    # Tag the page with the source group name, to make it easier to find
+    # in the new workspace.
+    #
+    $Rester->put_pagetag($page_name, $source_group_name);
+
+    # Don't bother to continue if there's not a list of files to
+    # upload.
+    #
+    return unless -s $file_log_pathname;
+
+    # Attach the files to the page.
+    #
+    print "Uploading attachments to page [$page_name]\n";
+
+    my (@uris) = slurp($file_log_pathname);
+
+    my %processed_uris = ();
+
+    URI:
+    for my $uri (@uris) {
+
+        chomp $uri;
+
+        $processed_uris{$uri}++;
+
+        # Only process each URI once. No sense uploading the same file
+        # to the same page twice.
+        #
+        next URI if $processed_uris{$uri} > 1;
+
+        print "Processing attachment URI [$uri]\n";
+
+        # The relative filename is everything after the
+        # /get/ portion of the uri.
+        #
+        # XXX: Make sure this is consistent in the source files.
+        #
+        my ($relative_filename) = ($uri =~ m{/get/(.+)$});
+
+        # Get rid of all the %20's and their friends.
+        #
+        $relative_filename = uri_unescape($relative_filename);
+
+        # Figure out where the attachment source file should be.
+        #
+        my $filepath = catfile($File_Path, $relative_filename);
+
+        if (! -e $filepath) {
+            print "WARNING: [$relative_filename] does not exist in expected location; guessing alternate location.\n";
+        }
+        
+        $filepath = guess_filepath($relative_filename);
+
+        if (! $filepath) {
+            print "WARNING: Skipping [$uri]; location could not be guessed.\n";
+            next URI;
+        }
+
+        if (! -e $filepath) {
+            print "WARNING: Skipping [$filepath] -- file does not exist at guessed location.\n";
+            next URI;
+        }
+
+        my $filename = basename($filepath);
+
+        # Some of the URIs are just pathnames, without specified files. This
+        # catches them, so that no attempt will be made to upload blank
+        # filenames.
+        #
+        if (! $filename) {
+            print "WARNING: Unable to upload file based on URI [$uri] -- no filename.\n";
+            next URI;
+        }
+
+        print "- Uploading [$filepath] as attachment [$filename] based on URI [$uri]\n";
+
+        my $attachment_content = slurp($filepath, 'binmode');
+        
+        # Add the attachment to the page.
+        # 
+        $Rester->post_attachment(
+            $page_name,
+            $filename, # attachment ID 
+            $attachment_content, 
+            'application/octet-stream'
+        );
+    } # end for URI
+}
+
+
 ## Main
 
-# Gather up the command-line arguments.
+# Gather up the command line arguments.
 #
 # XXX: This has grown out of control. Replace it with a Getopt call
 # and a proper usage message.
 #
-my $src_path            = shift;
-my $dest_path           = shift;
-my $source_group_name   = shift;  # Ex: hu-internal
-my $dest_workspace_name = shift;  # Ex: humanityunited
-my $source_server       = shift || 'https://www.omidyar.net/';
-my $dest_server         = shift || 'http://www.socialtext.net/';
+$src_path            = shift;
+$dest_path           = shift;
+$source_group_name   = shift;  # Ex: hu-internal
+$dest_workspace_name = shift;  # Ex: humanityunited
+$source_server       = shift || 'https://www.omidyar.net/';
+$dest_server         = shift || 'http://www.socialtext.net/';
 
 die 'Please provide all arguments:
 
@@ -255,15 +430,36 @@ Running with these options:
 
 END_TEXT
 
+$File_Path = catdir($src_path, 'files');
+
+# Get the entire list of files in $File_Path, regardless of relative path.
+#
+%Files = all_files_in($File_Path);
+
+my $dup_filename_count;
+
+for my $filename (keys %Files) {
+
+    next unless $Files{$filename}{count} > 1;
+
+    $dup_filename_count++;
+
+    print "File [$filename]"
+        . " - Count: $Files{$filename}{count}"
+        # . " - Pathname: [$Files{$filename}{pathname}"
+        . "\n";
+}
+
+print "\n" x 3;
+print "Found ", scalar(keys(%Files)), " unique filenames.\n";
+print "Found ", $dup_filename_count, " duplicate filenames.\n";
 print "Press Return to continue, or Ctrl+C to abort: "; <>;
 
 
-# Prepare to upload files to the target workspace
+# Connect to the target server and workspace in preparation for uploading pages
+# and attachments.
 #
-# XXX: Pull these from a config file, or provide command-line options
-# for them.
-#
-my $Rester = Socialtext::Resting->new(
+$Rester = Socialtext::Resting->new(
     username => $App::options{username},
     password => $App::options{password},
     server   => $dest_server,
@@ -272,9 +468,7 @@ my $Rester = Socialtext::Resting->new(
 
 $Rester->workspace($dest_workspace_name);
 
-my $File_Path = catdir($src_path, 'files');
-
-# Open the workspace subdirectory of the source
+# Open the workspace subdirectory of the source.
 #
 my $ws_path = catdir($src_path, 'workspaces');
 my $ws_dh;
@@ -283,13 +477,13 @@ opendir $ws_dh, $ws_path
 
 # Get the text files from the workspace directory. This part of the archive
 # directory structure is flat, so there's no need to walk a directory tree.
-# This also avoids having to skip '.' and '..' in the loop below.
+# The grep also avoids having to skip '.' and '..' in the loop below.
 #
 my @ws_files = grep { /\.txt$/i } readdir($ws_dh);
 
 closedir $ws_dh;
 
-# Process each file in the list.
+# Process each workspace file from the list.
 #
 for my $ws_file (@ws_files) {
 
@@ -299,6 +493,9 @@ Processing [$ws_file]
 END_TEXT
 
     # Convert the file from Omidyar reST to Socialtext markup.
+    # Notice that it's "rfile" (singular) to "sfiles" (plural),
+    # since the conversion generates not only the Socialtext markup
+    # file, but also the list of attachment URIs.
     #
     my $dest_pathname = rfile2sfiles(catfile($ws_path, $ws_file), $dest_path);
 
@@ -306,101 +503,6 @@ END_TEXT
     # to be attached to the page as well so they can be uploaded, too.
     #
     upload_page($dest_pathname, $TEMP_FILE_LOG_PATHNAME);
-}
-
-
-sub upload_page {
-#
-# Uploads the specified file to the target workspace. If there are attachments
-# listed in the specified file log, uploads the attachments as well.
-#
-    my $dest_pathname       = shift;
-    my $file_log_pathname   = shift;
-
-    my $content = slurp($dest_pathname);
-
-    my $page_name = basename($dest_pathname);
-
-    # Get rid of the group name prefix and the trailing extensions.
-    #
-    $page_name =~ s/^\Q$source_group_name\E-//;
-    $page_name =~ s/\.txt\.st$//;
-
-    print "Uploading page [$page_name] using contents from [$dest_pathname]\n";
-
-    # Upload the page.
-    #
-    $Rester->put_page($page_name, $content);
-
-    # Tag the page with the source group name, to make it easier to find
-    # in the new workspace.
-    #
-    $Rester->put_pagetag($page_name, $source_group_name);
-
-    # Don't bother to continue if there's not a list of files to
-    # upload.
-    #
-    return unless -s $file_log_pathname;
-
-    # Attach the files to the page.
-    #
-    print "Uploading attachments to page [$page_name]\n";
-
-    my (@uris) = slurp($file_log_pathname);
-
-    URI:
-    for my $uri (@uris) {
-
-        print "Processing URI [$uri]\n";
-
-        # The relative filename is everything after the
-        # /get/ portion of the uri.
-        #
-        # XXX: Make sure this is consistent in the source files.
-        #
-        my ($relative_filename) = ($uri =~ m{/get/(.+)$});
-
-        # Get rid of all the %20's and their friends.
-        #
-        $relative_filename = uri_unescape($relative_filename);
-
-        # Figure out where the attachment source file should be.
-        #
-        my $filepath = catfile($File_Path, $relative_filename);
-
-        if (! -e $filepath) {
-            print "WARNING: Skipping [$filepath] -- file does not exist.\n";
-            next URI;
-        }
-
-        my $filename = basename($filepath);
-
-        # Some of the URIs are just pathnames, without specified
-        # files. This catches them, so no attempt will be made to
-        # upload blank filenames.
-        #
-        if (! $filename) {
-            print "WARNING: Unable to upload file based on URI [$uri] -- no filename.\n";
-            next URI;
-        }
-
-        print "- Uploading [$filepath] as attachment [$filename] based on URI [$uri]\n";
-
-        my $attachment_content = slurp($filepath, 'binmode');
-        
-        my $attachment_id = $filename;
-
-        my $mime_type = 'application/octet-stream';
-
-        # Add the attachment to the page.
-        # 
-        $Rester->post_attachment(
-            $page_name, 
-            $attachment_id, 
-            $attachment_content, 
-            $mime_type
-        );
-    } # end for URI
 }
 
 # end convert_omidyar_workspace.pl
