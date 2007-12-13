@@ -59,6 +59,7 @@ install-stamp:
 	touch install-stamp
 
 	# Install gardener rester conifg
+	mkdir -p $(TMP)/etc/socialtext
 	cp etc/socialtext/gardener-rester.conf $(TMP)/etc/socialtext/gardener-rester.conf
 
 	# Install cgi scripts

@@ -4,16 +4,12 @@ use strict;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME         => 'Socialtext::Server::Dashboard',
+    NAME         => 'Socialtext::Webplugin::Utils',
     VERSION      => '0.01',
     PREREQ_PM => {
-        'Blikistan'                  => '0.07',
         'Socialtext::Resting::Utils' => '0.16',
         'Socialtext::Resting'        => '0.20',
     },
-    EXE_FILES => [
-        'bin/st-create-server-dashboard',
-    ],
-    ABSTRACT => 'Scripts to create a server dashboard',
+    ABSTRACT => 'Little server side webplugin helper scripts',
     AUTHOR   => 'Luke Closs <luke@socialtext.com>',
 );
