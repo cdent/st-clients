@@ -1,0 +1,12 @@
+Source: libsocialtext-webplugin-utils-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7)
+Maintainer: lukec <lukec@talc.socialtext.net>
+Standards-Version: 3.6.1
+
+Package: libsocialtext-webplugin-utils-perl
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}
+Description: Webplugin based utilities for Socialtext

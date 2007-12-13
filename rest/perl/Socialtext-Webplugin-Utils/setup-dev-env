@@ -1,0 +1,9 @@
+#!/bin/bash
+set -x
+set -e
+
+CGI_DIR="$HOME/.nlw/root/webplugin/utils/cgi"
+mkdir -p $CGI_DIR
+ln -fs `pwd`/cgi/*.cgi $CGI_DIR
+ln -fs `pwd`/lib $CGI_DIR
+
