@@ -1,6 +1,7 @@
 package Socialtext::Garden::FillInLinks;
 use strict;
 use warnings;
+use Socialtext::Resting;
 
 sub new {
     my $class = shift;
@@ -26,17 +27,24 @@ sub run {
     $r->workspace($self->{workspace});
 
     $r->accept('text/plain');
-    my @links = $r->get_frontlinks($self->{page}, 'incipient links please');
+    my %links = map { $_ => 1 } $r->get_frontlinks($self->{page}, 'incipient links please');
 
     my $response = '';
     my @to_clone;
-    for my $page (@links) {
-        unless ($page =~ m/\Q$self->{matching}\E/i) {
-            $response .= "Link ($page) doesn't match $self->{matching}<br />";
+
+    # Look for links in the page manually, so we can pull out the real
+    # title of the link (not the page_id)
+    $r->accept('text/x.socialtext-wiki');
+    my $page_text = $r->get_page($self->{page});
+    while ($page_text =~ m/\[([^\]]+)\]/g) {
+        my $link_text = $1;
+        next unless $links{Socialtext::Resting::name_to_id($link_text)};
+        unless ($link_text =~ m/\Q$self->{matching}\E/i) {
+            $response .= "Link ($link_text) doesn't match $self->{matching}<br />";
             next;
         }
 
-        push @to_clone, $page;
+        push @to_clone, $link_text;
     }
 
     unless (@to_clone) {
