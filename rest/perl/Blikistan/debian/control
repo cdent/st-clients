@@ -8,5 +8,5 @@ Standards-Version: 3.6.1
 
 Package: libblikistan-perl
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}, libsocialtext-resting-perl, libsocialtext-resting-utils-perl, libtemplate-perl libhtml-scrubber-perl
+Depends: ${perl:Depends}, ${misc:Depends}, libsocialtext-resting-perl, libsocialtext-resting-utils-perl, libtemplate-perl, libhtml-scrubber-perl
 Description:  Create a website from content in a wiki
