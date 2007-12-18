@@ -5,3 +5,5 @@ Alias /dashboard/ /var/www/socialtext/dashboard/
 
 # Rewrite / to /dashboard
 RewriteRule    ^/$ /dashboard/index.html  [L]
+# Rewrite for css, images
+RewriteRule    ^/dashboard/(.+)$ /dashboard/$1  [L]
