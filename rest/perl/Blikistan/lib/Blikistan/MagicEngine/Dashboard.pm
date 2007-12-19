@@ -106,7 +106,7 @@ sub blog_posts {
             author => $author,
             date => scalar(localtime($p->{modified_time})),
             summary => $p->{html},
-
+            page_id => Socialtext::Resting::_name_to_id($title),
         };
 
         last if @posts == $posts;
