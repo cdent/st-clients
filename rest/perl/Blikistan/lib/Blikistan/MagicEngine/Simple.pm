@@ -7,8 +7,7 @@ use URI::Escape;
 
 sub print_blog {
     my $self = shift;
-    my $params = $self->load_config;
-    return $self->render_template($params);
+    return $self->render_template( $self->load_config );
 }
 
 1;
