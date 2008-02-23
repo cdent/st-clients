@@ -166,7 +166,7 @@ sub draw_text(;$)
             };
 
             my $make_color = sub {
-                return COLOR_PAIR($co->get_color_pair(shift, 'black'));
+                return COLOR_PAIR($co->get_color_pair(shift, $this->{-bg}));
             };
             my $full_line = sub {
                 my ($starting, $colour) = @_;

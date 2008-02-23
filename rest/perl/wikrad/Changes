@@ -1,6 +1,7 @@
 Changelog:
 
-0.06 - not yet released
+0.06 - Fri Feb 22 18:08:34 PST 2008
+ - Don't ass-u-me black background
  - Use a wikrad user agent string
  - Added 's' for search!
  - Added '--latest <tag>' option
