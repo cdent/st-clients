@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Socialtext::System qw(shell_run);
+use Socialtext::File qw/get_contents set_contents/;
+
+my $deb_command  = shift;
+my $prev_version = shift;
+
+exit 0 unless $deb_command eq 'configure';
+
+# Create dashboard directory
+shell_run("mkdir -p /var/www/socialtext/dashboard");
+shell_run("chown www-data /var/www/socialtext/dashboard");
+exit 0;
+
