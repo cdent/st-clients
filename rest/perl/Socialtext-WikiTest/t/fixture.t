@@ -32,11 +32,14 @@ Page_including: {
     $rester->put_page('Foo', "| comment | included |\n");
     $rester->put_page('Foo', "| comment | included |\n");
     $rester->put_page('Foo', "| comment | included |\n");
+    $rester->put_page('Bar', "| include | Baz |\n");
+    $rester->put_page('Baz', "| comment | included2 |\n");
     $rester->put_page('Test Plan', <<EOT);
 * Fixture: Null
 | include | Foo |
 | include | Foo |
 | include | Foo |
+| include | Bar |
 EOT
     my $plan = Socialtext::WikiObject::TestPlan->new(
         rester => $rester,
@@ -44,8 +47,8 @@ EOT
     );
 
     $plan->run_tests;
-    is $plan->{fixture}{calls}{include}, 3;
-    is $plan->{fixture}{calls}{comment}, 3;
+    is $plan->{fixture}{calls}{include}, 5;
+    is $plan->{fixture}{calls}{comment}, 4;
 }
 
 Special_functions: {
