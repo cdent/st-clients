@@ -1,6 +1,7 @@
-0.24 - Not yet released
+0.24 - Thu Mar 20 17:48:50 PDT 2008
  - Updated docs based on some ingy feedback
  - Add a customizable user agent string
+ - s/JSON/JSON::XS/
 
 0.23 - Wed Oct 10 09:09:54 PDT 2007
  - Added missing JSON dependency
