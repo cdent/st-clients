@@ -21,7 +21,7 @@ my %config = (
         'App::Options'    => 0,
         'IPC::Run'        => 0,
         'Test::Mock::LWP' => '0.05',
-        'JSON'            => 0,
+        'JSON::XS'        => '2.1',
     },
     (
         $] >= 5.005

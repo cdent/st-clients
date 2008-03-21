@@ -1,3 +1,6 @@
+0.25 - Fri Mar 21 02:19:35 PDT 2008
+ - Fixed JSON dependency to be JSON::XS
+
 0.24 - Thu Mar 20 17:48:50 PDT 2008
  - Updated docs based on some ingy feedback
  - Add a customizable user agent string
