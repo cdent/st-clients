@@ -2,7 +2,6 @@ package Blikistan::MagicEngine::Dashboard;
 use strict;
 use warnings;
 use base 'Blikistan::MagicEngine::TT2';
-use HTML::Truncate;
 use Socialtext::Resting;
 
 our $VERSION = '0.01';
@@ -36,7 +35,7 @@ sub last_tagged_page {
     my $p = $self->_load_page($page);
 
     if ($chars) {
-        my $trunc = HTML::Truncate->new;
+        my $trunc = $self->truncator;
         $trunc->chars($chars);
         $p->{html} = $trunc->truncate($p->{html});
     }
@@ -89,7 +88,7 @@ sub blog_posts {
     my $chars     = shift || 200;
     my $r         = $self->{rester};
 
-    my $trunc = HTML::Truncate->new;
+    my $trunc = $self->truncator;
     $trunc->chars($chars) if $chars;
 
     $r->workspace($workspace) if $workspace;

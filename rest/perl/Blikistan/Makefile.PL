@@ -9,7 +9,7 @@ WriteMakefile(
     PREREQ_PRINT => 1,
     'PREREQ_PM' => {
         'Test::More'                 => '0.42',
-        'Socialtext::Resting::Utils' => '0.18',
+        'Socialtext::Resting::Utils' => '0.17',
         'Socialtext::Resting'        => '0.20',
         'Template'                   => 0,
         'HTML::Scrubber'             => 0,

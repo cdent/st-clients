@@ -42,7 +42,7 @@ Blikistan (both the country and software) is completely paperless.
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 FUNCTIONS
 

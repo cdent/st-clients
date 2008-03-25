@@ -1,4 +1,4 @@
-0.07 - not yet released
+0.08 - not yet released
  - create B::ME::Dashboard which makes dashboards easy
  - add Blikistan->magic_engine() method
  - Scrub all HTML by default

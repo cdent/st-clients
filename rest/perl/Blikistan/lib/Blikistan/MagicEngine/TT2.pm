@@ -6,7 +6,6 @@ use Template;
 use FindBin;
 use URI::Escape;
 use JSON;
-use HTML::Truncate;
 use Socialtext::Resting;
 
 sub render_template {
@@ -103,7 +102,7 @@ sub load_rester_utils {
         my $length = shift || 30;
 
         my $p = $self->_load_page($page);
-        my $trunc = HTML::Truncate->new;
+        my $trunc = $self->truncator;
         $trunc->chars($length);
 
         die "No HTML for $page!" unless $p->{html};
@@ -136,6 +135,7 @@ sub _load_page {
         warn "Expected json object to be a hash!  ($content)";
         return undef;
     }
+
 
     while ($p->{html} =~ s/<a href="([\w_]+)"\s*/'<a href="' . $self->linkify($1) . '"'/eg) {}
 
