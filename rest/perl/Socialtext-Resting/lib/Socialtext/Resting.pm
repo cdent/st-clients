@@ -780,6 +780,25 @@ sub get_breadcrumbs {
     return $self->_get_things('breadcrumbs');
 }
 
+=head2 get_workspace
+
+    $Rester->get_workspace();
+
+Return the metadata about a particular workspace.
+
+=cut
+
+sub get_workspace {
+    my $self = shift;
+    my $wksp = shift;
+
+    my $prev_wksp = $self->workspace();
+    $self->workspace($wksp) if $wksp;
+    my $result = $self->_get_things('workspace');
+    $self->workspace($prev_wksp) if $wksp;
+    return $result;
+}
+
 =head2 get_workspaces
 
     $Rester->get_workspaces();

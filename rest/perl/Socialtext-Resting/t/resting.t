@@ -5,7 +5,7 @@ use IPC::Run;
 use strict;
 use warnings;
 
-plan tests => 14;
+plan tests => 17;
 
 # Put the page
 my $strut_user = 'rest-tester@socialtext.com';
@@ -62,6 +62,17 @@ SKIP: {
     Get_user: {
         my $user = $Strutter->get_user( $strut_user );
         is $user->{ email_address }, $strut_user;
+    }
+
+    Get_workspace: {
+        my $r = new_strutter();
+        $r->accept('perl_hash');
+        my $wksp = $r->get_workspace();
+        is $wksp->{name}, 'st-rest-test';
+        $wksp = $r->get_workspace('open');
+        is $wksp->{name}, 'open';
+        $wksp = $r->get_workspace();
+        is $wksp->{name}, 'st-rest-test';
     }
 }
 
