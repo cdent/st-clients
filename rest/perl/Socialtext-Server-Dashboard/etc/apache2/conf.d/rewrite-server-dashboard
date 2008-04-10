@@ -3,7 +3,16 @@ Alias /dashboard/ /var/www/socialtext/dashboard/
     DirectoryIndex index.html
 </Directory>
 
-# Rewrite / to /dashboard
-RewriteRule    ^/$ /dashboard/index.html  [L]
 # Rewrite for css, images
 RewriteRule    ^/dashboard/(.+)$ /dashboard/$1  [L]
+
+# The dashboard can be either world readable, or readable only
+# to people with user accounts.  Comment one or the other out here:
+
+# World readable dashboard:
+RewriteRule    ^/$ /dashboard/index.html  [L]
+
+# Use auth checker for dashboard:
+# RewriteRule    ^/$ /webplugin/cgi/dashboard/display.cgi  [PT,L]
+# RewriteRule    ^/dashboard/index.html$ /webplugin/cgi/dashboard/display.cgi  [PT,L]
+
