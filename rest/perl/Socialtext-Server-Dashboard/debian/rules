@@ -64,7 +64,7 @@ install-stamp:
 
 	# Install cgi script to re-create dashboard homepage
 	mkdir -p $(TMP)/var/www/socialtext/webplugin/dashboard/cgi
-	cp cgi/update.cgi $(TMP)/var/www/socialtext/webplugin/dashboard/cgi
+	cp cgi/* $(TMP)/var/www/socialtext/webplugin/dashboard/cgi
 
 binary-arch:
 # We have nothing to do by default.
