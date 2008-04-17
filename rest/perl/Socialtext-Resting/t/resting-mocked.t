@@ -182,7 +182,7 @@ Put_tag: {
     );
 }
 
-Collision_detection {
+Collision_detection: {
     my $rester = new_strutter();
     $Mock_resp->set_always('code', 200);
     $Mock_resp->set_always('content', 'bar');
@@ -223,6 +223,30 @@ Collision_detection {
             [ 'header' => 'Content-Type', 'text/x.socialtext-wiki' ],
             [ 'header' => 'If-Match', $Test::Mock::HTTP::Response::Headers{etag} ],
             [ 'content' => 'bar' ],
+        ],
+        resp_calls => [
+            [ 'code' ],
+            [ 'content' ],
+        ],
+    );
+    $Mock_resp->set_always('code', 200);
+}
+
+Get_revisions: {
+    my $rester = new_strutter();
+    $rester->accept('text/plain');
+    $Mock_resp->set_always('content', 'bar');
+    $rester->get_revisions('foo');
+    result_ok(
+        uri  => '/pages/foo/revisions',
+        ua_calls => [
+            [ 'simple_request' => $Mock_req ],
+        ],
+        req_calls => [
+            [ 'authorization_basic' => $rester_opts{username}, 
+              $rester_opts{password},
+            ],
+            [ 'header' => 'Accept', 'text/plain' ],
         ],
         resp_calls => [
             [ 'code' ],

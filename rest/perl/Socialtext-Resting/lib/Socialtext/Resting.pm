@@ -11,7 +11,7 @@ use JSON::XS;
 
 use Readonly;
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 =head1 NAME
 
@@ -51,6 +51,7 @@ Readonly my %ROUTES   => (
     pageattachment => $BASE_URI
         . '/:ws/pages/:pname/attachments/:attachment_id',
     pageattachments      => $BASE_URI . '/:ws/pages/:pname/attachments',
+    revisions            => $BASE_URI . '/:ws/pages/:pname/revisions',
     taggedpages          => $BASE_URI . '/:ws/tags/:tag/pages',
     workspace            => $BASE_URI . '/:ws',
     workspaces           => $BASE_URI,
@@ -552,11 +553,34 @@ sub get_pages {
     return $self->_get_things('pages');
 }
 
+=head2 get_page_attachments 
+
+    $Rester->get_page_attachments($page)
+
+List all the attachments on a page.
+
+=cut
+
 sub get_page_attachments {
     my $self = shift;
     my $pname = shift;
 
     return $self->_get_things( 'pageattachments', pname => $pname );
+}
+
+=head2 get_revisions
+
+    $Rester->get_revisions($page)
+
+List all the revisions of a page.
+
+=cut
+
+sub get_revisions {
+    my $self = shift;
+    my $pname = shift;
+
+    return $self->_get_things( 'revisions', pname => $pname );
 }
 
 sub _extend_uri {
@@ -998,6 +1022,10 @@ Chris Dent, C<< <chris.dent@socialtext.com> >>
 Kirsten Jones C<< <kirsten.jones@socialtext.com> >>
 Luke Closs C<< <luke.closs@socialtext.com> >>
 Shawn Devlin C<< <shawn.devlin@socialtext.com> >>
+
+=head2 OTHER CONTRIBUTORS
+
+Michele Berg - get_revisions()
 
 =cut
 
