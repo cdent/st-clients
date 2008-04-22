@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::More tests => 32;
 use lib 'lib';
-use JSON;
+use JSON::XS;
 
 BEGIN {
     use_ok 'Socialtext::EditPage';
@@ -198,7 +198,7 @@ Edit_last_page: {
             page_id => 'Older',
         },
     );
-    $r->set_taggedpages('coffee', objToJson(\@tagged_pages));
+    $r->set_taggedpages('coffee', encode_json(\@tagged_pages));
     $r->put_page('Newer', 'Newer');
     $r->put_page('Older', 'Older');
     my $ep = Socialtext::EditPage->new(rester => $r);

@@ -6,7 +6,7 @@ use Socialtext::Resting::Mock;
 use Socialtext::EditPage; # _read_file and _write_file
 use File::Path qw/mkpath rmtree/;
 use Fatal qw/mkpath rmtree/;
-use JSON;
+use JSON::XS;
 
 BEGIN {
     use_ok 'Socialtext::Resting::LocalCopy';
@@ -109,7 +109,7 @@ sub _saved_ok {
     my $json_file = "$wikitext_file.json";
     ok -e $json_file, "-e $json_file";
     my $json;
-    eval { $json = jsonToObj( Socialtext::EditPage::_read_file($json_file) ) };
+    eval { $json = decode_json( Socialtext::EditPage::_read_file($json_file) ) };
     is $@, '';
     $json->{wikitext} = Socialtext::EditPage::_read_file($wikitext_file);
     is_deeply $json, $data->{expected}, 'json object matches';

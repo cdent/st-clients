@@ -5,7 +5,7 @@ use Carp qw/croak/;
 use File::Temp;
 use Socialtext::Resting::DefaultRester;
 use Socialtext::Resting;
-use JSON;
+use JSON::XS;
 
 =head1 NAME
 
@@ -201,7 +201,7 @@ sub edit_last_page {
     my $tag = delete $opts{tag} || croak "tag is mandatory";
     my $rester = $self->{rester};
     $rester->accept('application/json');
-    my $pages = jsonToObj($rester->get_taggedpages($tag));
+    my $pages = decode_json($rester->get_taggedpages($tag));
     unless (@$pages) {
         die "No pages found tagged '$tag'\n";
     }

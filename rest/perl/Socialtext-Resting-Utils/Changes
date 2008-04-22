@@ -1,6 +1,7 @@
 Revision history for Socialtext-Utils
 
 0.18 - not yet released
+  - Upgraded to use JSON::XS
   - Added stu-tagged-pages utility
   - stu-most-wanted won't update the page if it didn't change.
   - Added order() to the mock rester
