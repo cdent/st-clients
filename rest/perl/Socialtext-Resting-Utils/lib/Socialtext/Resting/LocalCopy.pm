@@ -72,6 +72,7 @@ sub pull {
 
         my $wikitext_file = "$dir/$obj->{page_id}";
         open(my $fh, ">$wikitext_file") or die "Can't open $wikitext_file: $!";
+        binmode $fh, ':utf8';
         print $fh delete $obj->{wikitext};
         close $fh or die "Can't write $wikitext_file: $!";
 
