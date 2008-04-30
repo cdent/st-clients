@@ -50,7 +50,11 @@ Optional initialization hook for subclasses.  Called from new().
 
 =cut
 
-sub init {}
+sub init {
+    my $self = shift;
+
+    $self->setup_table_variables;
+}
 
 =head2 run_test_table( $table_ref )
 
@@ -103,11 +107,63 @@ sub end_hook {}
 
 =head2 handle_command( @row )
 
-Run the command.  Subclasses will implement this.
+Run the command.  Subclasses can override this.
 
 =cut
 
-sub handle_command { die 'Subclass must implement' }
+sub handle_command {
+    my $self = shift;
+    my $command = shift;
+    $command =~ s/-/_/g;
+    die "Bad command for the fixture: ($command)\n"
+        unless $self->can($command);
+
+    $self->$command( $self->_munge_options(@_) );
+}
+
+sub _munge_options {
+    my $self = shift;
+
+    my @opts;
+    for (@_) {
+        my $var = defined $_ ? $_ : '';
+        $var =~ s/%%(\w+)%%/exists $self->{$1} ? $self->{$1} : 'undef' /eg;
+        $var =~ s/\\n/\n/g;
+        push @opts, $var;
+    }
+    return @opts;
+}
+
+=head2 setup_table_variables
+
+Called by init() during object creation.  Use it to set variables 
+usable by commands in the wiki test tables.
+
+=cut
+
+sub setup_table_variables {
+    my $self = shift;
+    $self->{start_time} = time;
+}
+
+=head2 quote_as_regex( $option )
+
+Will convert an option to a regex.  If qr// is around the option text,
+the regex will not be escaped.  Be careful with your regexes.
+
+=cut
+
+sub quote_as_regex {
+    my $self = shift;
+    my $var = shift || '';
+
+    Encode::_utf8_on($var) unless Encode::is_utf8($var);
+    if ($var =~ qr{^qr/(.+?)/([imosx]*)$}) {
+        my $mods = $2 || 's';
+        return eval "qr/$1/$mods";
+    }
+    return qr/\Q$var\E/;
+}
 
 =head2 include( $page_name )
 

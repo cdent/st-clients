@@ -1,0 +1,5 @@
+How to release this code within Socialtext
+
+1) make sure it works
+2) build a package with brett
+3) install on boxes via apt-get

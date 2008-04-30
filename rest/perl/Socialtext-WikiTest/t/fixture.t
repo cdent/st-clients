@@ -25,7 +25,7 @@ EOT
     );
 
     eval { $plan->run_tests };
-    like $@, qr/Subclass must implement/;
+    like $@, qr/Bad command/;
 }
 
 Page_including: {

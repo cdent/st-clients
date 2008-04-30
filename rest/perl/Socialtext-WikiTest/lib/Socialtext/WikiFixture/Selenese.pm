@@ -73,8 +73,6 @@ sub init {
     }
     $self->{selenium_timeout} ||= 10000;
 
-    $self->setup_table_variables;
-
     $self->remove_selenium_frame if $self->{maximize};
 }
 
@@ -105,18 +103,6 @@ sub remove_selenium_frame {
         $sel->get_eval("$iframe.outerHeight = screen.availHeight");
         $sel->get_eval("$iframe.outerWidth = screen.availWidth");
     }
-}
-
-=head2 setup_table_variables
-
-Called by init() during object creation.  Use it to set variables 
-usable by commands in the wiki test tables.
-
-=cut
-
-sub setup_table_variables {
-    my $self = shift;
-    $self->{start_time} = time;
 }
 
 =head2 end_hook()
@@ -186,19 +172,6 @@ sub _munge_command {
     return $command;
 }
 
-sub _munge_options {
-    my $self = shift;
-
-    my @opts;
-    for (@_) {
-        my $var = defined $_ ? $_ : '';
-        $var =~ s/%%(\w+)%%/exists $self->{$1} ? $self->{$1} : 'undef' /eg;
-        $var =~ s/\\n/\n/g;
-        push @opts, $var;
-    }
-    return @opts;
-}
-
 sub _try_condition {
     my ($self, $condition, $arg, $timeout) = @_;
 
@@ -208,7 +181,6 @@ sub _try_condition {
     my $cmd = "try { $condition('$arg') ? true : false } catch(e) { false }";
     $self->{selenium}->wait_for_condition_ok($cmd, $timeout);
 }
-
 
 =head2 quote_as_regex( $option )
 

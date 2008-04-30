@@ -1,4 +1,6 @@
 0.07 - not yet released
+ - moved the start_time variable into the base class
+ - moved the handle_command up into the base class
  - escape backticks for option names, to allow crazy options
  - Fix a bug to allow UTF8 characters in regexps - Thanks Takatoshi Kitano
  - Add the 'include' command to the base fixture
