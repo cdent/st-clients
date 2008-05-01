@@ -74,6 +74,7 @@ sub init {
     $self->{selenium_timeout} ||= 10000;
 
     $self->remove_selenium_frame if $self->{maximize};
+    $self->setup_table_variables;
 }
 
 =head2
