@@ -11,7 +11,7 @@ use JSON::XS;
 
 use Readonly;
 
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 =head1 NAME
 
@@ -683,7 +683,7 @@ sub get_homepage {
     my $self = shift;
     my $uri = $self->_get_things( 'homepage' );
     my $workspace = $self->workspace;
-    $uri =~ s#.+/data/workspaces/\Q$workspace\E/pages/(.+)#$1# if $uri;
+    $uri =~ s#.*/data/workspaces/\Q$workspace\E/pages/(.+)#$1# if $uri;
     return $uri;
 }
 
