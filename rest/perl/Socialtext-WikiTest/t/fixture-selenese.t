@@ -23,6 +23,7 @@ sel_fixture_ok (
 | confirmation_like | pen? |
 | confirmation_like | qr/pen?/ |
 | clickAndWait | foo | |
+| selectAndWait | foo | bar |
 EOT
     tests => [
         [ open_ok => '/' ],
@@ -33,6 +34,8 @@ EOT
         [ confirmation_like => qr/\Qpen?\E/ ],
         [ confirmation_like => qr/pen?/ ],
         [ click_ok => 'foo' ],
+        [ wait_for_page_to_load_ok => 10000 ],
+        [ select_ok => ['foo', 'bar'] ],
         [ wait_for_page_to_load_ok => 10000 ],
     ],
 );

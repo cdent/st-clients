@@ -208,17 +208,28 @@ Clicks and waits.
 
 =cut
 
-sub click_and_wait {
-    my ($self, $opt1, $opt2) = @_;
+sub click_and_wait { shift->_and_wait('click_ok', @_) }
+
+=head2 select_and_wait()
+
+Selects and waits.
+
+=cut
+
+sub select_and_wait { shift->_and_wait('select_ok', @_) }
+
+sub _and_wait {
+    my ($self, $method, $opt1, $opt2) = @_;
     my $sel = $self->{selenium};
 
     my @args;
     push @args, $opt2 if $opt2;
-    $sel->click_ok($opt1, @args);
-    $sel->wait_for_page_to_load_ok($self->{selenium_timeout}, @args);
+    $sel->$method($opt1, @args);
+    $sel->wait_for_page_to_load_ok($self->{selenium_timeout});
 }
 
 =head2 text_present_like()
+
 
 Search entire body for given text
 
