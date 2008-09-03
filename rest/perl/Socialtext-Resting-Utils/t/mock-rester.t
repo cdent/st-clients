@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 16;
 
 BEGIN {
     use_ok 'Socialtext::Resting::Mock';
@@ -50,3 +50,9 @@ Misc: {
     }
 }
 
+Response: {
+    my $r = Socialtext::Resting::Mock->new;
+    my $resp = $r->response;
+    isa_ok $resp, 'HTTP::Response';
+    is $resp->code, 200;
+}

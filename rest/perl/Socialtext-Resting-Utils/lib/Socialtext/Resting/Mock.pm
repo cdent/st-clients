@@ -1,7 +1,7 @@
 package Socialtext::Resting::Mock;
 use strict;
 use warnings;
-use Test::Mock::LWP;
+use HTTP::Response;
 
 =head1 NAME
 
@@ -258,11 +258,10 @@ Retrieve a fake response object.
 
 =cut
 
-# hack so we don't need to create a new fake class
 sub response {
     my $self = shift;
     $self->{response} = shift if @_;
-    $self->{response} ||= HTTP::Response->new;
+    $self->{response} ||= HTTP::Response->new(200);
     return $self->{response};
 }
 
