@@ -177,7 +177,7 @@ sub _try_condition {
     my ($self, $condition, $arg, $timeout) = @_;
 
     $timeout = $self->{selenium_timeout} unless defined $timeout;
-    $arg =~ s/'/\\'/;
+    $arg =~ s/'/\\'/g;
 
     my $cmd = "try { $condition('$arg') ? true : false } catch(e) { false }";
     $self->{selenium}->wait_for_condition_ok($cmd, $timeout);
