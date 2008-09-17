@@ -69,6 +69,34 @@ Special_functions: {
         is $f->{foo}, 'bar';
     }
 
+    Using_a_variable: {
+        $diag = '';
+        $rester->put_page('Test Plan', <<'EOT');
+* Fixture: Socialtext::WikiFixture
+| set | mom | linda |
+| comment | Hi, %%mom%% |
+EOT
+        my $plan = Socialtext::WikiObject::TestPlan->new(
+            rester => $rester,
+            page => 'Test Plan',
+        );
+        $plan->run_tests;
+        like $diag, qr/comment: Hi, linda/;
+    }
+
+    Using_missing_variable: {
+        $rester->put_page('Test Plan', <<'EOT');
+* Fixture: Socialtext::WikiFixture
+| comment | Hi, %%mom%% |
+EOT
+        my $plan = Socialtext::WikiObject::TestPlan->new(
+            rester => $rester,
+            page => 'Test Plan',
+        );
+        eval { $plan->run_tests };
+        like $@, qr/Undef var - 'mom'/;
+    }
+
     Set_default: {
         $diag = '';
         $f->set_default('poop', 'bar');
