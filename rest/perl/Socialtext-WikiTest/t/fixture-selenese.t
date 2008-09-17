@@ -65,10 +65,10 @@ Pass_in_selenium: {
 
 Variable_interpolation: {
     my $f = Socialtext::WikiFixture::Selenese->new(selenium => 'fake');
-    my @opts = $f->_munge_options('%%foo%%');
-    is_deeply \@opts, ['undef'];
+    eval { $f->_munge_options('%%foo%%') };
+    like $@, qr/Undef var - 'foo'/;
     $f->{foo} = 'bar';
-    @opts = $f->_munge_options('%%foo%%');
+    my @opts = $f->_munge_options('%%foo%%');
     is_deeply \@opts, ['bar'];
 }
 
