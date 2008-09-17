@@ -255,10 +255,34 @@ Get_revisions: {
     );
 }
 
+Tag_a_person: {
+    my $rester = new_strutter();
+    $rester->put_persontag('test@example.com', 'foo');
+    result_ok(
+        uri  => 'people/test%40example.com/tags',
+        no_workspace => 1,
+        method => 'POST',
+        ua_calls => [
+            [ 'simple_request' => $Mock_req ],
+        ],
+        req_calls => [
+            [ 'authorization_basic' => $rester_opts{username}, 
+              $rester_opts{password},
+            ],
+            [ 'header' => 'Content-Type' => 'application/json' ],
+            [ 'content' => '{"tag_name":"foo"}' ],
+        ],
+        resp_calls => [
+            [ 'code' ],
+            [ 'content' ],
+        ],
+    );
+}
 
 exit; 
 
 sub result_ok {
+    local $Test::Builder::Level = $Test::Builder::Level + 1;
     my %args = (
         method => 'GET',
         ua_calls => [],
@@ -266,8 +290,10 @@ sub result_ok {
         resp_calls => [],
         @_,
     );
-    my $expected_uri = "$rester_opts{server}/data/workspaces/"
-                       . "$rester_opts{workspace}$args{uri}";
+    my $prefix = $args{no_workspace}
+        ? 'data/'
+        : "data/workspaces/$rester_opts{workspace}";
+    my $expected_uri = "$rester_opts{server}/$prefix$args{uri}";
     is_deeply $Mock_req->new_args, 
               ['HTTP::Request', $args{method}, $expected_uri],
               $expected_uri;
@@ -276,22 +302,22 @@ sub result_ok {
         my ($method, @args) = @$c;
         is_deeply [$Mock_ua->next_call], 
                   [ $method, [ $Mock_ua, @args ]], 
-                  "$method - @args";
+                  "$method ua - @args";
     }
-    is $Mock_ua->next_call, undef;
+    is $Mock_ua->next_call, undef, 'no more ua calls';
     for my $c (@{ $args{req_calls} }) {
         my ($method, @args) = @$c;
         is_deeply [$Mock_req->next_call], 
                   [ $method, [ $Mock_ua, @args ]], 
-                  "$method - @args";
+                  "$method req - @args";
     }
-    is $Mock_req->next_call, undef;
+    is $Mock_req->next_call, undef, 'no more req calls';
     for my $c (@{ $args{resp_calls} }) {
         my ($method, @args) = @$c;
         is_deeply [$Mock_resp->next_call], 
                   [ $method, [ $Mock_ua, @args ]], 
-                  "$method - @args";
+                  "$method resp - @args";
     }
-    is $Mock_resp->next_call, undef;
+    is $Mock_resp->next_call, undef, 'no more resp calls';
 }
 

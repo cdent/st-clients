@@ -1,6 +1,7 @@
 0.27 - not yet released
  - Fixed problem due to a change to the REST server response for some
    redirects.
+ - added put_persontag()
 
 0.26 - Thu Apr 17 11:15:07 PDT 2008
  - Add get_workspace()

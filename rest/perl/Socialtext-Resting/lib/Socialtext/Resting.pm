@@ -38,32 +38,34 @@ to the Socialtext REST APIs for use in perl programs.
 
 =cut
 
-Readonly my $BASE_URI => '/data/workspaces';
+Readonly my $BASE_URI => '/data';
+Readonly my $BASE_WS_URI => $BASE_URI . '/workspaces';
 Readonly my %ROUTES   => (
-    backlinks      => $BASE_URI . '/:ws/pages/:pname/backlinks',
-    breadcrumbs    => $BASE_URI . '/:ws/breadcrumbs',
-    frontlinks     => $BASE_URI . '/:ws/pages/:pname/frontlinks',
-    page           => $BASE_URI . '/:ws/pages/:pname',
-    pages          => $BASE_URI . '/:ws/pages',
-    pagetag        => $BASE_URI . '/:ws/pages/:pname/tags/:tag',
-    pagetags       => $BASE_URI . '/:ws/pages/:pname/tags',
-    pagecomments   => $BASE_URI . '/:ws/pages/:pname/comments',
-    pageattachment => $BASE_URI
+    backlinks      => $BASE_WS_URI . '/:ws/pages/:pname/backlinks',
+    breadcrumbs    => $BASE_WS_URI . '/:ws/breadcrumbs',
+    frontlinks     => $BASE_WS_URI . '/:ws/pages/:pname/frontlinks',
+    page           => $BASE_WS_URI . '/:ws/pages/:pname',
+    pages          => $BASE_WS_URI . '/:ws/pages',
+    pagetag        => $BASE_WS_URI . '/:ws/pages/:pname/tags/:tag',
+    pagetags       => $BASE_WS_URI . '/:ws/pages/:pname/tags',
+    pagecomments   => $BASE_WS_URI . '/:ws/pages/:pname/comments',
+    pageattachment => $BASE_WS_URI
         . '/:ws/pages/:pname/attachments/:attachment_id',
-    pageattachments      => $BASE_URI . '/:ws/pages/:pname/attachments',
-    revisions            => $BASE_URI . '/:ws/pages/:pname/revisions',
-    taggedpages          => $BASE_URI . '/:ws/tags/:tag/pages',
-    workspace            => $BASE_URI . '/:ws',
-    workspaces           => $BASE_URI,
-    workspacetag         => $BASE_URI . '/:ws/tags/:tag',
-    workspacetags        => $BASE_URI . '/:ws/tags',
-    workspaceattachment  => $BASE_URI . '/:ws/attachments/:attachment_id',
-    workspaceattachments => $BASE_URI . '/:ws/attachments',
-    workspaceuser        => $BASE_URI . '/:ws/users/:user_id',
-    workspaceusers       => $BASE_URI . '/:ws/users',
+    pageattachments      => $BASE_WS_URI . '/:ws/pages/:pname/attachments',
+    revisions            => $BASE_WS_URI . '/:ws/pages/:pname/revisions',
+    taggedpages          => $BASE_WS_URI . '/:ws/tags/:tag/pages',
+    workspace            => $BASE_WS_URI . '/:ws',
+    workspaces           => $BASE_WS_URI,
+    workspacetag         => $BASE_WS_URI . '/:ws/tags/:tag',
+    workspacetags        => $BASE_WS_URI . '/:ws/tags',
+    workspaceattachment  => $BASE_WS_URI . '/:ws/attachments/:attachment_id',
+    workspaceattachments => $BASE_WS_URI . '/:ws/attachments',
+    workspaceuser        => $BASE_WS_URI . '/:ws/users/:user_id',
+    workspaceusers       => $BASE_WS_URI . '/:ws/users',
     user                 => '/data/users/:user_id',
     users                => '/data/users',
-    homepage             => $BASE_URI . '/:ws/homepage',
+    homepage             => $BASE_WS_URI . '/:ws/homepage',
+    person_tag           => $BASE_URI . '/people/:pname/tags',
 );
 
 field 'workspace';
@@ -975,6 +977,35 @@ sub get_users_for_workspace {
     } else {
         die "$status: $content\n";
     }
+}
+
+=head2 put_persontag
+
+    $Rester->put_persontag( $person, $tag )
+
+Tag a person.
+
+=cut
+
+sub put_persontag {
+    my $self = shift;
+    my $person = shift;
+    my $tag = shift;
+
+    my $uri = $self->_make_uri(
+        'person_tag',
+        { pname => $person }
+    );
+    
+    my ( $status, $content ) = $self->_request(
+        uri     => $uri,
+        method  => 'POST',
+        type    => 'application/json',
+        content => encode_json({ tag_name => $tag }),
+    );
+
+    return if $status == 200;
+    die "$status: $content\n";
 }
 
 sub _request {
