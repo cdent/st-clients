@@ -257,6 +257,7 @@ Get_revisions: {
 
 Tag_a_person: {
     my $rester = new_strutter();
+    $Mock_resp->set_always('code', 204);
     $rester->put_persontag('test@example.com', 'foo');
     result_ok(
         uri  => 'people/test%40example.com/tags',
