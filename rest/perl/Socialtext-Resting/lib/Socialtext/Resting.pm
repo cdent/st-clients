@@ -1004,7 +1004,8 @@ sub put_persontag {
         content => encode_json({ tag_name => $tag }),
     );
 
-    return if $status == 200;
+    return if $status == 204;
+    return if $status == 409;
     die "$status: $content\n";
 }
 
