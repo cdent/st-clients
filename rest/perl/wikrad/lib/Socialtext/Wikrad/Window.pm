@@ -228,7 +228,9 @@ sub recently_changed {
     my $r = $App->{rester};
     $App->{cui}->status('Fetching recent changes ...');
     $r->accept('text/plain');
+    $r->count(250);
     my @recent = $r->get_taggedpages('Recent changes');
+    $r->count(0);
     $App->{cui}->nostatus;
     $App->{win}->listbox(
         -title => 'Choose a page link',
