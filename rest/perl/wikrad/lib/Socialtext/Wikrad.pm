@@ -136,6 +136,7 @@ sub load_page {
     $self->{cui}->status("Loading page $current_page ...");
     $self->{rester}->accept('text/x.socialtext-wiki');
     my $page_text = $self->{rester}->get_page($current_page);
+    $page_text = $self->_render_wikitext_wafls($page_text);
     $self->{cui}->nostatus;
     $self->{win}{viewer}->text($page_text);
     $self->{win}{viewer}->cursor_to_home;
@@ -147,5 +148,24 @@ sub _setup_ui {
     $self->{win} = $self->{cui}->add('main', 'Socialtext::Wikrad::Window');
     $self->{cui}->leave_curses;
 }
+
+sub _render_wikitext_wafls {
+    my $self = shift;
+    my $text = shift;
+
+    if ($text =~ m/\Q{st_iterationstories: <\E([^>]+)>}/) {
+        my $tag = $1;
+        my $replace_text = "Stories for tag: '$tag':\n";
+        $self->{rester}->accept('text/plain');
+        my @pages = $self->{rester}->get_taggedpages($tag);
+    
+        $replace_text .= join("\n", map {"* [$_]"} @pages);
+        $replace_text .= "\n";
+        $text =~ s/\Q{st_iterationstories: <\E[^>]+>}/$replace_text/;
+    }
+
+    return $text;
+}
+
 
 1;
