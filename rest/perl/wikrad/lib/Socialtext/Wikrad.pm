@@ -153,7 +153,7 @@ sub _render_wikitext_wafls {
     my $self = shift;
     my $text = shift;
 
-    if ($text =~ m/\Q{st_iterationstories: <\E([^>]+)>}/) {
+    if ($text =~ m/{st_(?:iteration|project)stories: <([^>]+)>}/) {
         my $tag = $1;
         my $replace_text = "Stories for tag: '$tag':\n";
         $self->{rester}->accept('text/plain');
@@ -161,7 +161,7 @@ sub _render_wikitext_wafls {
     
         $replace_text .= join("\n", map {"* [$_]"} @pages);
         $replace_text .= "\n";
-        $text =~ s/\Q{st_iterationstories: <\E[^>]+>}/$replace_text/;
+        $text =~ s/{st_(?:iteration|project)stories: <[^>]+>}/$replace_text/;
     }
 
     return $text;
