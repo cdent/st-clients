@@ -257,7 +257,6 @@ Get_revisions: {
 
 Tag_a_person: {
     my $rester = new_strutter();
-    $Mock_resp->set_always('code', 204);
     $rester->put_persontag('test@example.com', 'foo');
     result_ok(
         uri  => 'people/test%40example.com/tags',
@@ -272,6 +271,29 @@ Tag_a_person: {
             ],
             [ 'header' => 'Content-Type' => 'application/json' ],
             [ 'content' => '{"tag_name":"foo"}' ],
+        ],
+        resp_calls => [
+            [ 'code' ],
+            [ 'content' ],
+        ],
+    );
+}
+
+Get_signals: {
+    my $rester = new_strutter();
+    $Mock_resp->set_always('content', "This\nThat");
+    $rester->get_signals();
+    result_ok(
+        no_workspace => 1,
+        uri  => 'signals',
+        ua_calls => [
+            [ 'simple_request' => $Mock_req ],
+        ],
+        req_calls => [
+            [ 'authorization_basic' => $rester_opts{username}, 
+              $rester_opts{password},
+            ],
+            [ 'header' => 'Accept', 'text/plain' ],
         ],
         resp_calls => [
             [ 'code' ],
@@ -321,4 +343,3 @@ sub result_ok {
     }
     is $Mock_resp->next_call, undef, 'no more resp calls';
 }
-

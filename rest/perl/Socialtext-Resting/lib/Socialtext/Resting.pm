@@ -66,6 +66,7 @@ Readonly my %ROUTES   => (
     users                => '/data/users',
     homepage             => $BASE_WS_URI . '/:ws/homepage',
     person_tag           => $BASE_URI . '/people/:pname/tags',
+    signals              => $BASE_URI . '/signals',
 );
 
 field 'workspace';
@@ -1004,9 +1005,22 @@ sub put_persontag {
         content => encode_json({ tag_name => $tag }),
     );
 
-    return if $status == 204;
-    return if $status == 409;
+    return if $status == 200;
     die "$status: $content\n";
+}
+
+=head2 get_signals
+
+    $Rester->get_signals();
+
+Retrieves the list of signals.
+
+=cut
+
+sub get_signals {
+    my $self = shift;
+
+    return $self->_get_things('signals');
 }
 
 sub _request {
