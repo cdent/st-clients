@@ -302,6 +302,33 @@ Get_signals: {
     );
 }
 
+Post_signal: {
+    my $rester = new_strutter();
+    $Mock_resp->set_always('code', 204);
+    local $Test::Mock::HTTP::Response::Headers{location} = 'waa';
+    $rester->post_signal('O HAI');
+    result_ok(
+        no_workspace => 1,
+        uri  => 'signals',
+        method => 'POST',
+        ua_calls => [
+            [ 'simple_request' => $Mock_req ],
+        ],
+        req_calls => [
+            [ 'authorization_basic' => $rester_opts{username},
+              $rester_opts{password},
+            ],
+            [ 'header' => 'Content-Type', 'application/json' ],
+            [ 'content' => '{"signal":"O HAI"}' ],
+        ],
+        resp_calls => [
+            [ 'code' ],
+            [ 'content' ],
+            [ 'header' => 'location' ],
+        ],
+    );
+}
+
 exit; 
 
 sub result_ok {

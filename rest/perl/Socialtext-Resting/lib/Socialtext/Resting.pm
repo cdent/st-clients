@@ -1023,6 +1023,37 @@ sub get_signals {
     return $self->_get_things('signals');
 }
 
+=head2 post_signal
+
+    $Rester->post_signal('O HAI');
+
+Posts a signal.
+
+=cut
+
+sub post_signal {
+    my $self = shift;
+    my $text = shift;
+
+    my $uri = $self->_make_uri('signals');
+    my ( $status, $content, $response ) = $self->_request(
+        uri     => $uri,
+        method  => 'POST',
+        type    => "application/json",
+        content => encode_json( { signal => $text } ),
+    );
+
+    my $location = $response->header('location');
+    $location = URI::Escape::uri_unescape($1);
+
+    if ( $status == 204 || $status == 201 ) {
+        return $location;
+    }
+    else {
+        die "$status: $content\n";
+    }
+}
+
 sub _request {
     my $self = shift;
     my %p    = @_;
