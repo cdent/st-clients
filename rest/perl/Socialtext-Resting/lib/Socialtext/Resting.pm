@@ -65,6 +65,7 @@ Readonly my %ROUTES   => (
     user                 => '/data/users/:user_id',
     users                => '/data/users',
     homepage             => $BASE_WS_URI . '/:ws/homepage',
+    person               => $BASE_URI . '/people/:pname',
     person_tag           => $BASE_URI . '/people/:pname/tags',
     signals              => $BASE_URI . '/signals',
 );
@@ -1009,6 +1010,23 @@ sub put_persontag {
     die "$status: $content\n";
 }
 
+
+=head2 get_person
+
+    $Rester->get_person();
+
+Retrieves a person.
+
+=cut
+
+sub get_person {
+    my $self = shift;
+    my $identifier = shift || $self->username;
+
+    return $self->_get_things('person', pname => $identifier );
+}
+
+
 =head2 get_signals
 
     $Rester->get_signals();
@@ -1019,8 +1037,9 @@ Retrieves the list of signals.
 
 sub get_signals {
     my $self = shift;
+    my %opts = @_;
 
-    return $self->_get_things('signals');
+    return $self->_get_things('signals', _query => \%opts);
 }
 
 =head2 post_signal
