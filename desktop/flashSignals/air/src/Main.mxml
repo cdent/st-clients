@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication title="Socialtext Signals" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" z="0" creationComplete="onAppInit()">
+	<mx:Script>
+		<![CDATA[
+import com.serialization.json.JSON;
+
+import flash.net.*;
+
+import mx.collections.ArrayCollection;
+
+import org.audreyt.Utils.DateUtils;
+
+[Bindable]
+public var Signals:ArrayCollection = new ArrayCollection([]);
+
+public var myName:String = "";
+public var myPassword:String = "";
+public var myServer:String = "";
+public var Timestamp:String;
+public var Clock:Timer;
+
+private function onAppInit():void {
+	HTML.addEventListener(Event.HTML_DOM_INITIALIZE, domInitialized);
+	HTML.location = "HTML.html?" + Number(new Date()).toString();
+}
+
+private function domInitialized(event:Event):void {
+	HTML.htmlLoader.window.gotSignals = gotSignals;
+	HTML.htmlLoader.window.refreshSignals = refreshSignals;
+	HTML.htmlLoader.window.loginSuccess = loginSuccess;
+	HTML.htmlLoader.window.loginFailure = loginFailure;
+	HTML.htmlLoader.window.startTimer = startTimer;
+	LoginPanel.visible = true;
+}
+
+private function loginFailure ():void {
+	LoginPanel.enabled = true;	
+}
+
+private function loginSuccess (signals:String):void {
+	LoginPanel.visible = false;
+  	Entry.visible = true;
+	View.visible = true;
+	Input.setFocus();		
+
+	Clock = new Timer(10000, 1);
+	Clock.addEventListener(TimerEvent.TIMER, onTick);
+
+	gotSignals(signals);
+}
+
+private function gotSignals (signals:String):void {
+	try {
+		var ar:Array = JSON.deserialize(signals) as Array;
+
+		var myTimestamp:String = Timestamp;
+		for each(var s:Object in ar.reverse()) {
+			Signals.addItemAt({
+				user: s.best_full_name,
+				time: DateUtils.getAgoString(s.at).toString(), // 'one minute ago', // myServer + '/data/people/' + s.user_id + '/photo', //s.at,
+				text: s.body.replace(/(@\S+)/, '<B>$1</B>')
+							.replace(/(http:\S+)/, '</FONT><A target="_blank" href="$1">$1</A><FONT color="#000000">'),
+				img: myServer + '/data/people/' + s.user_id + '/photo',
+				profile: myServer + '/?profile/' + s.user_id
+			}, 0);
+			myTimestamp = s.at;
+		}
+		if (Timestamp != myTimestamp) {
+			Timestamp = myTimestamp;
+			doScroll();
+		}
+	} catch (e:*) {}
+
+	startTimer();
+}
+
+private function startTimer():void {
+	Clock.reset();
+	Clock.start();
+}
+
+private function securityError(evt:Event):void {
+	trace(evt.toString());
+}
+
+private function doScroll():void {
+ 	List.verticalScrollPosition=0;
+}
+private function login():void {	
+	myName = InputName.text;
+	myPassword = InputPassword.text;
+	myServer = InputServer.text.replace(/\/+$/, '');
+  	LoginPanel.enabled = false;
+  	
+  	HTML.htmlLoader.window.doLogin(myServer, myName, myPassword);
+}
+
+private function onTick (evt:*):void {
+	refreshSignals();
+}
+
+private function refreshSignals():void {
+	Clock.reset();
+	HTML.htmlLoader.window.getSignals(myServer, myName, myPassword, Timestamp);
+}
+
+private function postSignal():void {
+	doScroll();
+	if (Input.text.length == 0) { return; }
+	HTML.htmlLoader.window.postSignal(myServer, myName, myPassword, Input.text);
+	Input.text = "";
+	Len.text = "140";
+	doScroll();
+}
+
+private function keyPressed():void {
+	Len.text = (140 - Input.text.length).toString();
+}
+		]]>
+	</mx:Script>
+	<mx:Style>
+		.Entry { borderStyle: applicationControlBar; fillColors: #55759E, #54627D; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+		.View { borderStyle: applicationControlBar; fillColors: #54627D, #55759E; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+		.List { borderStyle: applicationControlBar; fillColors: #ffffff, #f0f8ff; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+	</mx:Style>
+	<mx:Parallel id="showEffectsLoginPanel" effectEnd="InputName.setFocus()">
+		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="500" />
+	</mx:Parallel>
+	<mx:Parallel id="showEffects" effectEnd="Input.setFocus()">
+		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="1500" />
+		<mx:Blur duration="1500" blurXFrom="10.0" blurXTo="0.0" blurYFrom="10.0" blurYTo="0.0"/>
+	</mx:Parallel>
+	<mx:Parallel id="hideEffects" effectEnd="Input.setFocus()">
+		<mx:Fade alphaFrom="1" alphaTo="0" duration="1500"/>
+	  	<mx:Zoom zoomWidthFrom="1.0" zoomWidthTo="0.01" zoomHeightFrom="1.0" zoomHeightTo="0.01" duration="1500" />
+		<mx:Blur id="blurImage" duration="1000" blurXFrom="0.0" blurXTo="10.0" blurYFrom="0.0" blurYTo="10.0"/>
+	</mx:Parallel>
+  	<mx:Canvas showEffect="showEffects" id="Entry" styleName="Entry" cornerRadius="10"  backgroundAlpha="1.0" left="0" right="0" dropShadowColor="#777777" dropShadowEnabled="true" height="45" visible="false" top="0">
+		<mx:TextInput tabIndex="4" focusEnabled="true"  enter="postSignal()" id="Input" right="40" bottom="10" top="10" left="10" cornerRadius="0" fontFamily="Arial" fontSize="12" borderStyle="inset" fontAntiAliasType="normal"  maxChars="140" change="keyPressed();" />
+		<mx:Button label="⏎" width="24" fontFamily="Arial" fontSize="10" color="black" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" bottom="8" right="10" height="16" click="postSignal();"/>
+		<mx:Label text="140" width="24" right="10" top="5" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" fontFamily="Arial" textAlign="center" color="#D0D0D0" id="Len"/>
+	</mx:Canvas>
+	<mx:Canvas showEffect="showEffects" id="View" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10" visible="false">
+		<mx:List styleName="List" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="List" dataProvider="{Signals}" itemRenderer="Signal" focusEnabled="true" cornerRadius="5"></mx:List>
+	</mx:Canvas>
+	<mx:Panel showEffect="showEffectsLoginPanel" hideEffect="hideEffects" width="360" height="150" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Connect to Signals" fontSize="12" enabled="true" id="LoginPanel" defaultButton="{Login}" visible="false">
+		<mx:Label y="10" text="User ID" fontSize="12" textAlign="right" width="72" left="5"/>
+		<mx:Label y="39" text="Password" fontSize="12" textAlign="right" width="72" left="5"/>
+		<mx:Label y="68" text="Server" fontSize="12" textAlign="right" width="72" left="5"/>
+		<mx:TextInput tabIndex="1" y="10" width="248" text="" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
+		<mx:TextInput tabIndex="2" y="39" width="183" fontSize="11" right="75" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true" text=""/>
+		<mx:Button tabIndex="3" label="Login" fontSize="11" right="10" y="38" id="Login" click="login()"/>
+		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net/" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
+	</mx:Panel>
+	<mx:HTML id="HTML" visible="false" left="190" top="19" right="131" height="80"/>
+</mx:WindowedApplication>
