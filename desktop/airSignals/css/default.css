@@ -1,0 +1,117 @@
+
+body {
+    font-family:'Corbel','Calibri','Lucida Sans','Geneva','Helvetica Neue','Helvetica','Tahoma','Verdana',sans-serif;
+    font-size:12px;
+    line-height:14px;
+    color:#333;
+    background: transparent url(../images/bg_header.png) repeat-x scroll center top;
+}
+
+#signals {
+    padding-top:14px;
+    margin-bottom:22px;
+}
+
+#signalForm {
+    margin:0;
+    padding-top:10px;
+    padding-bottom:12px;
+    text-align:center;
+    /*background:#4ea1fd;*/
+}
+
+#signalLogo {
+    margin:0;
+    text-align:center;
+}
+
+#signalBody {
+    width:75%;
+    border:2px #444 solid;
+    padding:3px 5px;
+    font-size:110%;
+    font-family:monospace;
+    color:#666;
+}
+#signalSubmit {
+    border:2px #444 solid;
+    padding:3px 5px;
+    color:#4f6888;
+    background:#fff;
+}
+#signalSubmit:hover {
+    background:#ffc;
+}
+
+#signalBody.active {
+    font-family:arial;
+    color:#000;
+}
+
+#signalMenu {
+    height:18px;
+    width:100%;
+    background:#4f6888;
+    color:#fff;
+    text-align:center;
+    margin:0;
+    padding:7px 0 4px 0;
+    position:fixed;
+    bottom:0;
+    border-top:1px #333 solid;
+}
+
+#signals ul {
+    list-style-type:none;
+    margin:0 0 20px 0;
+    border-bottom:1px #444 solid;
+    padding:0;
+}
+
+#signals ul li {
+    margin:0.5em 0;
+    padding:0 1em 0.5em 10px;
+    border-bottom:1px #ccc solid;
+    clear:left;
+}
+
+a {
+    color:#0577C7;
+    text-decoration:underline;
+}
+
+a:hover {
+    color:#f63;
+}
+
+a.body {
+    text-decoration:none;
+}
+a.body:hover {
+    text-decoration:underline;
+}
+
+.user {
+    display:inline;
+}
+
+.madlib-ago {
+    font-style:italic;
+    color:#999;
+    display:inline;
+    margin-left:0.5em;
+}
+
+.signal {
+    margin-left:36px;
+}
+
+.hidden {
+    display:none;
+}
+
+.avatar {
+    border:1px #666 solid;
+    float:left;
+    margin-right:0.5em;
+}

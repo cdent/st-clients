@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <title>Socialtext Signals</title>
+    <script type="text/javascript" src="js/AIRAliases.js">
+    </script>
+    <script type="text/javascript" src="js/AIRIntrospector.js">
+    </script>
+    <script type="text/javascript" src="js/Base64.js">
+    </script>
+    <script type="text/javascript" src="js/jquery.js">
+    </script>
+    <script type="text/javascript" src="js/jquery-ui.js">
+    </script>
+    <script type="text/javascript" src="js/madlibs.js">
+    </script>
+    <script type="text/javascript" charset="utf-8" src="js/behavior.js">
+    </script>
+    <link rel="stylesheet" href="css/default.css" type="text/css" media="screen" title="activity style" charset="utf-8" />
+</head>
+<body id="st-signals" onload="signals.setup(); return false;">
+    <div id="signals">
+        <div id="signalLogo">
+            <img src="images/logo.png" />
+        </div>
+        <form name="signalForm" id="signalForm">
+            <input name="body" type="text" value="What are you working on?" id="signalBody" />
+            <input type="submit" name="submit" value="POST" id="signalSubmit" />
+        </form>
+        <ul>
+        </ul>
+        <div id="signalMenu">
+            <em>menu items will go here...</em>
+        </div>
+    </div>
+    <div id="config" style="display:none">
+    </div>
+    <div id="login" style="display:none">
+        <form name="loginForm" id="loginForm" onSubmit="return false;">
+            <p>
+                <label for="username">username:</label>
+                <input id="usernameinput" type="text" name="username" />
+            </p>
+            <p>
+                <label for="password">password:</label>
+                <input id="passwordinput" type="password" name="password" />
+            </p>
+            <p>
+                <a href="#" id="loginSave">Save</a> 
+            </p>
+        </form>
+    </div>
+</body>
