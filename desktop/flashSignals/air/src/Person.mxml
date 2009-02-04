@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox focusEnabled="false" xmlns:mx="http://www.adobe.com/2006/mxml"
+	scroll="false" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="0" left="0"  borderColor="#080808" borderSides="bottom" borderStyle="solid" borderThickness="0.5">
+	<mx:Style>
+		.ImageContainer { borderStyle: applicationControlBar; fillColors: #FFFFFF, #F0F0F0; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+	</mx:Style>
+	<mx:Script>
+		<![CDATA[
+import managers.ImageCacheManager;
+[Bindable]
+private var imageCache:ImageCacheManager = ImageCacheManager.getInstance();
+
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="ImageContainer" width="31" height="31" cornerRadius="3" backgroundAlpha="0.5" top="0" left="0" >
+		<mx:Image  width="27" height="27" source="{ImageCacheManager.getInstance().getImageByURL(data.img)}" scaleContent="true" autoLoad="true" horizontalCenter="0" verticalCenter="0" cacheAsBitmap="true" cachePolicy="on"/>
+	</mx:Canvas>
+    <mx:Text height="31" left="35" text="{data.name}"  color="#0B333C" fontFamily="Verdana" fontSize="13" paddingTop="6"/>
+</mx:HBox>
