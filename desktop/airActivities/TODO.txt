@@ -1,0 +1,6 @@
+* Make sure timestamps ("a few seconds ago", "about an hour ago", etc) are
+  updated periodically (probably when the getActivityStream is called. This
+  probably means hacking up the madlibs a bit to allow inserting the raw
+  timestamps in the madlib output and using that to recompute the "ago" text.
+* Insert new feeds
+* Better error handling

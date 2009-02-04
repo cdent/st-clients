@@ -1,0 +1,121 @@
+body {
+    margin: 0;
+    padding: 0;
+    background: #333;
+    color: #ccc;
+    font-size: 11px;
+    line-height: 15px;
+}
+a {
+    color: #bbf;
+    text-decoration: none;
+}
+a.object {
+    font-weight: bold;
+}
+a:hover {
+    text-decoration: underline;
+    color: #faa;
+}
+ul#activityStream {
+    margin: 0 0 4em 0;
+    padding: 0;
+    list-style-type: none;
+}
+li.activity {
+    margin: 0;
+    padding: 11px;
+    border-bottom: 1px #555 solid;
+    clear: left;
+    display: none;
+}
+li.activity:hover {
+    background:#444;
+}
+li.highlight {
+    background-color: #ffc;
+    color: #000;
+}
+li.highlight a {
+    color: #333;
+}
+li.highlight a:hover {
+    color: ;#f00;
+}
+li.fresh {
+    background-color: #773;
+}
+li.ripe {
+    background-color: #553;
+}
+li.old {
+    background-color: #333;
+}
+li.rotten {
+    background-color: #113;
+}
+li.activity p {
+    margin: 0;
+    padding: 0;
+}
+#loginForm {
+    padding: 11px;
+}
+
+#login {
+    display: block;
+}
+
+#content {
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+.dialog {
+    background-color: black;
+}
+
+#utilityBar {
+    margin: 0;
+    padding: 11px;
+    list-style-type: none;
+    background: #554;
+    border-top: 1px #999 solid;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+#utilityBar li {
+    display: inline;
+    margin: 11px
+}
+img.avatar {
+    float: left;
+    border: 1px #000 solid;
+    margin-right: 11px;
+}
+img.avatar:hover {
+    cursor:pointer;
+}
+img.action {
+    float:right;
+    margin:-5px -5px 2px 2px;
+}
+div.info {
+    clear:left;
+    font-size:90%;
+    margin-top:3px;
+    padding:2px 5px;
+    border-top:1px #111 solid;
+    border-left:1px #111 solid;
+    border-bottom:1px #444 solid;
+    border-right:1px #444 solid;
+    background:#2c2c2c;
+}
+div.info:hover {
+    background:#333;
+}

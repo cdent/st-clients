@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <title>Socialtext Activity</title>
+    <script type="text/javascript" src="js/AIRAliases.js">
+    </script>
+    <script type="text/javascript" src="js/AIRIntrospector.js">
+    </script>
+    <script type="text/javascript" src="js/Base64.js">
+    </script>
+    <script type="text/javascript" src="js/jquery.js">
+    </script>
+    <script type="text/javascript" src="js/jquery-ui.js">
+    </script>
+    <script type="text/javascript" src="js/madlibs.js">
+    </script>
+    <script type="text/javascript" charset="utf-8" src="js/behavior.js">
+    </script>
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" title="activity style" charset="utf-8" />
+</head>
+<body onload="wiki.setup(); return false;">
+    <div id="content">
+    <ul id="utilityBar">
+        <li><a href="#" id="clearActivity">Clear</a></li>
+        <li><a href="#" id="updateActivity">Update</a></li>
+        <li><a href="#" id="logout">Log Out</a></li>
+    </ul>
+    <ul id="activityStream">
+    </ul>
+</div>
+    <div id="login">
+        <form name="loginForm" id="loginForm" onSubmit="return false;">
+            <p>
+                <label for="username">username:</label>
+                <input id="usernameinput" type="text" name="username" />
+            </p>
+            <p>
+                <label for="password">password:</label>
+                <input id="passwordinput" type="password" name="password" />
+                </p>
+                <a href="#" id="loginSave">Save</a> 
+        </form>
+    </div>
+</body>
+</html>
