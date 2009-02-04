@@ -11,8 +11,8 @@ var signals = {
     'timer': new air.Timer(20000, 1),
     'tstimer': new air.Timer(5000, 0),
     're': {
-        'link': new RegExp('(http.*)'),
-        'at': new RegExp('(@\S+)')
+        'link': new RegExp('(http.*?) '),
+        'at': new RegExp('(@\S+) ')
     }
 }
 
@@ -27,8 +27,13 @@ signals.setup = function() {
     jQuery('#signalBody').focus(signals.activateSignalBody);
     jQuery('#signalBody').blur(signals.deactivateSignalBody);
     jQuery('#signalForm').submit(signals.handleSignal);
+    jQuery('#config-link').click(signals.showConfig);
+    jQuery('#refreshSignals').click(signals.handleRefreshSignals);
+    jQuery('#signalConfig').submit(signals.saveConfig);
+    jQuery('#clearSignals').click(signals.handleClearSignals);
+    jQuery('#filterSignals').click(signals.handleFilterSignals);
     signals.login();
-    //air.Introspector.Console.log('test');
+    air.Introspector.Console.log('test');
 }
 
 signals.updateSignalTimes = function() {
@@ -37,6 +42,36 @@ signals.updateSignalTimes = function() {
         then.setISO8601(jQuery(el).attr('id'));
         jQuery(el).text(getAgoString(then));
     });
+}
+
+signals.showConfig = function() {
+    jQuery('#login').hide();
+    jQuery('#signals').hide();
+    jQuery('#config').show();
+    return false;
+}
+
+signals.saveConfig = function() {
+    // do something more interesting here
+    jQuery('#login').hide();
+    jQuery('#config').hide();
+    jQuery('#signals').show();
+}
+
+signals.handleRefreshSignals = function() {
+    signals.lastsignal_timestamp = '0';
+    signals.getSignalsStream();
+    return false;
+}
+
+signals.handleClearSignals = function() {
+    jQuery("#signalItems").html("");
+    return false;
+}
+
+signals.handleFilterSignals = function() {
+    alert('not working yet');
+    return false;
 }
 
 signals.login = function() {
@@ -56,6 +91,7 @@ signals.loginOK = function(evt) {
     signals.credentials.password = jQuery('#passwordinput')[0].value;
     signals.saveCredentials();
     jQuery('#login').hide();
+    jQuery('#config').hide();
     jQuery('#signals').show();
     signals.getSignalsStream();
     return false;
@@ -141,7 +177,7 @@ signals.displaySignal = function(index, signalEvent) {
                 .text(getAgoString(then)))
             .append('<br />')
             .append(jQuery('<div>').attr('class', 'signal').html(body))
-        jQuery('#signals ul').prepend(signalItem);
+        jQuery('#signalItems').prepend(signalItem);
         signalItem.slideDown(2500, function() {
             // pass
         });
@@ -178,22 +214,18 @@ signals.handleSignal = function(evt) {
 }
 
 signals.postSignalBody = function(body) {
+    var auth = new air.URLRequestHeader("Authorization",
+                                        'Basic ' + Base64.encode(signals.credentials.username + ':' + signals.credentials.password))
     var loader = new air.URLLoader();
     loader.addEventListener(air.Event.COMPLETE, signals.successfulSignal);
     var request = new air.URLRequest(signals.baseURI + signals.signalsURI);
     request.method = "POST";
     request.cacheResponse = false;
     request.useCache = false;
-    //request.data = "{'signal':'"+body+"'}";
-    request.data = '{"signal":"'+body+'"}';
+    request.data = '{"signal":"'+body+'"}'; // notice the double-quotes around the key/value pair
     request.contentType = "application/json";
     request.requestHeaders = new Array();
-    request.requestHeaders.push(new air.URLRequestHeader("Authorization",
-                                                         'Basic ' + Base64.encode(signals.credentials.username + ':' + signals.credentials.password)));
-//    request.requestHeaders.push(new air.URLRequestHeader("Content-type", 
-//                                                         "application/json"))
-//    request.requestHeaders.push(new air.URLRequestHeader("Content-length",
-//                                                         request.data.length))
+    request.requestHeaders.push(auth);
     loader.load(request);
     signals.timer.reset();
     signals.timer.start();

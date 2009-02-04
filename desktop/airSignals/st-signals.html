@@ -21,20 +21,35 @@
 </head>
 <body id="st-signals" onload="signals.setup(); return false;">
     <div id="signals">
-        <div id="signalLogo">
-            <img src="images/logo.png" />
+        <div id="signalHeader">
+            <div id="signalLogo">
+                <img src="images/logo.png" />
+            </div>
+            <form name="signalForm" id="signalForm">
+                <input name="body" type="text" value="What are you working on?" id="signalBody" />
+                <input type="submit" name="submit" value="POST" id="signalSubmit" />
+            </form>
         </div>
-        <form name="signalForm" id="signalForm">
-            <input name="body" type="text" value="What are you working on?" id="signalBody" />
-            <input type="submit" name="submit" value="POST" id="signalSubmit" />
-        </form>
-        <ul>
+        <ul id="signalItems">
         </ul>
         <div id="signalMenu">
-            <em>menu items will go here...</em>
+            <ul>
+                <li><a href="#" id="config-link">Config</a></li>
+                <li><a href="#" id="refreshSignals">Refresh</a></li>
+                <li><a href="#" id="clearSignals">Clear</a></li>
+                <li><a href="#" id="filterSignals">Filter</a></li>
+            </ul>
         </div>
     </div>
     <div id="config" style="display:none">
+        <form name="signalConfig" id="signalConfig">
+            <fieldset>
+                <input type="checkbox" name="alertKeywordsToggle" id="signalAlertKeywordToggle" />
+                <label name="alertKeywordsToggle">Use keywords: </label>
+                <input type="text" name="alertKeywords" id="signalAlertKeyword" />
+            </fieldset>
+            <input type="submit" name="update" value="update" />
+        </form>
     </div>
     <div id="login" style="display:none">
         <form name="loginForm" id="loginForm" onSubmit="return false;">
