@@ -5,7 +5,7 @@ openssl pkcs12 -export -in selfsigned.pem -out selfsigned.p12 -name selfsigned -
 
 Then, use the adt tool to create the package
 
-~/air/bin/adt -package -storetype pkcs12 -keystore selfsigned.p12 st-activity.air st-activity.xml css js st-activity.html
+~/air/bin/adt -package -storetype pkcs12 -keystore selfsigned.p12 st-signals.air st-signals.xml css js images st-signals.html
 
 Then, you can use the Adobe Air Installation tool to run the air file, or you can put the air file up somewhere and have users click on it, after having installed the AIR runtime first.
 
