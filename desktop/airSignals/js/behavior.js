@@ -1,3 +1,4 @@
+
 var temp = null;
 
 var signals = {
@@ -33,7 +34,6 @@ signals.setup = function() {
     jQuery('#clearSignals').click(signals.handleClearSignals);
     jQuery('#filterSignals').click(signals.handleFilterSignals);
     signals.login();
-    air.Introspector.Console.log('test');
 }
 
 signals.updateSignalTimes = function() {
@@ -182,6 +182,9 @@ signals.displaySignal = function(index, signalEvent) {
             // pass
         });
         jQuery(".activity a").click(signals.linkClick);
+        //air.Introspector.Console.log(signalItem);
+        var note=new Notification(signalItem.html(),6000);
+        note.show();
     }
 }
 
