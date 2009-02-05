@@ -16,6 +16,46 @@ function doLogin (url, username, password) {
         type: "GET"
     });
 }
+function getWatchlist (url, username, password) {
+	getData(url, username, password, gotWatchlist);
+}
+function getWatchers (url, username, password) {
+	getData(url, username, password, gotWatchers);
+}
+
+function getConversations (url, username, password) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            gotConversations(data);
+        },
+        type: "GET"
+    });
+}
+
+function getColleagues (url, username, password) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            gotColleagues(data);
+        },
+        type: "GET"
+    });
+}
+
+function getData (url, username, password, callback) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@'),
+        dataType: "json",
+        success: function(data) {
+            callback(JSON.stringify(data));
+        },
+        type: "GET"
+    });
+}
+
 function getSignals (url, username, password, after) {
     $.ajax({
         url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')

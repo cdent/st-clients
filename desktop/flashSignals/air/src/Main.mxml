@@ -1,17 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:WindowedApplication title="Socialtext Signals" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" z="0" creationComplete="onAppInit()">
+<mx:WindowedApplication title="Socialtext Signals" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" z="0" creationComplete="onAppInit()" fontFamily="Arial">
 	<mx:Script>
 		<![CDATA[
 import com.serialization.json.JSON;
 
 import flash.net.*;
-
+import flash.system.Capabilities;
 import mx.collections.ArrayCollection;
 
 import org.audreyt.Utils.DateUtils;
 
 [Bindable]
 public var Signals:ArrayCollection = new ArrayCollection([]);
+
+[Bindable]
+public var Watchlist:ArrayCollection = new ArrayCollection([]);
+
+[Bindable]
+public var Watchers:ArrayCollection = new ArrayCollection([]);
 
 public var myName:String = "";
 public var myPassword:String = "";
@@ -22,10 +28,54 @@ public var Clock:Timer;
 private function onAppInit():void {
 	HTML.addEventListener(Event.HTML_DOM_INITIALIZE, domInitialized);
 	HTML.location = "HTML.html?" + Number(new Date()).toString();
+	addKeyHandler();
 }
 
+private function addKeyHandler():void {
+	if (stage != null) {
+		stage.addEventListener(KeyboardEvent.KEY_UP, shorcutHandler);
+	}
+	else {
+		callLater(addKeyHandler);
+	}
+}
+
+private function shorcutHandler(event:KeyboardEvent):void {
+	if (!Timestamp) { return }
+	if (event.altKey || event.ctrlKey || event.commandKey) {
+		switch (event.keyCode) {
+			case 49: {
+				Input.text = "";
+				displayView(btnSignals, View);
+				break;
+			}
+			case 50: {
+				Input.text = "";
+				displayView(btnConversations, ConversationsView);
+				break;
+			}
+			case 51: {
+				Input.text = "";
+				event.preventDefault();
+				displayView(btnColleagues, ColleaguesView);
+				break;
+			}
+			case 52: {
+				Input.text = "";
+				event.preventDefault();
+				displayView(btnNetwork, NetworkView);
+				break;
+			}
+		}
+		event.stopPropagation();
+	}
+}
 private function domInitialized(event:Event):void {
 	HTML.htmlLoader.window.gotSignals = gotSignals;
+	HTML.htmlLoader.window.gotWatchlist = gotWatchlist;
+	HTML.htmlLoader.window.gotWatchers = gotWatchers;
+	HTML.htmlLoader.window.gotConversations = gotConversations;
+	HTML.htmlLoader.window.gotColleagues = gotColleagues;
 	HTML.htmlLoader.window.refreshSignals = refreshSignals;
 	HTML.htmlLoader.window.loginSuccess = loginSuccess;
 	HTML.htmlLoader.window.loginFailure = loginFailure;
@@ -40,13 +90,70 @@ private function loginFailure ():void {
 private function loginSuccess (signals:String):void {
 	LoginPanel.visible = false;
   	Entry.visible = true;
-	View.visible = true;
 	Input.setFocus();		
 
-	Clock = new Timer(10000, 1);
+	Clock = new Timer(10000, 0);
 	Clock.addEventListener(TimerEvent.TIMER, onTick);
-
+/*
+	ProfileList.location = myServer + 
+		'/nlw/submit/login?redirect_to=%2F%3Fprofile;username='
+		+ encodeURIComponent(myName)
+		+ ';password='
+		+ encodeURIComponent(myPassword);
+		*/
+	HTML.htmlLoader.window.getWatchlist(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword);
+	HTML.htmlLoader.window.getWatchers(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword);
+	HTML.htmlLoader.window.getConversations(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword);
+	HTML.htmlLoader.window.getColleagues(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword);
 	gotSignals(signals);
+	displayView(btnSignals, View, true);
+}
+
+private function gotWatchlist (people:String):void {
+	gotPeople(Watchlist, people);
+}
+
+private function gotWatchers (people:String):void {
+	gotPeople(Watchers, people);
+}
+
+private function gotConversations (feed:String):void {
+	gotFeed(Conversations, feed);
+}
+
+private function gotColleagues (feed:String):void {
+	gotFeed(Colleagues, feed);
+}
+
+private function gotFeed (html:*, feed:String):void {
+	if (feed && feed.length > 0) {
+	feed = feed.replace(/<head>/, '<head><style>tbody { font-size: 12px; font-family: Arial } </style><base href="' + myServer + '">')
+			   .replace(/<a href/g, '<a style="text-decoration: none" target="_blank" href')
+			   .replace(/<img style="border:none" /g, '<img style="float: left; padding-right: 4px; border:none; width: 27px; height: 27px" ')
+			   .replace(/<img class="asset-icon" /g, '<img class="asset-icon" style="float: right; padding-left; 4px; width: 16px; height: 16px" ')
+			   .replace(/<td /g, '<td style="padding-bottom: 5px;border-bottom: 1px solid #999"')
+			   .replace(/<span class="ago_text">/g, '<span class="ago_text" style="font-style: italics; color: #666666">');
+	html.htmlText = feed;
+	}
+}
+private function htmlComplete(html:*):void {
+	var anchors:* = html.htmlLoader.window.document.getElementsByTagName("a");
+	if (anchors != null)
+	for (var i:Number=0; i < anchors.length; i++) {
+		anchors[i].onmouseup = function():void {
+			var request:URLRequest = new URLRequest(arguments[0].srcElement);
+			navigateToURL(request,"_blank");
+		}
+	}
+}
+private function gotPeople (col:ArrayCollection, people:String):void {
+	var ar:Array = JSON.deserialize(people) as Array;
+	for each(var s:Object in ar.reverse()) {
+		col.addItem({
+			name: s.best_full_name,
+			img: myServer + '/data/people/' + s.id + '/small_photo'
+		});
+	}
 }
 
 private function gotSignals (signals:String):void {
@@ -58,8 +165,10 @@ private function gotSignals (signals:String):void {
 			Signals.addItemAt({
 				user: s.best_full_name,
 				time: DateUtils.getAgoString(s.at).toString(), // 'one minute ago', // myServer + '/data/people/' + s.user_id + '/photo', //s.at,
-				text: s.body.replace(/(@\S+)/, '<B>$1</B>')
-							.replace(/(http:\S+)/, '</FONT><A target="_blank" href="$1">$1</A><FONT color="#000000">'),
+							
+				text: s.body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+							.replace(/(@\S+)/g, '<B>$1</B>')
+							.replace(/(https?:\S+)/g, '</FONT><A target="_blank" href="$1">$1</A><FONT color="#000000">'),
 				img: myServer + '/data/people/' + s.user_id + '/photo',
 				profile: myServer + '/?profile/' + s.user_id
 			}, 0);
@@ -86,6 +195,34 @@ private function securityError(evt:Event):void {
 private function doScroll():void {
  	List.verticalScrollPosition=0;
 }
+
+private function displayView(target:Button, view:Canvas, forced:Boolean=false):void {
+	if (!target.enabled && !forced) { return; }
+	for each (var b:Button in [btnConversations, btnColleagues, btnSignals, btnNetwork]) {
+		if (b == target) {
+			b.styleName = "DisabledButton";
+			b.enabled = false;
+		}
+		else {
+			b.styleName = "";
+			b.enabled = true;
+		}
+	}
+	for each (var v:Canvas in [NetworkView, View, ConversationsView, ColleaguesView]) {
+		if (v == view) {
+			v.visible = true;
+			if (v == ConversationsView) {
+	HTML.htmlLoader.window.getConversations(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword);
+			}
+			else if (v == ColleaguesView) {
+	HTML.htmlLoader.window.getColleagues(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword);
+			}
+		}
+		else {
+			v.visible = false;
+		}
+	}
+}
 private function login():void {	
 	myName = InputName.text;
 	myPassword = InputPassword.text;
@@ -102,6 +239,7 @@ private function onTick (evt:*):void {
 private function refreshSignals():void {
 	Clock.reset();
 	HTML.htmlLoader.window.getSignals(myServer, myName, myPassword, Timestamp);
+	startTimer();
 }
 
 private function postSignal():void {
@@ -116,41 +254,75 @@ private function postSignal():void {
 private function keyPressed():void {
 	Len.text = (140 - Input.text.length).toString();
 }
+
 		]]>
 	</mx:Script>
 	<mx:Style>
 		.Entry { borderStyle: applicationControlBar; fillColors: #55759E, #54627D; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
 		.View { borderStyle: applicationControlBar; fillColors: #54627D, #55759E; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+		.View2 { borderStyle: applicationControlBar; fillColors: #ffffff, #ffffff; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
 		.List { borderStyle: applicationControlBar; fillColors: #ffffff, #f0f8ff; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+		.DisabledButton {  fillColors: #aaccdd, #88aabb; fillAlphas: 0.5, 0.5; }
 	</mx:Style>
 	<mx:Parallel id="showEffectsLoginPanel" effectEnd="InputName.setFocus()">
 		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="500" />
 	</mx:Parallel>
 	<mx:Parallel id="showEffects" effectEnd="Input.setFocus()">
-		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="1500" />
-		<mx:Blur duration="1500" blurXFrom="10.0" blurXTo="0.0" blurYFrom="10.0" blurYTo="0.0"/>
+		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="500" />
+		<mx:Blur duration="500" blurXFrom="10.0" blurXTo="0.0" blurYFrom="10.0" blurYTo="0.0"/>
+	</mx:Parallel>
+	<mx:Parallel id="hideView">
+		<mx:Fade alphaFrom="1" alphaTo="0.01" duration="500" />
 	</mx:Parallel>
 	<mx:Parallel id="hideEffects" effectEnd="Input.setFocus()">
-		<mx:Fade alphaFrom="1" alphaTo="0" duration="1500"/>
-	  	<mx:Zoom zoomWidthFrom="1.0" zoomWidthTo="0.01" zoomHeightFrom="1.0" zoomHeightTo="0.01" duration="1500" />
-		<mx:Blur id="blurImage" duration="1000" blurXFrom="0.0" blurXTo="10.0" blurYFrom="0.0" blurYTo="10.0"/>
+		<mx:Fade alphaFrom="1" alphaTo="0" duration="500"/>
+	  	<mx:Zoom zoomWidthFrom="1.0" zoomWidthTo="0.01" zoomHeightFrom="1.0" zoomHeightTo="0.01" duration="500" />
 	</mx:Parallel>
-  	<mx:Canvas showEffect="showEffects" id="Entry" styleName="Entry" cornerRadius="10"  backgroundAlpha="1.0" left="0" right="0" dropShadowColor="#777777" dropShadowEnabled="true" height="45" visible="false" top="0">
+  	<mx:Canvas showEffect="showEffects" id="Entry" styleName="Entry" cornerRadius="10"  backgroundAlpha="1.0" left="45" right="0" dropShadowColor="#777777" dropShadowEnabled="true" height="45" visible="false" top="0" enabled="true">
 		<mx:TextInput tabIndex="4" focusEnabled="true"  enter="postSignal()" id="Input" right="40" bottom="10" top="10" left="10" cornerRadius="0" fontFamily="Arial" fontSize="12" borderStyle="inset" fontAntiAliasType="normal"  maxChars="140" change="keyPressed();" />
 		<mx:Button label="⏎" width="24" fontFamily="Arial" fontSize="10" color="black" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" bottom="8" right="10" height="16" click="postSignal();"/>
 		<mx:Label text="140" width="24" right="10" top="5" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" fontFamily="Arial" textAlign="center" color="#D0D0D0" id="Len"/>
 	</mx:Canvas>
-	<mx:Canvas showEffect="showEffects" id="View" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10" visible="false">
-		<mx:List styleName="List" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="List" dataProvider="{Signals}" itemRenderer="Signal" focusEnabled="true" cornerRadius="5"></mx:List>
+	<mx:Canvas hideEffect="hideView" showEffect="showEffects" id="View" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10" visible="false">
+		<mx:List styleName="List" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="List" dataProvider="{Signals}" itemRenderer="Signal" focusEnabled="true" cornerRadius="5" selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false" useHandCursor="true"></mx:List>
 	</mx:Canvas>
 	<mx:Panel showEffect="showEffectsLoginPanel" hideEffect="hideEffects" width="360" height="150" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Connect to Signals" fontSize="12" enabled="true" id="LoginPanel" defaultButton="{Login}" visible="false">
-		<mx:Label y="10" text="User ID" fontSize="12" textAlign="right" width="72" left="5"/>
+		<mx:Label fontSharpness="400" fontAntiAliasType="advanced" fontGridFitType="pixel" y="10" text="User ID" fontSize="12" textAlign="right" width="72" left="5"/>
 		<mx:Label y="39" text="Password" fontSize="12" textAlign="right" width="72" left="5"/>
 		<mx:Label y="68" text="Server" fontSize="12" textAlign="right" width="72" left="5"/>
-		<mx:TextInput tabIndex="1" y="10" width="248" text="" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
-		<mx:TextInput tabIndex="2" y="39" width="183" fontSize="11" right="75" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true" text=""/>
 		<mx:Button tabIndex="3" label="Login" fontSize="11" right="10" y="38" id="Login" click="login()"/>
+		<!--
+		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
+		<mx:TextInput text="" tabIndex="2" y="39" width="183" fontSize="11" right="75" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true"/>
 		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net/" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
-	</mx:Panel>
+	-->
+		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
+		<mx:TextInput text="" tabIndex="2" y="39" width="183" fontSize="11" right="75" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true"/>
+		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net/" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
+		</mx:Panel>
 	<mx:HTML id="HTML" visible="false" left="190" top="19" right="131" height="80"/>
+	<mx:Canvas width="45" height="45" left="0" top="0">
+		<mx:Button id="btnConversations" x="21" y="0" width="22" height="22" toolTip="Conversations (Ctrl-2)" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" icon="@Embed(source='icons/comment-16.png')"  click="displayView(event.target as Button, ConversationsView);" enabled="false"/>
+		<mx:Button id="btnColleagues" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/follow-16.png')" toolTip="Colleagues (Ctrl-3)" click="displayView(event.target as Button, ColleaguesView);" enabled="false"/>
+		<mx:Button  id="btnSignals" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/signal-20.png')" toolTip="Signals (Ctrl-1)" click="displayView(event.target as Button, View);" enabled="false"/>
+		<mx:Button id="btnNetwork" x="21" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/heart.png')" toolTip="My Network (Ctrl-4)" click="displayView(event.target as Button, NetworkView);" enabled="false"/>
+	</mx:Canvas>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="NetworkView" styleName="View" left="10" right="10" bottom="10" top="55" cornerRadius="10">
+		<mx:Panel width="46%" layout="absolute" left="10" top="10" bottom="10" title="Following {Watchlist.length} people" fontSize="15" color="#FFFFFF" cornerRadius="10" fontFamily="Arial">
+			<mx:List left="0" top="0" bottom="0" right="0" dataProvider="{Watchlist}" itemRenderer="Person"></mx:List>
+		</mx:Panel>
+		<mx:Panel layout="absolute" top="10" right="10" bottom="10" width="46%" cornerRadius="10" title="My {Watchers.length} followers" fontSize="15" color="#FFFFFF" fontFamily="Arial">
+			<mx:List left="0" top="0" bottom="0" right="0" dataProvider="{Watchers}" itemRenderer="Person"></mx:List>
+		</mx:Panel>
+	</mx:Canvas>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ColleaguesView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+		<mx:Canvas visible="true" id="ConversationsView1" styleName="View2" left="10" right="10" bottom="10" top="10" cornerRadius="10" backgroundColor="#FFFFFF">
+			<mx:HTML fontSize="12" fontFamily="Arial" htmlText="&lt;img src='icons/ajax-loader.gif' /&gt;&lt;em&gt;Loading...&lt;/em&gt;"  complete="htmlComplete(Colleagues)" cornerRadius="5" id="Colleagues" left="10" top="10" bottom="10" right="10"/>
+		</mx:Canvas>
+	</mx:Canvas>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ConversationsView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+		<mx:Canvas visible="true" id="ConversationsView0" styleName="View2" left="10" right="10" bottom="10" top="10" cornerRadius="10" backgroundColor="#FFFFFF">
+			<mx:HTML fontSize="12" fontFamily="Arial" htmlText="&lt;img src='icons/ajax-loader.gif' /&gt;&lt;em&gt;Loading...&lt;/em&gt;" complete="htmlComplete(Conversations)" cornerRadius="5" id="Conversations" left="10" top="10" bottom="10" right="10"/>
+		</mx:Canvas>
+	</mx:Canvas>
 </mx:WindowedApplication>
