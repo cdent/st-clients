@@ -33,7 +33,7 @@ signals.setup = function() {
     jQuery('#clearSignals').click(signals.handleClearSignals);
     jQuery('#filterSignals').click(signals.handleFilterSignals);
     signals.login();
-    air.Introspector.Console.log('test');
+    //air.Introspector.Console.log('test');
 }
 
 signals.updateSignalTimes = function() {
