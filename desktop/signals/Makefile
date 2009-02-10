@@ -1,6 +1,6 @@
 distfile = Signals.air
 
-run = env PATH=${PATH}:/opt/flex/bin
+run = env PATH="${PATH}":/opt/flex/bin
 
 objects = bin/Main.mxml.swf
 
@@ -18,7 +18,7 @@ run: $(objects)
 
 dist: $(objects)
 	@rsync -au --delete html js css bin
-	$(run) adt -package -storetype pkcs12 -keystore etc/selfsigned.p12 $(distfile) Signals.xml -C bin .
+	$(run) adt -package -storetype pkcs12 -keystore /etc/selfsigned.p12 $(distfile) Signals.xml -C bin .
 
 clean:
 	-rm -rf bin
