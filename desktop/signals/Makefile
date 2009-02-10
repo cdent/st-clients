@@ -2,18 +2,20 @@ distfile = Signals.air
 
 objects = bin/Main.mxml.swf
 
-$(objects): bin/%.mxml.swf: mxml/%.mxml
+$(objects): bin/%.mxml.swf: mxml/%.mxml as/*.as css/*.css
 	@-mkdir bin
-	amxmlc -output $@ $<
+	amxmlc -incremental -output $@ $<
 
 default: all
 
 all: check-deps $(objects)
 
 run: $(objects)
+	@rsync -au --delete html js css bin
 	adl Signals.xml bin
 
 dist: $(objects)
+	@rsync -au --delete html js css bin
 	adt -package -storetype pkcs12 -keystore etc/selfsigned.p12 $(distfile) Signals.xml -C bin .
 
 clean:
