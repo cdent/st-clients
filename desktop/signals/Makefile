@@ -1,6 +1,6 @@
 distfile = Signals.air
 
-run = env PATH=${PATH}:/opt/flex/bin
+run = env PATH="${PATH}":/opt/flex/bin
 
 objects = bin/Main.mxml.swf
 
