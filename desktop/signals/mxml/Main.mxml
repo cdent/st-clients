@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="http://www.adobe.com/2006/mxml"
+    title="Signals" minWidth="500" minHeight="385" creationComplete="onAppInit()" layout="absolute">
+    <Style source="../css/Main.css" />
+    <Script source="../as/Main.as" />
+
+    <Parallel id="blurFadeIn">
+        <Fade duration="3000" alphaFrom="0.01" alphaTo="1"/>
+        <Blur duration="3000" blurXFrom="10.0" blurXTo="0.0" blurYFrom="10.0" blurYTo="0.0"/>
+    </Parallel>
+
+    <Parallel id="rotateZoomOut">
+        <Rotate duration="2000" angleFrom="0" angleTo="360" originX="0" originY="0" />
+        <Zoom duration="2000" zoomWidthFrom="1.0" zoomWidthTo="0.01" zoomHeightFrom="1.0" zoomHeightTo="0.01" />
+    </Parallel>
+
+    <Canvas id="Foo" showEffect="blurFadeIn" hideEffect="rotateZoomOut" styleName="max" visible="false">
+        <Panel id="Bar" label="Panel" left="10" right="10" top="10" bottom="10" cornerRadius="5">
+            <HTML id="HTML" htmlDOMInitialize="domInitialized()" location="../html/Example.html" styleName="max" />
+        </Panel>
+    </Canvas>
+</WindowedApplication>

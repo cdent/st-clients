@@ -31,7 +31,7 @@ package managers
 			
 			var cacheFile:File = new File(imageDir.nativePath +File.separator+ cleanURLString(url));
 			if(cacheFile.exists){
-				return cacheFile.url;
+				return cacheFile.url; // "app-storage:/cachedimages/" + cleanURLString(url);
 			} else {
 				addImageToCache(url);
 				return url;
@@ -63,7 +63,7 @@ package managers
 			delete pendingDictionaryByURL[url];
 		}
 		private function cleanURLString(url:String):String{
-			var hash:String = url.replace(/\W/, '_');
+			var hash:String = url.replace(/\W/g, '_');
 			return hash;
 		}
 		

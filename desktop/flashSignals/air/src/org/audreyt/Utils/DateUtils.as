@@ -5,7 +5,7 @@ package org.audreyt.Utils {
                 "([T ]([0-9]{2}):([0-9]{2})(:([0-9]{2})(\.([0-9]+))?)?" +
                 "(Z|(([-+])([0-9]{2}):([0-9]{2})))?)?)?)?";
             var d:Array = string.match(new RegExp(regexp));
-        
+
             var offset:Number = 0;
             var date:Date = new Date(d[1], 0, 1);
         

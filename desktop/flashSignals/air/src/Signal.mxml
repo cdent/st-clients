@@ -1,13 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:HBox focusEnabled="false" xmlns:mx="http://www.adobe.com/2006/mxml"
 	   resize="Area.width = this.width - 60"
+	    dataChange="	    		Area.htmlLoader.placeLoadStringContentInApplicationSandbox = true;
+	    "
+	     backgroundAlpha="1" backgroundColor="#ffffff"
 	 scroll="false" verticalScrollPolicy="off" horizontalScrollPolicy="off" right="0" left="0"  borderColor="#080808" borderSides="bottom" borderStyle="solid" borderThickness="0.5">
 	<mx:Style>
-		.ImageContainer { borderStyle: applicationControlBar; fillColors: #AAAAAA, #999999; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
+		.ImageContainer { borderStyle: applicationControlBar; fillColors: #EEEEEE, #CCCCCC; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
 	</mx:Style>
+	<mx:Script>
+		<![CDATA[
+		import mx.core.Application;
+import org.audreyt.Utils.DateUtils;		
+import managers.ImageCacheManager;
+[Bindable]
+private var imageCache:ImageCacheManager = ImageCacheManager.getInstance();
+
+private function htmlComplete():void {
+		var anchors:* = Area.htmlLoader.window.document.getElementsByTagName("a");
+	if (anchors != null)
+	for (var i:Number=0; i < anchors.length; i++) {
+		anchors[i].onmouseup = function():void {
+			var request:URLRequest = new URLRequest(arguments[0].srcElement);
+			navigateToURL(request,"_blank");
+		}
+	}
 	
-	<mx:Canvas styleName="ImageContainer" width="50" height="50" cornerRadius="3" backgroundAlpha="0.5" top="0" left="0" >
-		<mx:Image width="44" height="44" source="{data.img}" scaleContent="true" autoLoad="true" horizontalCenter="0" verticalCenter="0"/>
+	
+}
+		]]>
+	</mx:Script>
+	<mx:Canvas styleName="ImageContainer" width="52" height="52" cornerRadius="3" backgroundAlpha="0.5" top="0" left="0" >
+		<mx:Image click="Application.application.getPerson(data.user_id, data.user)" id="Img" mouseDown="Img.width=Img.height=46" mouseUp="Img.width=Img.height=50" mouseOver="Img.width=Img.height=50" mouseOut="Img.width=Img.height=44" blendMode="multiply" width="44" height="44" source="{ImageCacheManager.getInstance().getImageByURL(data.img)}" scaleContent="true" autoLoad="true" horizontalCenter="0" verticalCenter="0" cacheAsBitmap="true" cachePolicy="on" buttonMode="true"/>
 	</mx:Canvas>
-    <mx:TextArea liveScrolling="false" htmlText="&lt;a href='{data.profile}'&gt;{data.user}&lt;/a&gt;&lt;font color='#808080'&gt;&lt;i&gt; {data.time}&lt;/i&gt;&lt;/font&gt;&lt;br/&gt;&lt;font color='#000000'&gt;{data.text}&lt;/font&gt;" color="blue" id="Area" top="0" left="54" right="5" bottom="0" enabled="true" borderStyle="none" verticalScrollPolicy="off" horizontalScrollPolicy="off" backgroundAlpha="0" fontFamily="Arial" fontSize="11" fontAntiAliasType="normal" wordWrap="true" editable="false" />
+    <mx:HTML fontAntiAliasType="advanced" fontGridFitType="none" height="52" complete="htmlComplete()" styleName="HTML" liveScrolling="false" htmlText="&lt;span style='font-size:13px; font-family: Arial; padding-right: 3px; display: block'&gt;&lt;a style='text-decoration: none; font-size: 11px' target='_blank' href='{data.profile}'&gt;{data.user}&lt;/a&gt;&lt;span style='color: #808080;
+    font-size: 11px'&gt;&lt;i&gt; {DateUtils.getAgoString(data.at)}&lt;/i&gt;&lt;/span&gt;&lt;br/&gt;&lt;font style='text-align: left; font-size: 13px ' color='#000000'&gt;{data.text}&lt;/font&gt;&lt;/span&gt;" color="blue" id="Area" top="0" left="54" right="5" bottom="0" enabled="true" borderStyle="none" backgroundColor="#ffffff" verticalScrollPolicy="off" horizontalScrollPolicy="off" backgroundAlpha="1" location="loading.html"/>
 </mx:HBox>
