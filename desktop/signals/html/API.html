@@ -1,0 +1,121 @@
+<html><head>
+<script src="jquery-1.3.1.min.js"></script>
+<script src="json2.min.js"></script>
+<script language="Javascript">
+function doLogin (url, username, password) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/signals'),
+        dataType: "json",
+        success: function(data) {
+            loginSuccess(JSON.stringify(data));
+        },
+        failure: function() {
+            loginFailure();
+        },
+        type: "GET"
+    });
+}
+
+function getPeople (url, username, password, container) {
+	getData(url, username, password, function(data) {
+		gotPeople(container, data);
+	});
+}
+
+function getHTML (url, username, password, callback) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            callback(data);
+        },
+        type: "GET"
+    });
+}
+function getConversations (url, username, password) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            gotConversations(data);
+        },
+        type: "GET"
+    });
+}
+
+function getColleagues (url, username, password) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            gotColleagues(data);
+        },
+        type: "GET"
+    });
+}
+
+function getData (url, username, password, callback) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@'),
+        dataType: "json",
+        success: function(data) {
+            callback(JSON.stringify(data));
+        },
+        type: "GET"
+    });
+}
+
+function getSignals (url, username, password, after) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/signals'),
+        dataType: "json",
+        failure: function() {
+            startTimer();
+        },
+        success: function(data) {
+            gotSignals(JSON.stringify(data));
+        },
+        data: (after ? { after: after } : {}),
+        type: "GET"
+    });
+}
+
+function followPerson (url, username, password, id) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/people/' + encodeURIComponent(username) + '/watchlist'),
+        contentType: "application/json",
+        data: JSON.stringify({ person: {id: id} }),
+        type: "POST",
+        success: function() {
+	        refreshPersonWatchlist(id);
+        }
+    });
+}
+
+function unfollowPerson (url, username, password, id) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/people/' + encodeURIComponent(username) + '/watchlist/' + encodeURIComponent(id)),
+        type: "DELETE",
+        success: function() {
+	        refreshPersonWatchlist(id);
+        }
+    });
+}
+function postSignal (url, username, password, signal) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/signals'),
+        contentType: "application/json",
+        data: JSON.stringify({ signal: signal }),
+        success: function() {
+            refreshSignals();
+        },
+        type: "POST"
+    });
+}
+
+</script></head><body>xxx</body></html>

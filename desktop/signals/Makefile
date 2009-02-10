@@ -1,7 +1,8 @@
 distfile = Signals.air
 
 objects = bin/Main.mxml.swf
-$(objects): bin/%.swf: src/%
+
+$(objects): bin/%.mxml.swf: mxml/%.mxml
 	@-mkdir bin
 	amxmlc -output $@ $<
 
