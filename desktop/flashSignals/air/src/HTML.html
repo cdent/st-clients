@@ -16,13 +16,23 @@ function doLogin (url, username, password) {
         type: "GET"
     });
 }
-function getWatchlist (url, username, password) {
-	getData(url, username, password, gotWatchlist);
-}
-function getWatchers (url, username, password) {
-	getData(url, username, password, gotWatchers);
+
+function getPeople (url, username, password, container) {
+	getData(url, username, password, function(data) {
+		gotPeople(container, data);
+	});
 }
 
+function getHTML (url, username, password, callback) {
+    $.ajax({
+        url: url,
+        dataType: "html",
+        success: function(data) {
+            callback(data);
+        },
+        type: "GET"
+    });
+}
 function getConversations (url, username, password) {
     $.ajax({
         url: url,
@@ -71,6 +81,30 @@ function getSignals (url, username, password, after) {
         type: "GET"
     });
 }
+
+function followPerson (url, username, password, id) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/people/' + encodeURIComponent(username) + '/watchlist'),
+        contentType: "application/json",
+        data: JSON.stringify({ person: {id: id} }),
+        type: "POST",
+        success: function() {
+	        refreshPersonWatchlist(id);
+        }
+    });
+}
+
+function unfollowPerson (url, username, password, id) {
+    $.ajax({
+        url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
+                .replace(/\/*$/, '/data/people/' + encodeURIComponent(username) + '/watchlist/' + encodeURIComponent(id)),
+        type: "DELETE",
+        success: function() {
+	        refreshPersonWatchlist(id);
+        }
+    });
+}
 function postSignal (url, username, password, signal) {
     $.ajax({
         url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@')
@@ -83,4 +117,5 @@ function postSignal (url, username, password, signal) {
         type: "POST"
     });
 }
-</script></head></html>
+
+</script></head><body>xxx</body></html>
