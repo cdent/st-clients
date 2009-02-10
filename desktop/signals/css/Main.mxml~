@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:WindowedApplication title="Signals" xmlns:mx="http://www.adobe.com/2006/mxml" minWidth="500" minHeight="385" z="0">
+   <mx:Style source="../css/Main.css" />
+</mx:WindowedApplication>

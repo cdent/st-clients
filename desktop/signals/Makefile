@@ -1,11 +1,13 @@
-default: check-deps $(objects)
-
 distfile = Signals.air
 
 objects = bin/Main.mxml.swf
 $(objects): bin/%.swf: src/%
 	@-mkdir bin
 	amxmlc -output $@ $<
+
+default: all
+
+all: check-deps $(objects)
 
 run: $(objects)
 	adl Signals.xml bin
