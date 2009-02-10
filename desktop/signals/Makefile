@@ -1,13 +1,22 @@
-objects = bin/Main.mxml.swf
+default: check-deps $(objects)
 
+distfile = Signals.air
+
+objects = bin/Main.mxml.swf
 $(objects): bin/%.swf: src/%
 	@-mkdir bin
 	amxmlc -output $@ $<
 
-all: $(objects)
-
-run: all
+run: $(objects)
 	adl Signals.xml bin
 
-dist: all
-	adt -package -storetype pkcs12 -keystore etc/selfsigned.p12 Signals.air Signals.xml -C bin .
+dist: $(objects)
+	adt -package -storetype pkcs12 -keystore etc/selfsigned.p12 $(distfile) Signals.xml -C bin .
+
+clean:
+	-rm -rf bin
+	-rm $(distfile)
+
+check-deps:
+	@java -version >/dev/null 2>/dev/null || (echo "*** Java runtime must be installed and included in PATH.\n\n    You can download it from: http://java.com/." && exit 1)
+	@amxmlc -version >/dev/null 2>/dev/null || (echo "*** Flex SDK must be installed and included in PATH.\n\n    You can download it from: http://www.adobe.com/products/flex/flexdownloads/.\n\n    Please extract it somewhere and add its bin/ directory to your PATH." && exit 1)
