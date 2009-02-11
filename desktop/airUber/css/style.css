@@ -1,0 +1,274 @@
+body {
+    margin:0;
+    padding:0;
+    font-family:'Corbel','Calibri','Lucida Sans','Geneva','Helvetica Neue','Helvetica','Tahoma','Verdana',sans-serif;
+    color:#333;
+    background: transparent url(../images/bg_header.png) repeat-x fixed center top;
+}
+
+body, input, td {
+    font-size:12px;
+    line-height:14px;
+}
+
+a {
+    color:#36c;
+}
+a:hover {
+    color:#c63;
+}
+
+input[type="radio"] {
+    position:relative;
+    bottom:-3px;
+}
+
+iframe {
+    border:1px #999 solid;
+    margin:0;
+    padding:0;
+}
+
+#wrapper {
+    min-height:100%;
+    width:100%;
+    margin:0;
+    padding:0;
+}
+
+/*
+---------- header ----------
+*/
+
+#header {
+    margin:0;
+    padding:0.5em;
+    background:#eee;
+    text-align:center;
+}
+
+/*
+---------- footer ----------
+*/
+
+#app-footer {
+    margin:0;
+    padding:1em 0;
+    border-top:1px #999 solid;
+    background:#eee;
+    width:100%;
+    text-align:center;
+    position:fixed;
+    bottom:0;
+}
+
+/* 
+---------- app nav ----------
+*/
+
+#app-nav {
+    background:#eee;
+    border-bottom:1px #999 solid;
+    text-align:center;
+}
+
+#app-nav ul {
+    list-style-type:none;
+    margin:0;
+    padding:0 1em 2px 1em;
+}
+
+#app-nav ul li {
+    display:inline;
+    margin:0.25em;
+}
+
+#app-nav ul li a {
+    text-decoration:none;
+    padding:2px 1em 2px 1em;
+    background:#ddd;
+    border:1px #999 solid;
+    font-size:90%;
+}
+
+#app-nav ul li a:hover {
+    background:#eee;
+    padding-top:5px;
+}
+
+#app-nav ul li.active a {
+    border-bottom:1px #fff solid;
+    padding-top:4px;
+    font-size:100%;
+    background:#fff;
+}
+
+#app-nav ul li.active a:hover {
+    color:#333;
+}
+
+#app-nav span.counter {
+    display:inline;
+}
+
+#app-nav span.counter:before {
+    content: " (";
+}
+
+#app-nav span.counter:after {
+    content: ")";
+}
+
+/*
+---------- app divs ----------
+*/
+
+div.app {
+    margin:1em 0;
+    padding:0;
+    display:none;
+}
+
+div.app hr {
+    border:1px #999 dotted;
+}
+
+div.active {
+    display:block;
+}
+
+/*
+---------- signals ----------
+*/
+
+#signals-app form {
+    text-align:center;
+    margin:0 1.2em 0 1em;
+    padding:0.5em 0.5em 2.2em 0.5em;
+    background:#f6f6f6;
+    border-top:1px #ddd solid;
+    border-left:1px #ddd solid;
+    border-right:1px #ddd solid;
+    border-bottom:2px #ccc solid;
+}
+
+#signals-app form table {
+    width:100%;
+}
+
+#signals-app form table tr td {
+    vertical-align:middle;
+}
+
+#signal-body-text {
+    width:99%;
+    border:1px #999 solid;
+    font-family:monospace;
+    font-size:120%;
+    font-color:#999;
+}
+
+#signal-post-button {
+    border:1px #999 solid;
+    background:#fff;
+    vertical-align:top;
+    width:4em;
+    text-align:center;
+    padding:2px 5px;
+    text-transform:uppercase;
+    font-weight:bold;
+    float:left;
+}
+
+#signal-post-button:hover {
+    background:#ffc;
+}
+
+#signal-count-field {
+    border:none;
+    color:#333;
+    width:3em;
+    text-align:center;
+    padding:2px 5px;
+    float:left;
+    background:transparent;
+}
+
+#signals-app ul {
+    list-style-type:none;
+    margin:0;
+    padding:0 0 0 0;
+    clear:both;
+    overflow:auto;
+    border-top:1px #999 solid;
+}
+
+#signals-app ul li {
+    margin:0 0 0 0;
+    padding:0.5em 1em 0.5em 1em;
+    border-bottom:1px #ccc solid;
+    overflow:hidden;
+}
+
+#signals-app ul li.even {
+    background:#f8f8f8;
+}
+
+#signals-app .signal {
+    margin-left:36px;
+}
+
+/*
+----------  activity-app  ----------
+*/
+
+#activity-app form {
+    margin:0;
+    padding:0 1em;
+    text-align:center;
+}
+
+#activity-app ul {
+    list-style-type:none;
+    margin:0;
+    padding:0.5em 0 0 0;
+    clear:both;
+}
+
+#activity-app ul li {
+    margin:0 0 0 0;
+    padding:0.5em 1em;
+    border-top:1px #ccc solid;
+}
+
+#activity-app ul li p {
+    margin:0;
+    padding:0;
+}
+
+/*
+----------  workspaces-app  ----------
+*/
+
+#workspaces-app form {
+    margin:0;
+    padding:0 1em;
+    text-align:center;
+}
+
+/*
+----------  general style ----------
+*/
+
+.madlib-ago {
+    font-style:italic;
+    color:#999;
+    display:inline;
+    margin-left:0.5em;
+}
+
+.avatar {
+    border:1px #666 solid;
+    float:left;
+    margin-right:0.5em;
+}

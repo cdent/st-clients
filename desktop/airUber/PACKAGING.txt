@@ -1,0 +1,13 @@
+First, create a self-signed, codesigning-enabled certificate (use password 1234 throughout)
+
+openssl req -new -x509 -key key.pem -out selfsigned.pem -config ./openssl.cnf -extensions codesign
+openssl pkcs12 -export -in selfsigned.pem -out selfsigned.p12 -name selfsigned -inkey key.pem
+
+Then, use the adt tool to create the package
+
+~/air/bin/adt -package -storetype pkcs12 -keystore selfsigned.p12 st-signals.air st-signals.xml css js images st-signals.html
+
+Then, you can use the Adobe Air Installation tool to run the air file, or you can put the air file up somewhere and have users click on it, after having installed the AIR runtime first.
+
+
+

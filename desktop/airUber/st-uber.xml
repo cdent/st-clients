@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://ns.adobe.com/air/application/1.0">
+    <id>st.html.SocialtextUber</id>
+    <version>0.1</version>
+    <filename>Socialtext Community</filename>
+    <initialWindow>
+        <content>st-uber.html</content>
+        <visible>true</visible>
+        <width>450</width>
+        <height>600</height>
+    </initialWindow>
+</application>
