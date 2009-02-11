@@ -3,23 +3,30 @@
 <html>
 <head>
     <title>Socialtext Workplace</title>
-    <script type="text/javascript" src="js/AIRAliases.js"></script>
-    <script type="text/javascript" src="js/AIRIntrospector.js"></script>
-    <script type="text/javascript" src="js/Base64.js"></script>
-    <script type="text/javascript" src="js/jquery.js"></script>
-    <script type="text/javascript" src="js/jquery-ui.js"></script>
-    <script type="text/javascript" src="js/madlibs.js"></script>
-    <script type="text/javascript" src="js/behavior.js"></script>
-    <script type="text/javascript" src="js/stc-signals.js"></script>
-    <script type="text/javascript" src="js/stc-activity.js"></script>
-    <script type="text/javascript" src="js/stc-workspaces.js"></script>
+    <script type="text/javascript" src="js/AIRAliases.js">
+    </script>
+    <script type="text/javascript" src="js/AIRIntrospector.js">
+    </script>
+    <script type="text/javascript" src="js/Base64.js">
+    </script>
+    <script type="text/javascript" src="js/jquery.js">
+    </script>
+    <script type="text/javascript" src="js/jquery-ui.js">
+    </script>
+    <script type="text/javascript" src="js/madlibs.js">
+    </script>
+    <script type="text/javascript" src="js/behavior.js">
+    </script>
+    <script type="text/javascript" src="js/stc-signals.js">
+    </script>
+    <script type="text/javascript" src="js/stc-activity.js">
+    </script>
+    <script type="text/javascript" src="js/stc-workspaces.js">
+    </script>
     <script type="text/javascript">
     setup = function() {
         stc.setup();
         log();
-        //window.nativeWindow.addEventListener(air.Event.CLOSING, function(){
-        //    alert('Thanks!  And have a great day!  :-)');
-        //});
     }
     </script>
     <link rel="stylesheet" href="css/style.css" type="text/css" media="screen" title="activity style" />
@@ -31,42 +38,34 @@
         </div>
         <div id="app-nav">
             <ul>
-                <li class="active"><a href="#" id="signals-tab">Signals<span class="counter">0</span></a></li>
-                <li class="inactive"><a href="#" id="activity-tab">Activity<span class="counter"></span></a></li>
-                <li class="inactive"><a href="#" id="workspaces-tab">Workspaces<span class="counter"></span></a></li>
+                <li class="active"><a href="#" id="signals-tab">Signals</a></li>
+                <li class="inactive"><a href="#" id="activity-tab">Activity</a></li>
+                <li class="inactive"><a href="#" id="workspaces-tab">Workspaces</a></li>
             </ul>
         </div>
         <div id="notifications" style="display:none">
             The space for notifications.
         </div>
         <div id="signals-app" class="app active">
-            <!--
-            <iframe src="input.html" style="width:100%;height:5em;">
-            </iframe>
-            -->
-            <form>
+            <form name="signalsForm">
                 <textarea rows="3" name="signal-body" id="signal-body-text">What are you working on?</textarea><br />
                 <div style="float:right;">
                     <input type="text" name="signal-count" value="140" id="signal-count-field"/>
                     <input type="submit" name="post-signal" value="POST" id="signal-post-button" />
                 </div>
                 <div style="float:left;">
-                    <label="show-which-signals">Show:</label>
+                    <label id="show-which-signals">Show:</label>
                     <a href="#" class="toggle active">Everyone</a> |
                     <a href="#" class="toggle">My Colleagues</a> |
                     <a href="#" class="toggle">Replies</a> |
-                    <a href="#" class="toggle">DMs</a>
+                    <a href="#" class="toggle">Private</a>
                 </div>
             </form>
-            <!--
-            <iframe src="signals.html" id="signals-frame">
-            </iframe>
-            -->
             <ul>
             </ul>
         </div>
         <div id="activity-app" class="app">
-            <form>
+            <form name="activityForm">
                 Choose an activity feed:
                 <select name="activity-feed" id="activity-feed-selector">
                     <option value="">Choose one...</option>
@@ -80,7 +79,7 @@
             </ul>
         </div>
         <div id="workspaces-app" class="app">
-            <form>
+            <form name="workspacesForm">
                 <select name="workspace" id="workspaces-selector">
                     <option value="">Choose one...</option>
                 </select>

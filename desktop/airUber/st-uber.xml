@@ -7,6 +7,6 @@
         <content>st-uber.html</content>
         <visible>true</visible>
         <width>450</width>
-        <height>600</height>
+        <height>500</height>
     </initialWindow>
 </application>

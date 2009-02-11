@@ -106,7 +106,6 @@ stc.nav.handleTabClick = function(ev) {
         if (name==text) {
             $(item).addClass('active');
             appDiv.addClass('active');
-            trace(name); trace(text); trace(item);
             stc[name].active = true;
             stc[name].load();
         } else {
