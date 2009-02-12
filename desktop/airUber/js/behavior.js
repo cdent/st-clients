@@ -25,9 +25,9 @@ var stc = {
         active: false
     },
     user: {
-        username: 'tracy.ruggles@socialtext.com',
-        password: '2soleil',
-        userid: 3397,
+        username: 'YOU@socialtext.com',
+        password: 'XXXX',
+        userid: 0,
         server: 'https://www2.socialtext.net'
     }
 }
