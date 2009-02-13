@@ -8,7 +8,7 @@ function doLogin (url, username, password) {
                 .replace(/\/*$/, '/data/signals'),
         dataType: "json",
         success: function(data) {
-            loginSuccess(JSON.stringify(data));
+            loginSuccess(data);
         },
         failure: function() {
             loginFailure();
@@ -60,7 +60,7 @@ function getData (url, username, password, callback) {
         url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@'),
         dataType: "json",
         success: function(data) {
-            callback(JSON.stringify(data));
+            callback(data);
         },
         type: "GET"
     });
@@ -75,7 +75,7 @@ function getSignals (url, username, password, after) {
             startTimer();
         },
         success: function(data) {
-            gotSignals(JSON.stringify(data));
+            gotSignals(data);
         },
         data: (after ? { after: after } : {}),
         type: "GET"

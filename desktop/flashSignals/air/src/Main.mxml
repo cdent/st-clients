@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:WindowedApplication
-	title="Socialtext - Login" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" z="0" creationComplete="onAppInit()" fontFamily="Arial">
+ 	title="Socialtext - Login" status="flashSignals {appVersion}" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" creationComplete="onAppInit()" fontFamily="Arial">
 	<mx:Script>
 		<![CDATA[
 import com.serialization.json.JSON;
@@ -13,6 +13,7 @@ import mx.collections.Sort;
 import mx.collections.SortField;
 
 public var wantPopup:Boolean = true;
+public var wantUpdate:Boolean = true;
 public var popupKeywords:String = "";
 
 [Bindable]
@@ -60,7 +61,7 @@ private function getServerConfig(key:String, def:String=""):String {
 private function setConfig(key:String, val:String):void {
 	var ba:ByteArray = new ByteArray();
 	ba.writeUTF(val);
-	EncryptedLocalStore.setItem(key, ba, true);
+	EncryptedLocalStore.setItem(key, ba);
 }
 
 private function setServerConfig(key:String, val:String):void {
@@ -73,7 +74,8 @@ private function serverKey(key:String):String {
 
 private function onAppInit():void {
 	wantPopup = (getConfig("wantPopup", "true") == "true");
-	popupKeywords = getConfig("wantPopup", "");
+	wantUpdate = (getConfig("wantUpdate", "true") == "true");
+	popupKeywords = getConfig("popupKeywords", "");
 
 	myName = InputName.text = getConfig("myName", "");
 	myPassword = InputPassword.text = getConfig("myPassword", "");
@@ -88,7 +90,29 @@ private function onAppInit():void {
 	addKeyHandler();
 	
 	this.purr = new Purr(15);
+
+	NativeApplication.nativeApplication.addEventListener( Event.EXITING, 
+		function(e:Event):void {
+			var opened:Array = NativeApplication.nativeApplication.openedWindows;
+			for (var i:int = 0; i < opened.length; i ++) {
+				opened[i].close();
+			}
+	});	
+
+	setApplicationVersion();
 	
+	// Check for updates every day
+	appUpdater.updateURL = "http://topaz.socialtext.net/~audreyt/flashSignals/update.xml";
+	appUpdater.isCheckForUpdateVisible = false;
+	if (wantUpdate) {
+		appUpdater.delay = 24 * 60 * 60 * 1000;
+		appUpdater.addEventListener(UpdateEvent.INITIALIZED, onUpdate);
+	}
+	appUpdater.initialize(); 
+}
+
+private function onUpdate(event:UpdateEvent):void {
+	appUpdater.checkNow(); // Go check for an update now
 }
 
 private function addKeyHandler():void {
@@ -164,7 +188,7 @@ private function notify (title:String, htmlText:String, icon:Class=null):void {
 	} catch (e:*) {}
 }
 
-private function loginSuccess (signals:String):void {
+private function loginSuccess (signals:*):void {
 	LoginPanel.visible = false;
   	Entry.visible = true;
 	Input.setFocus();		
@@ -251,8 +275,8 @@ private function getPersonPanels (id:String):void {
 	HTML.htmlLoader.window.getData(myServer + '/data/people/' + encodeURIComponent(id), myName, myPassword, 
 	
 	
-	function(data:String):void {
-		var profile:Object = JSON.deserialize(data);
+	function(data:*):void {
+		var profile:Object = data as Object;
 		
 		if (profile.email && profile.email == myName) {
 			setServerConfig("myId", myId = profile.id);	
@@ -288,7 +312,7 @@ private function gotFeed (html:*, feed:String):void {
 			'a[href] img:hover { width: 31px; height: 31px; padding-bottom: 0px; padding-top: 0px } } ' + 
 			'a[href] img { padding-bottom: 2px; padding-top: 2px; } ' +
 			'tr.small { font-size: 11px !important }'+ 
-			'tbody { font-size: 13px; font-family: Arial } </style><base href="' + myServer + '">')
+			'tbody { font-size: 12px; font-family: Arial } </style><base href="' + myServer + '">')
 			   .replace(/<td /g, '<td style="padding-bottom: 5px;border-bottom: 1px solid #999"')
 			   .replace(/\/\?profile\/(\d+)"><img /g, 'person:$1"><img alt="$1" ') //'
 			   .replace(
@@ -328,8 +352,8 @@ private function htmlComplete(html:*):void {
 		};
 	}
 }
-private function gotPeople (col:ArrayCollection, people:String):void {
-	var ar:Array = JSON.deserialize(people) as Array;
+private function gotPeople (col:ArrayCollection, people:*):void {
+	var ar:Array = people as Array;
 	col.removeAll();
 	for each(var s:Object in ar) {
 		col.addItem({
@@ -342,13 +366,12 @@ private function gotPeople (col:ArrayCollection, people:String):void {
 	}
 }
 
-private function gotSignals (signals:String, showNotification:Boolean=true):void {
+private var oldSignals:Array = [];
+private function gotSignals (signals:*, showNotification:Boolean=true):void {
 	try {
-		var ar:Array = JSON.deserialize(signals) as Array;
+		var ar:Array = signals as Array;
 
 		var myTimestamp:String = Timestamp;
-
-	    var oldSignals:Array = Signals.toArray();
      	
      	for each(var s:Object in ar.reverse()) {
      		if (oldSignals.some(function (element:*, index:int, arr:Array):Boolean {
@@ -369,6 +392,12 @@ private function gotSignals (signals:String, showNotification:Boolean=true):void
 				img: myServer + '/data/people/' + s.user_id + '/photo',
 				profile: myServer + '/?profile/' + s.user_id
 			}, 0);
+			
+			oldSignals.push({
+				user: s.best_full_name,
+				at: s.at
+			});
+			
 			myTimestamp = s.at;
 
 			if (showNotification && s.user_id != myId) {
@@ -384,7 +413,7 @@ private function gotSignals (signals:String, showNotification:Boolean=true):void
 				
 				if (wantNotify) {
 					notify(
-						s.best_full_name + " signals:",
+						s.best_full_name + ":",
 						s.body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 							  .replace(/^\/me\s+/, '<EM style="color: #004400">'),
 						signalIcon
@@ -635,22 +664,25 @@ else {
 		txtFeed.text = Math.round(FeedClock.delay / 1000).toString();
 		txtNetwork.text = Math.round(NetworkClock.delay / 1000).toString();
 		chkWantPopup.selected = wantPopup;
+		chkWantUpdate.selected = wantUpdate;
 		txtPopupKeywords.text = popupKeywords.replace(/^\s+/, '').replace(/\s+$/, '');
 		Settings.visible = true;
 		" enabled="true"/>
 	</mx:Canvas>
-	<mx:Panel hideEffect="hideView" showEffect="showEffects" id="Settings" width="300" height="256" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" visible="false" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
-		<mx:Button label="OK" fontSize="11" icon="@Embed(source='icons/accept.gif')" labelPlacement="right" fontFamily="Arial" alpha="0.8" click="Settings.visible=false;
+	<mx:Panel hideEffect="hideView" showEffect="showEffects" id="Settings" width="308" height="296" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" visible="false" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
+		<mx:Button label="OK" fontSize="11" icon="@Embed(source='icons/accept.gif')" labelPlacement="right" fontFamily="Arial" alpha="1" click="Settings.visible=false;
 		setConfig('signalClock', (SignalClock.delay = Number(txtSignal.text) * 1000).toString());
 		setConfig('feedClock', (FeedClock.delay = Number(txtFeed.text) * 1000).toString());
 		setConfig('networkClock', (NetworkClock.delay = Number(txtNetwork.text) * 1000).toString());
 		setConfig('wantPopup', ((wantPopup = chkWantPopup.selected) ? 'true' : 'false'));
-		setConfig('popupKeyword', (popupKeywords = txtPopupKeywords.text));
+		setConfig('wantUpdate', ((wantUpdate = chkWantUpdate.selected) ? 'true' : 'false'));
+		setConfig('popupKeywords', (popupKeywords = txtPopupKeywords.text));
 		NetworkClock.reset(); NetworkClock.start();
 		FeedClock.reset(); FeedClock.start();
 		SignalClock.reset(); SignalClock.start();
 		" right="99" bottom="10"/>
-		<mx:Button label="Cancel" fontSize="11" icon="@Embed(source='icons/cancel.gif')" labelPlacement="right" fontFamily="Arial" alpha="0.8" click="Settings.visible=false" right="10" bottom="10"/>
+		<mx:Button click="appUpdater.checkNow()" label="Check now" fontSize="11" labelPlacement="right" fontFamily="Arial" alpha="1"  right="10" bottom="56" width="81" paddingLeft="0" paddingRight="0"/>
+		<mx:Button label="Cancel" fontSize="11" icon="@Embed(source='icons/cancel.gif')" labelPlacement="right" fontFamily="Arial" alpha="1" click="Settings.visible=false" right="10" bottom="10"/>
 		<mx:Label x="10" y="10" text="Signals:"/>
 		<mx:Label x="10" y="38" text="Activities:"/>
 		<mx:Label x="10" y="66" text="Followers:"/>
@@ -665,17 +697,32 @@ else {
 		<mx:Label y="38" text="seconds" right="10"/>
 		<mx:Label y="66" text="seconds" right="10"/>
 		<mx:CheckBox id="chkWantPopup" x="10" y="105" label="Display new signals as popup notifications"/>
-		<mx:TextInput x="159" y="129" width="111" id="txtPopupKeywords"/>
+		<mx:CheckBox id="chkWantUpdate" x="10" y="175" label="Check for updates on startup"/>
+		<mx:TextInput y="129" width="119" id="txtPopupKeywords" right="10"/>
 		<mx:HRule x="2" y="95" width="278"/>
 		<mx:HRule x="1" y="165" width="278"/>
+		<mx:HRule x="0" y="206" width="278"/>
 	</mx:Panel>
 	<mx:Script>
 		<![CDATA[
 			
-			import com.adobe.air.notification.Notification;
-			import com.adobe.air.notification.Purr;
-			private var purr:Purr;
+import com.adobe.air.notification.Notification;
+import com.adobe.air.notification.Purr;
+private var purr:Purr;
 
+
+import air.update.ApplicationUpdaterUI;
+import air.update.events.UpdateEvent;
+
+[Bindable]
+private var appVersion:String;
+private var appUpdater:ApplicationUpdaterUI = new ApplicationUpdaterUI(); 
+
+private function setApplicationVersion():void {
+	var appXML:XML = NativeApplication.nativeApplication.applicationDescriptor;
+	var ns:Namespace = appXML.namespace();
+	appVersion = appXML.ns::version;
+}
 		]]>
 	</mx:Script>
 </mx:WindowedApplication>
