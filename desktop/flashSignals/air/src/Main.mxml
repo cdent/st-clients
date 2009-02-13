@@ -19,8 +19,8 @@ public var popupKeywords:String = "";
 [Bindable]
 public var updateInterval:int = 10;
 
-[Bindable]
-public var Signals:ArrayCollection = new ArrayCollection([]);
+// [Bindable]
+// public var Signals:ArrayCollection = new ArrayCollection([]);
 
 [Bindable]
 public var Watchlist:ArrayCollection = new ArrayCollection([]);
@@ -79,7 +79,7 @@ private function onAppInit():void {
 
 	myName = InputName.text = getConfig("myName", "");
 	myPassword = InputPassword.text = getConfig("myPassword", "");
-	myServer = InputServer.text = getConfig("myServer", "https://www2.socialtext.net");
+	myServer = InputServer.text = getConfig("myServer", "https://www2.socialtext.net/");
 
 	NetworkClock = new Timer(Number(getConfig("networkClock", "600000")), 0);
 	FeedClock = new Timer(Number(getConfig("feedClock", "60000")), 0);
@@ -155,6 +155,8 @@ private function shorcutHandler(event:KeyboardEvent):void {
 	}
 }
 private function domInitialized(event:Event):void {
+	HTML.htmlLoader.placeLoadStringContentInApplicationSandbox = true;
+	HTML.htmlLoader.window.getPerson = getPerson;
 	HTML.htmlLoader.window.gotPeople = gotPeople;
 	HTML.htmlLoader.window.gotSignals = gotSignals;
 	HTML.htmlLoader.window.refreshSignals = refreshSignals;
@@ -162,6 +164,11 @@ private function domInitialized(event:Event):void {
 	HTML.htmlLoader.window.loginFailure = loginFailure;
 	HTML.htmlLoader.window.startTimer = startTimer;
 	HTML.htmlLoader.window.refreshPersonWatchlist = refreshPersonWatchlist;
+	HTML.htmlLoader.window.navigateTo = function(url:String):void{
+		var request:URLRequest = new URLRequest(url);
+		navigateToURL(request,"_blank");
+	};
+
 	LoginPanel.visible = true;
 }
 
@@ -331,7 +338,6 @@ private function gotFeed (html:*, feed:String):void {
 			   	})
 			   .replace(/<tbody>\s*<\/tbody>/, '<tbody><tr><td><em>No recent events found.</em></td></tr></tbody>');
 	html.htmlText = feed;
-trace(feed);
 	}
 }
 
@@ -378,6 +384,27 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
         		return (element.at == s.at && element.user_id == s.user_id);
 	    	})) continue; // De-duplication
 	    	
+	    	HTML.htmlLoader.window.addSignalEntry({
+				user: s.best_full_name,
+				at: s.at,
+				text: Emoticon.replaceEmoticon(
+					  s.body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+							.replace(/^\/me\s+/, '<EM style="color: #004400">')
+							.replace(/(@\S+)/g, '<span style="font-weight: bold">$1</span>')
+							.replace(/(https?:\S+)/g, '</FONT><A target="_blank" style="text-decoration: none" href="$1">$1</A><FONT color="#000000">')
+							.replace(/\{\s*bz:\s*(\d+)\s*\}/g, '<a style="color: #4183c4" href="https://bugs.socialtext.net:555/show_bug.cgi?id=$1">$&</a>')
+				),
+				user_id: s.user_id,
+				img: ImageCacheManager.getInstance().getImageByURL(
+					myServer + '/data/people/' + s.user_id + '/photo'
+				),
+				profile: myServer + '/?profile/' + s.user_id	    		
+	    	});
+	    	
+	    	if (s.user_id == myId) {
+	    		HTML.htmlLoader.window.scrollToTop();
+	    	}
+	    	/*
 			Signals.addItemAt({
 				user: s.best_full_name,
 				at: s.at,			
@@ -392,9 +419,10 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
 				img: myServer + '/data/people/' + s.user_id + '/photo',
 				profile: myServer + '/?profile/' + s.user_id
 			}, 0);
+			*/
 			
 			oldSignals.push({
-				user: s.best_full_name,
+				user_id: s.user_id,
 				at: s.at
 			});
 			
@@ -421,6 +449,9 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
 				}
 			}
 		}
+
+		HTML.htmlLoader.window.updateTimestamps();
+
 		if (Timestamp != myTimestamp) {
 			Timestamp = myTimestamp;
 			doScroll();
@@ -440,7 +471,7 @@ private function securityError(evt:Event):void {
 }
 
 private function doScroll():void {
- 	List.verticalScrollPosition=0;
+// 	List.verticalScrollPosition=0;
 }
 
 private function displayView(target:Button, view:*, forced:Boolean=false):void {
@@ -510,11 +541,9 @@ private function refreshSignals():void {
 }
 
 private function postSignal():void {
-	doScroll();
 	if (Input.text.length == 0) { return; }
 	HTML.htmlLoader.window.postSignal(myServer, myName, myPassword, Input.text);
 	Input.text = "";
-	doScroll();
 }
 
 private function keyPressed():void {
@@ -551,7 +580,10 @@ private function keyPressed():void {
 		<mx:Label width="24" right="10" top="5" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" fontFamily="Arial" textAlign="center" color="#D0D0D0" id="Len" text="{140-Input.text.length}"/>
 	</mx:Canvas>
 	<mx:Canvas hideEffect="hideView" showEffect="showEffects" id="View" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10" visible="false">
+	<!--
 		<mx:List backgroundColor="#ffffff" styleName="List" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="List" dataProvider="{Signals}" itemRenderer="Signal" focusEnabled="true" cornerRadius="5" selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false" useHandCursor="true"></mx:List>
+	-->
+		<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="HTML" focusEnabled="true"></mx:HTML>
 	</mx:Canvas>
 	<mx:Panel showEffect="showEffectsLoginPanel" hideEffect="hideEffects" width="360" height="150" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Connect to Socialtext" fontSize="12" enabled="true" id="LoginPanel" defaultButton="{Login}" visible="false">
 		<mx:Label fontSharpness="400" fontAntiAliasType="advanced" fontGridFitType="pixel" y="10" text="User ID" fontSize="12" textAlign="right" width="72" left="5"/>
@@ -567,7 +599,6 @@ private function keyPressed():void {
 		<mx:TextInput text="" tabIndex="2" y="39" width="163" fontSize="11" right="95" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true"/>
 		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
 		</mx:Panel>
-	<mx:HTML id="HTML" visible="false" left="190" top="19" right="131" height="80"/>
 	<mx:Canvas width="45" height="45" left="0" top="0">
 		<mx:Button id="btnConversations" x="21" y="0" width="22" height="22" toolTip="Conversations (Ctrl-2)" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" icon="@Embed(source='icons/comment-16.png')"  click="displayView(event.target as Button, ConversationsView);" enabled="false"/>
 		<mx:Button id="btnColleagues" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/follow-16.png')" toolTip="Colleagues (Ctrl-3)" click="displayView(event.target as Button, ColleaguesView);" enabled="false"/>
@@ -652,7 +683,8 @@ else {
 	</mx:Canvas>
 	<mx:Canvas width="23" height="45" top="0" right="0">
 		<mx:Button styleName="DisabledButton" id="btnLogout" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/disconnect.gif')" toolTip="Log out" click="Entry.visible = false;
-		Signals.removeAll();
+//		Signals.removeAll();
+		oldSignals = [];
 		Watchlist.removeAll();
 		Watchers.removeAll();
 		NetworkClock.reset();

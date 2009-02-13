@@ -1,6 +1,7 @@
 <html><head>
 <script src="jquery-1.3.1.min.js"></script>
 <script src="json2.min.js"></script>
+<script src="madlibs.js"></script>
 <script language="Javascript">
 function doLogin (url, username, password) {
     $.ajax({
@@ -118,4 +119,163 @@ function postSignal (url, username, password, signal) {
     });
 }
 
-</script></head><body>xxx</body></html>
+function addSignalEntry (data) {
+    var id = 'id-'+Math.random().toString().replace(/\D/g, '_');
+    var user = data.user.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    $('#list').prepend(
+        '<table width="100%" border="0" cellpadding="0" cellspacing="0" id="tbl">'
+        + '<tr valign="top">'
+        + '<td rowspan="2" height="52" width="52">'
+        + '<a style="margin-left: 4px" href="#foo">'
+        + '<img id="img_' + id + '" class="avatar" src="' + data.img + '" width="44" height="44" /></a></td>'
+        + '<td height="14px" class="info"><a style="margin-left: 4px" id="profile_' + id + '" href="#foo">'
+        + user
+        + '</a> <span class="madlib-ago" id="' + data.at + '"></span></td></tr><tr valign="top">'
+        + '<td id="text_' + id + '" class="text"><span style="display: block; margin-left: 4px">' + data.text + '</span></td>'
+        + '</tr></table>'
+    );
+    $('#img_' + id).click(function(){
+        getPerson(data.user_id, data.user);
+    });
+    $('#profile_' + id).click(function(){
+        navigateTo(data.profile);
+    });
+    $('a', '#text_' + id).each(function(){
+        var $a = $(this);
+        var href = $a.attr('href');
+        $a.click(function(){
+            navigateTo(href);
+            return false;
+        });
+    });
+}
+
+function scrollToTop () {
+    scroll(0, 0);
+}
+
+
+$(function(){
+    return;
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'https://www2.socialtext.net/data/people/3030/photo',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+    addSignalEntry({
+        at: '20090101T123456Z', user_id: 133,
+        profile: 'http://www.google.com',
+        img: 'http://www.google.com',
+        text: 'moose',
+        user: 'Moose is big'
+    });
+});
+</script><style><!--
+table {
+    font-family: 'Arial';
+    font-size: 12px;
+    border-bottom: 2px ridge #ffffff;
+    padding-bottom: 2px;
+    padding-top: 4px;
+}
+.avatar {
+    margin-top: 4px;
+    margin-left: 4px;
+    -webkit-border-radius: 3px;
+/*    border: 1px solid #999999;
+    -webkit-box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.5);
+    */
+}
+a:hover .avatar {
+    margin-top: 0px;
+    margin-left: 0px;
+/*    border: 1px solid #999999; */
+    width: 50px;
+    height: 50px;
+}
+.info { font-size: 11px; padding-left: 3px; }
+.text { font-size: 12px; padding-left: 3px; }
+.madlib-ago { color: #808080; font-style: italic }
+a { text-decoration: none; color: blue }
+--></style></head>
+<body><div id="list">
+</div></body></html>
