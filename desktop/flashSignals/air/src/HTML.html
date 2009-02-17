@@ -18,19 +18,20 @@ function doLogin (url, username, password) {
     });
 }
 
-function getPeople (url, username, password, container) {
+function getPeople (url, username, password, container, sync) {
 	getData(url, username, password, function(data) {
 		gotPeople(container, data);
-	});
+	}, sync);
 }
 
-function getHTML (url, username, password, callback) {
+function getHTML (url, username, password, callback, payload) {
     $.ajax({
         url: url,
         dataType: "html",
         success: function(data) {
             callback(data);
         },
+        data: payload,
         type: "GET"
     });
 }
@@ -56,13 +57,14 @@ function getColleagues (url, username, password) {
     });
 }
 
-function getData (url, username, password, callback) {
+function getData (url, username, password, callback, sync) {
     $.ajax({
         url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@'),
         dataType: "json",
         success: function(data) {
             callback(data);
         },
+        async: (sync ? false : true),
         type: "GET"
     });
 }
@@ -277,5 +279,5 @@ a:hover .avatar {
 .madlib-ago { color: #808080; font-style: italic }
 a { text-decoration: none; color: blue }
 --></style></head>
-<body><div id="list">
+<body><div id="list" class="X">
 </div></body></html>

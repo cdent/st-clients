@@ -1,26 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:WindowedApplication
- 	title="Socialtext - Login" status="flashSignals {appVersion}" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" creationComplete="onAppInit()" fontFamily="Arial">
+ 	title="Socialtext - Login" status="flairSignals {appVersion}" xmlns:mx="http://www.adobe.com/2006/mxml" layout="absolute" verticalAlign="bottom" minWidth="500" minHeight="385" creationComplete="onAppInit()" fontFamily="Arial">
 	<mx:Script>
 		<![CDATA[
 import com.serialization.json.JSON;
 
 import flash.net.*;
 import flash.system.Capabilities;
+import managers.ConfigManager;
 import org.audreyt.Utils.Emoticon;
 import mx.collections.ArrayCollection;
 import mx.collections.Sort;
 import mx.collections.SortField;
 
+private function REST ():* {
+	return htmSignalAll.htmlLoader.window;
+}
+
 public var wantPopup:Boolean = true;
 public var wantUpdate:Boolean = true;
 public var popupKeywords:String = "";
+public var popupPlace:String = "topRight";
+
+[Bindable]
+public var places:Array = ["topRight", "topLeft", "bottomRight", "bottomLeft"];
 
 [Bindable]
 public var updateInterval:int = 10;
-
-// [Bindable]
-// public var Signals:ArrayCollection = new ArrayCollection([]);
 
 [Bindable]
 public var Watchlist:ArrayCollection = new ArrayCollection([]);
@@ -46,12 +52,7 @@ public var FeedClock:Timer;
 public var NetworkClock:Timer;
 
 private function getConfig(key:String, def:String=""):String {
-	var val:ByteArray;
-	try {
-		val = EncryptedLocalStore.getItem(key);
-	} catch (e:*) {}
-	if (!val) return def;
-	return val.readUTF();
+	return ConfigManager.getConfig(key, def);
 }
 
 private function getServerConfig(key:String, def:String=""):String {
@@ -59,9 +60,7 @@ private function getServerConfig(key:String, def:String=""):String {
 }
 
 private function setConfig(key:String, val:String):void {
-	var ba:ByteArray = new ByteArray();
-	ba.writeUTF(val);
-	EncryptedLocalStore.setItem(key, ba);
+	ConfigManager.setConfig(key, val);
 }
 
 private function setServerConfig(key:String, val:String):void {
@@ -76,6 +75,7 @@ private function onAppInit():void {
 	wantPopup = (getConfig("wantPopup", "true") == "true");
 	wantUpdate = (getConfig("wantUpdate", "true") == "true");
 	popupKeywords = getConfig("popupKeywords", "");
+	popupPlace = getConfig("popupPlace", "topRight");
 
 	myName = InputName.text = getConfig("myName", "");
 	myPassword = InputPassword.text = getConfig("myPassword", "");
@@ -85,8 +85,8 @@ private function onAppInit():void {
 	FeedClock = new Timer(Number(getConfig("feedClock", "60000")), 0);
 	SignalClock = new Timer(Number(getConfig("signalClock", "10000")), 0);
 
-	HTML.addEventListener(Event.HTML_DOM_INITIALIZE, domInitialized);
-	HTML.location = "HTML.html?" + Number(new Date()).toString();
+	htmSignalAll.addEventListener(Event.HTML_DOM_INITIALIZE, domInitialized);
+	htmSignalAll.location = "HTML.html?" + Number(new Date()).toString();
 	addKeyHandler();
 	
 	this.purr = new Purr(15);
@@ -98,17 +98,6 @@ private function onAppInit():void {
 				opened[i].close();
 			}
 	});	
-
-	setApplicationVersion();
-	
-	// Check for updates every day
-	appUpdater.updateURL = "http://topaz.socialtext.net/~audreyt/flashSignals/update.xml";
-	appUpdater.isCheckForUpdateVisible = false;
-	if (wantUpdate) {
-		appUpdater.delay = 24 * 60 * 60 * 1000;
-		appUpdater.addEventListener(UpdateEvent.INITIALIZED, onUpdate);
-	}
-	appUpdater.initialize(); 
 }
 
 private function onUpdate(event:UpdateEvent):void {
@@ -130,7 +119,7 @@ private function shorcutHandler(event:KeyboardEvent):void {
 		switch (event.keyCode) {
 			case 49: {
 				Input.text = "";
-				displayView(btnSignals, View);
+				displayView(btnSignals, SignalView);
 				break;
 			}
 			case 50: {
@@ -155,21 +144,40 @@ private function shorcutHandler(event:KeyboardEvent):void {
 	}
 }
 private function domInitialized(event:Event):void {
-	HTML.htmlLoader.placeLoadStringContentInApplicationSandbox = true;
-	HTML.htmlLoader.window.getPerson = getPerson;
-	HTML.htmlLoader.window.gotPeople = gotPeople;
-	HTML.htmlLoader.window.gotSignals = gotSignals;
-	HTML.htmlLoader.window.refreshSignals = refreshSignals;
-	HTML.htmlLoader.window.loginSuccess = loginSuccess;
-	HTML.htmlLoader.window.loginFailure = loginFailure;
-	HTML.htmlLoader.window.startTimer = startTimer;
-	HTML.htmlLoader.window.refreshPersonWatchlist = refreshPersonWatchlist;
-	HTML.htmlLoader.window.navigateTo = function(url:String):void{
+SignalStack.selectedIndex = 2;
+SignalStack.selectedIndex = 1;
+SignalStack.selectedIndex = 0;
+	htmSignalAll.htmlLoader.placeLoadStringContentInApplicationSandbox = true;
+
+	REST().getPerson = getPerson;
+	REST().gotPeople = gotPeople;
+	REST().gotSignals = gotSignals;
+	REST().refreshSignals = refreshSignals;
+	REST().loginSuccess = loginSuccess;
+	REST().loginFailure = loginFailure;
+	REST().startTimer = startTimer;
+	REST().refreshPersonWatchlist = refreshPersonWatchlist;
+	REST().navigateTo = function(url:String):void{
 		var request:URLRequest = new URLRequest(url);
 		navigateToURL(request,"_blank");
 	};
 
 	LoginPanel.visible = true;
+
+	callLater(initAppUpdater);
+}
+
+private function initAppUpdater():void {
+	setApplicationVersion(); 
+
+	// Check for updates every day
+	appUpdater.updateURL = "http://topaz.socialtext.net/~audreyt/flashSignals/update.xml";
+	appUpdater.isCheckForUpdateVisible = false;
+	if (wantUpdate) {
+		appUpdater.delay = 24 * 60 * 60 * 1000;
+		appUpdater.addEventListener(UpdateEvent.INITIALIZED, onUpdate);
+	}
+	appUpdater.initialize();
 }
 
 private function loginFailure ():void {
@@ -189,7 +197,7 @@ private function notify (title:String, htmlText:String, icon:Class=null):void {
 	try {
 		var n:Notification = new Notification(title, htmlText, null, 7, new icon);
 		n.htmlText = htmlText;
-		n.position = "topRight";
+		n.position = popupPlace;
 		n.width = 200;
 		this.purr.addNotification(n);
 	} catch (e:*) {}
@@ -209,17 +217,18 @@ private function loginSuccess (signals:*):void {
 	SignalClock.start();
 	SignalClock.addEventListener(TimerEvent.TIMER, onSignalTick);
 
-	HTML.htmlLoader.window.getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword, Watchlist);
-//	HTML.htmlLoader.window.getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword, Watchers);
-
 	myId = getServerConfig("myId");
 	myBestFullName = getServerConfig("myBestFullName");
 
-	getPersonPanels(myName);
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword, Watchlist, true);
 	gotSignals(signals, false);
-	displayView(btnSignals, View, true);
+	displayView(btnSignals, SignalView, true);
+
+	getPersonPanels(myName);
+
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealName), { event_class: 'signal' });
+	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
 	
 	notify("Login successful!", "Checking for new signals every " + Math.round(SignalClock.delay / 1000).toString() + " seconds.", notifyIcon);
 }
@@ -263,23 +272,17 @@ private function getPersonPanels (id:String):void {
 	}
 	
 	PersonActivities.location='Loading.html?' + Math.random().toString();
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/activities/' + encodeURIComponent(id), myName, myPassword, gotHTML(
-		PersonActivities, function(feed:String):String {
-			return feed.replace(/<a class="realName".*?<\/a>/g, '<!-- realName -->')
-//					   .replace(/<a href=".*?">\s*(<img .*?>)\s*<\/a>/g, '$1');
-					   .replace(/<a href(=".*?">\s*<img .*?>\s*<\/a>)/g, '<a name$1');
-					
-//			return feed.replace(/<a class="realName"/, '<a class="realName" style="display:none"');
-		}
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(id), myName, myPassword, gotHTML(
+		PersonActivities, removeRealName
 	));
 	PersonWatchlist.removeAll();
 	PersonWatchers.removeAll();
 	PersonProfile.location = 'Profile.html?' + Math.random().toString();
-	HTML.htmlLoader.window.getPeople(myServer + '/data/people/' + encodeURIComponent(id) + '/watchlist', myName, myPassword, PersonWatchlist);
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(id) + '/watchlist', myName, myPassword, PersonWatchlist);
 
-	HTML.htmlLoader.window.getPeople(myServer + '/data/people/' + encodeURIComponent(id) + '/watchers', myName, myPassword, PersonWatchers);
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(id) + '/watchers', myName, myPassword, PersonWatchers);
 
-	HTML.htmlLoader.window.getData(myServer + '/data/people/' + encodeURIComponent(id), myName, myPassword, 
+	REST().getData(myServer + '/data/people/' + encodeURIComponent(id), myName, myPassword, 
 	
 	
 	function(data:*):void {
@@ -297,8 +300,13 @@ private function getPersonPanels (id:String):void {
 	Accordion.selectedIndex= 0;
 }
 
+static private function removeRealName (feed:String):String {
+	return feed.replace(/<a class="realName".*?<\/a>/g, '<!-- realName -->')
+			   .replace(/<a href(=".*?">\s*<img .*?>\s*<\/a>)/g, '<a name$1');
+}
+
 private function refreshPersonWatchlist (id:String):void {
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
 }
 
 public function getPerson (id:String, name:String=null):void {
@@ -384,7 +392,7 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
         		return (element.at == s.at && element.user_id == s.user_id);
 	    	})) continue; // De-duplication
 	    	
-	    	HTML.htmlLoader.window.addSignalEntry({
+	    	var signalObject:Object = {
 				user: s.best_full_name,
 				at: s.at,
 				text: Emoticon.replaceEmoticon(
@@ -399,10 +407,21 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
 					myServer + '/data/people/' + s.user_id + '/photo'
 				),
 				profile: myServer + '/?profile/' + s.user_id	    		
-	    	});
+	    	};
+
+var ary:Array = Watchlist.toArray();
+	    	if (Watchlist.toArray().some(
+		 		function (element:*, index:int, arr:Array):Boolean {
+		        	return (element.user_id == s.user_id);
+			    }
+			)) {
+				htmSignalColleagues.htmlLoader.window.addSignalEntry(signalObject);
+			}
+
+	    	REST().addSignalEntry(signalObject);
 	    	
 	    	if (s.user_id == myId) {
-	    		HTML.htmlLoader.window.scrollToTop();
+	    		REST().scrollToTop();
 	    	}
 	    	/*
 			Signals.addItemAt({
@@ -450,7 +469,7 @@ private function gotSignals (signals:*, showNotification:Boolean=true):void {
 			}
 		}
 
-		HTML.htmlLoader.window.updateTimestamps();
+		REST().updateTimestamps();
 
 		if (Timestamp != myTimestamp) {
 			Timestamp = myTimestamp;
@@ -494,7 +513,7 @@ private function displayView(target:Button, view:*, forced:Boolean=false):void {
 }
 
 private function showView(view:*):void {
-	for each (var v:Canvas in [PersonView, View, ConversationsView, ColleaguesView, PersonView]) {
+	for each (var v:Canvas in [PersonView, SignalView, ConversationsView, ColleaguesView, PersonView]) {
 		if (v != view) {
 			v.visible = false;
 		}
@@ -513,21 +532,33 @@ private function login():void {
 	setConfig("myPassword", myPassword);
 
   	LoginPanel.enabled = false;
-  	HTML.htmlLoader.window.doLogin(myServer, myName, myPassword);
+  	REST().doLogin(myServer, myName, myPassword);
 }
 
 private function onFeedTick (evt:*):void {
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
-	HTML.htmlLoader.window.getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealName), { event_class: 'signal' });
 }
 
 private function onNetworkTick (evt:*):void {
 //	var id:String = previousId;
 //	previousId = null;
 //	getPersonPanels(id);
-	HTML.htmlLoader.window.getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword, Watchlist);
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword, Watchlist);
 //	HTML.htmlLoader.window.getWatchlist(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword);
 //	HTML.htmlLoader.window.getWatchers(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword);
+}
+
+private function onBtnLogout (target:*):void {
+	Entry.visible = false;
+	oldSignals = [];
+	Watchlist.removeAll();
+	Watchers.removeAll();
+	NetworkClock.reset();
+	FeedClock.reset();
+	SignalClock.reset();
+	displayView(target as Button, LoginPanel, true);
 }
 
 private function onSignalTick (evt:*):void {
@@ -536,13 +567,13 @@ private function onSignalTick (evt:*):void {
 
 private function refreshSignals():void {
 	SignalClock.reset();
-	HTML.htmlLoader.window.getSignals(myServer, myName, myPassword, Timestamp);
+	REST().getSignals(myServer, myName, myPassword, Timestamp);
 	startTimer();
 }
 
 private function postSignal():void {
 	if (Input.text.length == 0) { return; }
-	HTML.htmlLoader.window.postSignal(myServer, myName, myPassword, Input.text);
+	REST().postSignal(myServer, myName, myPassword, Input.text);
 	Input.text = "";
 }
 
@@ -575,20 +606,31 @@ private function keyPressed():void {
 	  	<mx:Zoom zoomWidthFrom="1.0" zoomWidthTo="0.01" zoomHeightFrom="1.0" zoomHeightTo="0.01" duration="500" />
 	</mx:Parallel>
   	<mx:Canvas hideEffect="hideView"  showEffect="showEffects" id="Entry" styleName="Entry" cornerRadius="10"  backgroundAlpha="1.0" left="45" right="24" dropShadowColor="#777777" dropShadowEnabled="true" height="45" visible="false" top="0" enabled="true">
-		<mx:TextInput tabIndex="4" focusEnabled="true"  enter="postSignal()" id="Input" right="40" bottom="10" top="10" left="10" cornerRadius="0" fontFamily="Arial" fontSize="12" borderStyle="inset" fontAntiAliasType="normal"  maxChars="140" change="keyPressed();" />
-		<mx:Button icon="@Embed(source='icons/tick.png')" width="24" fontFamily="Arial" fontSize="10" color="black" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" bottom="8" right="10" height="16" click="postSignal();"/>
+		<mx:TextInput tabIndex="4" focusEnabled="true"  enter="postSignal()" id="Input" right="40" bottom="10" top="10" left="10" cornerRadius="3" fontFamily="Arial" fontSize="12" borderStyle="inset" fontAntiAliasType="normal"  maxChars="140" change="keyPressed();" />
+		<mx:Button alpha="1" icon="@Embed(source='icons/tick.png')" width="24" fontFamily="Arial" fontSize="10" color="black" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" bottom="8" right="10" height="16" click="postSignal();" fillAlphas="[0.9, 0.9, 0.8, 0.8]" fillColors="[#DDDDDD, #BBBBBB]"/>
 		<mx:Label width="24" right="10" top="5" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" fontFamily="Arial" textAlign="center" color="#D0D0D0" id="Len" text="{140-Input.text.length}"/>
 	</mx:Canvas>
-	<mx:Canvas hideEffect="hideView" showEffect="showEffects" id="View" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10" visible="false">
-	<!--
-		<mx:List backgroundColor="#ffffff" styleName="List" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="List" dataProvider="{Signals}" itemRenderer="Signal" focusEnabled="true" cornerRadius="5" selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false" useHandCursor="true"></mx:List>
-	-->
-		<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="10" right="10" top="10" bottom="10" enabled="true" id="HTML" focusEnabled="true"></mx:HTML>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="SignalView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="SignalStack" cornerRadius="3">
+			<mx:Canvas left="0" right="0" top="0" bottom="0" label="All" id="cvsSignalAll" cornerRadius="3">
+				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalAll" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+			<mx:Canvas left="0" right="0" top="0" bottom="0" label="Mine" id="cvsSignalMine" cornerRadius="3">
+				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalMine" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+			<mx:Canvas left="0" right="0" top="0" bottom="0" label="My Colleagues" id="cvsSignalColleagues" cornerRadius="3">
+				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalColleagues" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:ToggleButtonBar dataProvider="SignalStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="5" left="10" fontWeight="normal">
+		</mx:ToggleButtonBar>
+		<mx:Button label="Refresh" right="10" bottom="5" visible="false"/>
+		<mx:Button label="Clear" right="75" bottom="5" visible="false"/>
 	</mx:Canvas>
-	<mx:Panel showEffect="showEffectsLoginPanel" hideEffect="hideEffects" width="360" height="150" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Connect to Socialtext" fontSize="12" enabled="true" id="LoginPanel" defaultButton="{Login}" visible="false">
+	<mx:Panel visible="false" showEffect="showEffectsLoginPanel" hideEffect="hideEffects" width="360" height="160" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Connect to Socialtext" fontSize="12" enabled="true" id="LoginPanel" defaultButton="{Login}">
 		<mx:Label fontSharpness="400" fontAntiAliasType="advanced" fontGridFitType="pixel" y="10" text="User ID" fontSize="12" textAlign="right" width="72" left="5"/>
-		<mx:Label y="39" text="Password" fontSize="12" textAlign="right" width="72" left="5"/>
-		<mx:Label y="68" text="Server" fontSize="12" textAlign="right" width="72" left="5"/>
+		<mx:Label text="Password" fontSize="12" textAlign="right" width="72" left="5" top="40"/>
+		<mx:Label text="Server" fontSize="12" textAlign="right" width="72" left="5" bottom="16"/>
 		<mx:Button styleName="LoginButton" tabIndex="3" label="Login" fontSize="11" right="10" y="38" id="Login" click="login()" icon="@Embed(source='icons/connect.gif')"/>
 		<!--
 		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
@@ -596,13 +638,14 @@ private function keyPressed():void {
 		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
 	-->
 		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
-		<mx:TextInput text="" tabIndex="2" y="39" width="163" fontSize="11" right="95" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true"/>
+		<mx:TextInput text="" tabIndex="2" width="163" fontSize="11" right="95" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true" top="39"/>
 		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
+		<mx:HRule x="10" y="69" width="320" height="4"/>
 		</mx:Panel>
 	<mx:Canvas width="45" height="45" left="0" top="0">
 		<mx:Button id="btnConversations" x="21" y="0" width="22" height="22" toolTip="Conversations (Ctrl-2)" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" icon="@Embed(source='icons/comment-16.png')"  click="displayView(event.target as Button, ConversationsView);" enabled="false"/>
 		<mx:Button id="btnColleagues" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/follow-16.png')" toolTip="Colleagues (Ctrl-3)" click="displayView(event.target as Button, ColleaguesView);" enabled="false"/>
-		<mx:Button id="btnSignals" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/signal-20.png')" toolTip="Signals (Ctrl-1)" click="displayView(event.target as Button, View);" enabled="false"/>
+		<mx:Button id="btnSignals" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/signal-20.png')" toolTip="Signals (Ctrl-1)" click="displayView(event.target as Button, SignalView);" enabled="false"/>
 		<mx:Button id="btnNetwork" x="21" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/heart.png')" toolTip="Myself (Ctrl-4)" click="
 		
 		getPersonPanels(myName);
@@ -612,8 +655,7 @@ private function keyPressed():void {
 	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="PersonView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
 	
 	<mx:Accordion id="Accordion" creationPolicy="all"    left="10" top="10" bottom="10" right="10" visible="true">
-		<mx:Canvas label="Activities" visible="true" id="PersonActivitiesCanvas" 
-width="100%" height="100%">
+		<mx:Canvas label="Activities" visible="true" id="PersonActivitiesCanvas" width="100%" height="100%">
 			<mx:HTML fontSize="12" fontFamily="Arial" location="Loading.html" cornerRadius="5" id="PersonActivities" complete="htmlComplete(PersonActivities)" left="0" top="0" bottom="0" right="0"/>
 		</mx:Canvas>
 		<mx:Canvas label="Network" width="100%" height="100%" id="PersonNetworkCanvas">
@@ -626,7 +668,7 @@ width="100%" height="100%">
 			<mx:CheckBox  fontFamily="Arial" fontSize="11" 
 				click="
 if (PersonFollowCheckbox.selected) {
-	HTML.htmlLoader.window.followPerson(myServer, myName, myPassword, previousId);
+	REST().followPerson(myServer, myName, myPassword, previousId);
 	Watchlist.addItem({
 		user_id: previousId
 	});
@@ -645,7 +687,7 @@ if (PersonFollowCheckbox.selected) {
 }
 
 else {
-	HTML.htmlLoader.window.unfollowPerson(myServer, myName, myPassword, previousId);
+	REST().unfollowPerson(myServer, myName, myPassword, previousId);
 	var parr:Array = PersonWatchers.toArray();
 	PersonWatchers.removeAll();
 	for each (var pelm:Object in parr) {
@@ -682,15 +724,7 @@ else {
 		</mx:Canvas>
 	</mx:Canvas>
 	<mx:Canvas width="23" height="45" top="0" right="0">
-		<mx:Button styleName="DisabledButton" id="btnLogout" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/disconnect.gif')" toolTip="Log out" click="Entry.visible = false;
-//		Signals.removeAll();
-		oldSignals = [];
-		Watchlist.removeAll();
-		Watchers.removeAll();
-		NetworkClock.reset();
-		FeedClock.reset();
-		SignalClock.reset();
-		displayView(event.target as Button, LoginPanel);" enabled="false"/>
+		<mx:Button styleName="DisabledButton" id="btnLogout" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/disconnect.gif')" toolTip="Log out" click="onBtnLogout(event.target)" enabled="false"/>
 		<mx:Button id="btnSettings" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/wrench.gif')" toolTip="Settings" click="
 		txtSignal.text = Math.round(SignalClock.delay / 1000).toString();
 		txtFeed.text = Math.round(FeedClock.delay / 1000).toString();
@@ -698,10 +732,11 @@ else {
 		chkWantPopup.selected = wantPopup;
 		chkWantUpdate.selected = wantUpdate;
 		txtPopupKeywords.text = popupKeywords.replace(/^\s+/, '').replace(/\s+$/, '');
+		selPopupPlace.selectedItem = popupPlace;
 		Settings.visible = true;
 		" enabled="true"/>
 	</mx:Canvas>
-	<mx:Panel hideEffect="hideView" showEffect="showEffects" id="Settings" width="308" height="296" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" visible="false" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
+	<mx:Panel visible="false" hideEffect="hideView" showEffect="showEffects" id="Settings" width="308" height="304" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
 		<mx:Button label="OK" fontSize="11" icon="@Embed(source='icons/accept.gif')" labelPlacement="right" fontFamily="Arial" alpha="1" click="Settings.visible=false;
 		setConfig('signalClock', (SignalClock.delay = Number(txtSignal.text) * 1000).toString());
 		setConfig('feedClock', (FeedClock.delay = Number(txtFeed.text) * 1000).toString());
@@ -709,6 +744,7 @@ else {
 		setConfig('wantPopup', ((wantPopup = chkWantPopup.selected) ? 'true' : 'false'));
 		setConfig('wantUpdate', ((wantUpdate = chkWantUpdate.selected) ? 'true' : 'false'));
 		setConfig('popupKeywords', (popupKeywords = txtPopupKeywords.text));
+		setConfig('popupPlace', (popupPlace = selPopupPlace.selectedItem as String));
 		NetworkClock.reset(); NetworkClock.start();
 		FeedClock.reset(); FeedClock.start();
 		SignalClock.reset(); SignalClock.start();
@@ -725,15 +761,16 @@ else {
 		<mx:Label y="10" text="Check every" right="129"/>
 		<mx:Label y="38" text="Check every" right="129"/>
 		<mx:Label y="66" text="Check every" right="129"/>
-		<mx:Label y="131" text="Filter by keywords:" right="129"/>
+		<mx:Label y="135" text="Filter by keywords:" right="129"/>
 		<mx:Label y="38" text="seconds" right="10"/>
 		<mx:Label y="66" text="seconds" right="10"/>
-		<mx:CheckBox id="chkWantPopup" x="10" y="105" label="Display new signals as popup notifications"/>
-		<mx:CheckBox id="chkWantUpdate" x="10" y="175" label="Check for updates on startup"/>
-		<mx:TextInput y="129" width="119" id="txtPopupKeywords" right="10"/>
+		<mx:CheckBox id="chkWantPopup" x="10" y="105" label="New signals pop up at:"/>
+		<mx:CheckBox id="chkWantUpdate" x="10" y="175" label="Check for updates on launch"/>
+		<mx:TextInput y="133" width="119" id="txtPopupKeywords" right="10"/>
 		<mx:HRule x="2" y="95" width="278"/>
 		<mx:HRule x="1" y="165" width="278"/>
 		<mx:HRule x="0" y="206" width="278"/>
+		<mx:ComboBox x="167" y="106" width="111" dataProvider="{places}" fontFamily="Arial" fontSize="11" id="selPopupPlace"></mx:ComboBox>
 	</mx:Panel>
 	<mx:Script>
 		<![CDATA[
