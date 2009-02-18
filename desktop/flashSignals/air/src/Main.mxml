@@ -124,19 +124,19 @@ private function shorcutHandler(event:KeyboardEvent):void {
 			}
 			case 50: {
 				Input.text = "";
-				displayView(btnConversations, ConversationsView);
+				displayView(btnActivity, ActivityView);
 				break;
 			}
 			case 51: {
 				Input.text = "";
 				event.preventDefault();
-				displayView(btnColleagues, ColleaguesView);
+				displayView(btnPeople, PeopleView);
 				break;
 			}
 			case 52: {
 				Input.text = "";
 				event.preventDefault();
-				displayView(btnNetwork, PersonView);
+				displayView(btnNetwork, NetworkView);
 				break;
 			}
 		}
@@ -144,9 +144,6 @@ private function shorcutHandler(event:KeyboardEvent):void {
 	}
 }
 private function domInitialized(event:Event):void {
-SignalStack.selectedIndex = 2;
-SignalStack.selectedIndex = 1;
-SignalStack.selectedIndex = 0;
 	htmSignalAll.htmlLoader.placeLoadStringContentInApplicationSandbox = true;
 
 	REST().getPerson = getPerson;
@@ -226,9 +223,9 @@ private function loginSuccess (signals:*):void {
 
 	getPersonPanels(myName);
 
-	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealName), { event_class: 'signal' });
-	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
-	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealNameAndAssetIcon), { event_class: 'signal' });
+	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityConversations));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityColleagues));
 	
 	notify("Login successful!", "Checking for new signals every " + Math.round(SignalClock.delay / 1000).toString() + " seconds.", notifyIcon);
 }
@@ -305,15 +302,21 @@ static private function removeRealName (feed:String):String {
 			   .replace(/<a href(=".*?">\s*<img .*?>\s*<\/a>)/g, '<a name$1');
 }
 
+static private function removeRealNameAndAssetIcon (feed:String):String {
+	return removeRealName(feed).replace(
+		/(<img\s+class="asset-icon"[^>]*>)/g, '<!-- assetIcon -->'
+	);
+}
+
 private function refreshPersonWatchlist (id:String):void {
-	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityColleagues));
 }
 
 public function getPerson (id:String, name:String=null):void {
 	this.title = "Socialtext - " + (name || "Myself");
 	previousName = name;
 	getPersonPanels(id);
-	displayView(null, PersonView);
+	displayView(null, NetworkView);
 }
 import managers.ImageCacheManager;
 
@@ -331,7 +334,7 @@ private function gotFeed (html:*, feed:String):void {
 			   .replace(/<td /g, '<td style="padding-bottom: 5px;border-bottom: 1px solid #999"')
 			   .replace(/\/\?profile\/(\d+)"><img /g, 'person:$1"><img alt="$1" ') //'
 			   .replace(
-			   /(<a \w+="person:.*?<\/a>)(<img class="asset-icon".*?>)\s*(<!-- realName -->|<a class="realName".*?<\/a>) (.*?)\(<span class="ago_text">(.*?)<\/span>\)/g, //"
+			   /(<a \w+="person:.*?<\/a>)(<!-- assetIcon -->|<img class="asset-icon".*?>)\s*(<!-- realName -->|<a class="realName".*?<\/a>) (.*?)\(<span class="ago_text">(.*?)<\/span>\)/g, //"
 			    '<table width="100%" border=0 cellpadding=0 cellspacing=1><tr class="small" valign=top><td width="30" rowspan=2>' + 
 			    '$1</td><td>$3 ' + 
 			    '<em class="ago_text" style="font-style: italics; color: #666666">' +
@@ -496,7 +499,7 @@ private function doScroll():void {
 private function displayView(target:Button, view:*, forced:Boolean=false):void {
 	if (target && !target.enabled && !forced) { return; }
 	if (target) this.title = "Socialtext - " + target.toolTip.replace(/ \(.*/, '').replace(/Log out/, 'Login');
-	for each (var b:Button in [btnLogout, btnConversations, btnColleagues, btnSignals, btnNetwork]) {
+	for each (var b:Button in [btnLogout, btnActivity, btnPeople, btnSignals, btnNetwork]) {
         if (b == target) {
 			b.styleName = "DisabledButton";
 			b.enabled = false;
@@ -513,7 +516,7 @@ private function displayView(target:Button, view:*, forced:Boolean=false):void {
 }
 
 private function showView(view:*):void {
-	for each (var v:Canvas in [PersonView, SignalView, ConversationsView, ColleaguesView, PersonView]) {
+	for each (var v:Canvas in [NetworkView, SignalView, ActivityView, PeopleView, NetworkView]) {
 		if (v != view) {
 			v.visible = false;
 		}
@@ -536,9 +539,9 @@ private function login():void {
 }
 
 private function onFeedTick (evt:*):void {
-	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Conversations));
-	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(Colleagues));
-	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealName), { event_class: 'signal' });
+	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityConversations));
+	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityColleagues));
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealNameAndAssetIcon), { event_class: 'signal' });
 }
 
 private function onNetworkTick (evt:*):void {
@@ -591,6 +594,9 @@ private function keyPressed():void {
 		.List { borderStyle: applicationControlBar; fillColors: #ffffff, #ffffff; fillAlphas: 1, 1; highlightAlphas: 0, 0; }
 		.DisabledButton {  fillColors: #aaccdd, #88aabb; fillAlphas: 0.5, 0.5; }
 	</mx:Style>
+	<mx:Fade id="showTab" alphaFrom="0.75" alphaTo="1" duration="150" />
+	<mx:Fade id="hideTab" alphaFrom="1" alphaTo="0.75" duration="150" />
+
 	<mx:Parallel id="showEffectsLoginPanel" effectEnd="InputName.setFocus()">
 		<mx:Fade alphaFrom="0.01" alphaTo="1" duration="500" />
 	</mx:Parallel>
@@ -612,17 +618,17 @@ private function keyPressed():void {
 	</mx:Canvas>
 	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="SignalView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
 		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="SignalStack" cornerRadius="3">
-			<mx:Canvas left="0" right="0" top="0" bottom="0" label="All" id="cvsSignalAll" cornerRadius="3">
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="All" id="cvsSignalAll" cornerRadius="3">
 				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalAll" focusEnabled="true"></mx:HTML>			
 			</mx:Canvas>
-			<mx:Canvas left="0" right="0" top="0" bottom="0" label="Mine" id="cvsSignalMine" cornerRadius="3">
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="Mine" id="cvsSignalMine" cornerRadius="3">
 				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalMine" focusEnabled="true"></mx:HTML>			
 			</mx:Canvas>
-			<mx:Canvas left="0" right="0" top="0" bottom="0" label="My Colleagues" id="cvsSignalColleagues" cornerRadius="3">
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="My Colleagues" id="cvsSignalColleagues" cornerRadius="3">
 				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalColleagues" focusEnabled="true"></mx:HTML>			
 			</mx:Canvas>
 		</mx:ViewStack>
-		<mx:ToggleButtonBar dataProvider="SignalStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="5" left="10" fontWeight="normal">
+		<mx:ToggleButtonBar dataProvider="SignalStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0">
 		</mx:ToggleButtonBar>
 		<mx:Button label="Refresh" right="10" bottom="5" visible="false"/>
 		<mx:Button label="Clear" right="75" bottom="5" visible="false"/>
@@ -643,16 +649,15 @@ private function keyPressed():void {
 		<mx:HRule x="10" y="69" width="320" height="4"/>
 		</mx:Panel>
 	<mx:Canvas width="45" height="45" left="0" top="0">
-		<mx:Button id="btnConversations" x="21" y="0" width="22" height="22" toolTip="Conversations (Ctrl-2)" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" icon="@Embed(source='icons/comment-16.png')"  click="displayView(event.target as Button, ConversationsView);" enabled="false"/>
-		<mx:Button id="btnColleagues" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/follow-16.png')" toolTip="Colleagues (Ctrl-3)" click="displayView(event.target as Button, ColleaguesView);" enabled="false"/>
+		<mx:Button id="btnActivity" x="21" y="0" width="22" height="22" toolTip="Activity (Ctrl-2)" paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0" icon="@Embed(source='icons/comment-16.png')"  click="displayView(event.target as Button, ActivityView);" enabled="false"/>
+		<mx:Button id="btnPeople" x="0" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/group.gif')" toolTip="People (Ctrl-3)" click="displayView(event.target as Button, PeopleView);" enabled="false"/>
 		<mx:Button id="btnSignals" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/signal-20.png')" toolTip="Signals (Ctrl-1)" click="displayView(event.target as Button, SignalView);" enabled="false"/>
 		<mx:Button id="btnNetwork" x="21" y="22" label="Button" width="22" height="22" icon="@Embed(source='icons/heart.png')" toolTip="Myself (Ctrl-4)" click="
-		
 		getPersonPanels(myName);
-		displayView(event.target as Button, PersonView);" enabled="false"/>
+		displayView(event.target as Button, NetworkView);" enabled="false"/>
 	</mx:Canvas>
 
-	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="PersonView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="NetworkView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
 	
 	<mx:Accordion id="Accordion" creationPolicy="all"    left="10" top="10" bottom="10" right="10" visible="true">
 		<mx:Canvas label="Activities" visible="true" id="PersonActivitiesCanvas" width="100%" height="100%">
@@ -713,15 +718,25 @@ else {
 		</mx:Canvas>
 	</mx:Accordion>
 	</mx:Canvas>
-	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ColleaguesView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
-		<mx:Canvas visible="true" id="ConversationsView1" styleName="View2" left="10" right="10" bottom="10" top="10" cornerRadius="10" backgroundColor="#FFFFFF">
-			<mx:HTML fontSize="12" fontFamily="Arial" location="Loading.html" complete="htmlComplete(Colleagues)" cornerRadius="5" id="Colleagues" left="10" top="10" bottom="10" right="10"/>
-		</mx:Canvas>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="PeopleView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
 	</mx:Canvas>
-	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ConversationsView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
-		<mx:Canvas visible="true" id="ConversationsView0" styleName="View2" left="10" right="10" bottom="10" top="10" cornerRadius="10" backgroundColor="#FFFFFF">
-			<mx:HTML fontSize="12" fontFamily="Arial" location="Loading.html" complete="htmlComplete(Conversations)" cornerRadius="5" id="Conversations" left="10" top="10" bottom="10" right="10"/>
-		</mx:Canvas>
+	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ActivityView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="ActivityStack" cornerRadius="3">
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="My Conversations" id="cvsActivityConversations" cornerRadius="3">
+				<mx:HTML complete="htmlComplete(htmActivityConversations)" horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="Loading.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmActivityConversations" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="My Colleagues" id="cvsActivityColleagues" cornerRadius="3">
+				<mx:HTML complete="htmlComplete(htmActivityColleagues)" horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="Loading.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmActivityColleagues" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="Mine" id="cvsActivityMine" cornerRadius="3">
+				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="Loading.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmActivityMine" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="All" id="cvsActivityAll" cornerRadius="3">
+				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="Loading.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmActivityAll" focusEnabled="true"></mx:HTML>			
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:ToggleButtonBar dataProvider="ActivityStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0">
+		</mx:ToggleButtonBar>
 	</mx:Canvas>
 	<mx:Canvas width="23" height="45" top="0" right="0">
 		<mx:Button styleName="DisabledButton" id="btnLogout" x="0" y="0" label="Button" width="22" height="22" icon="@Embed(source='icons/disconnect.gif')" toolTip="Log out" click="onBtnLogout(event.target)" enabled="false"/>
@@ -736,7 +751,7 @@ else {
 		Settings.visible = true;
 		" enabled="true"/>
 	</mx:Canvas>
-	<mx:Panel visible="false" hideEffect="hideView" showEffect="showEffects" id="Settings" width="308" height="304" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
+	<mx:Panel visible="false" hideEffect="hideView" showEffect="showEffects" id="Settings" width="306" height="304" layout="absolute" horizontalCenter="0" verticalCenter="0" title="Settings" fontSize="12" alpha="0.9" backgroundAlpha="1" borderAlpha="1">
 		<mx:Button label="OK" fontSize="11" icon="@Embed(source='icons/accept.gif')" labelPlacement="right" fontFamily="Arial" alpha="1" click="Settings.visible=false;
 		setConfig('signalClock', (SignalClock.delay = Number(txtSignal.text) * 1000).toString());
 		setConfig('feedClock', (FeedClock.delay = Number(txtFeed.text) * 1000).toString());
@@ -749,7 +764,7 @@ else {
 		FeedClock.reset(); FeedClock.start();
 		SignalClock.reset(); SignalClock.start();
 		" right="99" bottom="10"/>
-		<mx:Button click="appUpdater.checkNow()" label="Check now" fontSize="11" labelPlacement="right" fontFamily="Arial" alpha="1"  right="10" bottom="56" width="81" paddingLeft="0" paddingRight="0"/>
+		<mx:Button click="appUpdater.checkNow()" label="Check now" fontSize="11" labelPlacement="right" fontFamily="Arial" alpha="1"  right="10" bottom="66" width="81" paddingLeft="0" paddingRight="0"/>
 		<mx:Button label="Cancel" fontSize="11" icon="@Embed(source='icons/cancel.gif')" labelPlacement="right" fontFamily="Arial" alpha="1" click="Settings.visible=false" right="10" bottom="10"/>
 		<mx:Label x="10" y="10" text="Signals:"/>
 		<mx:Label x="10" y="38" text="Activities:"/>
@@ -767,9 +782,9 @@ else {
 		<mx:CheckBox id="chkWantPopup" x="10" y="105" label="New signals pop up at:"/>
 		<mx:CheckBox id="chkWantUpdate" x="10" y="175" label="Check for updates on launch"/>
 		<mx:TextInput y="133" width="119" id="txtPopupKeywords" right="10"/>
-		<mx:HRule x="2" y="95" width="278"/>
-		<mx:HRule x="1" y="165" width="278"/>
-		<mx:HRule x="0" y="206" width="278"/>
+		<mx:HRule y="95" width="278" horizontalCenter="0"/>
+		<mx:HRule y="164" width="278" horizontalCenter="0"/>
+		<mx:HRule y="204" width="278" horizontalCenter="0"/>
 		<mx:ComboBox x="167" y="106" width="111" dataProvider="{places}" fontFamily="Arial" fontSize="11" id="selPopupPlace"></mx:ComboBox>
 	</mx:Panel>
 	<mx:Script>
