@@ -40,6 +40,9 @@ public var PersonWatchlist:ArrayCollection = new ArrayCollection([]);
 [Bindable]
 public var PersonWatchers:ArrayCollection = new ArrayCollection([]);
 
+[Bindable]
+public var PeopleList:ArrayCollection = new ArrayCollection([]);
+
 public var myId:String = "";
 public var myBestFullName:String = "";
 public var myName:String = "";
@@ -223,10 +226,15 @@ private function loginSuccess (signals:*):void {
 
 	getPersonPanels(myName);
 
-	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealNameAndAssetIcon), { event_class: 'signal' });
 	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityConversations));
 	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityColleagues));
-	
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityMine), {event_class: 'page'});
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealNameAndAssetIcon), { event_class: 'signal' });
+
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword, Watchers);
+	REST().getPeople(myServer + '/data/people', myName, myPassword, PeopleList);
+	REST().getHTML(myServer + '/data/events', myName, myPassword, gotHTML(htmActivityAll), {event_class: 'page', contributions: '1'});
+
 	notify("Login successful!", "Checking for new signals every " + Math.round(SignalClock.delay / 1000).toString() + " seconds.", notifyIcon);
 }
 
@@ -294,7 +302,6 @@ private function getPersonPanels (id:String):void {
 		);
 		htmlComplete(PersonProfile);
 	});
-	Accordion.selectedIndex= 0;
 }
 
 static private function removeRealName (feed:String):String {
@@ -371,14 +378,14 @@ private function htmlComplete(html:*):void {
 }
 private function gotPeople (col:ArrayCollection, people:*):void {
 	var ar:Array = people as Array;
-	col.removeAll();
 	for each(var s:Object in ar) {
 		col.addItem({
 			getPerson: getPerson,
 			user_id: s.id,
 			name: s.best_full_name,
 			img: myServer + '/data/people/' + s.id + '/small_photo',
-			profile: myServer + '/?profile/' + s.id
+			profile: myServer + '/?profile/' + s.id,
+			email: s.email
 		});
 	}
 }
@@ -542,15 +549,13 @@ private function onFeedTick (evt:*):void {
 	REST().getHTML(myServer + '/data/events/conversations/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityConversations));
 	REST().getHTML(myServer + '/data/events/followed/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityColleagues));
 	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmSignalMine, removeRealNameAndAssetIcon), { event_class: 'signal' });
+	REST().getHTML(myServer + '/data/events/activities/' + encodeURIComponent(myName), myName, myPassword, gotHTML(htmActivityMine), {event_class: 'page'});
+	REST().getHTML(myServer + '/data/events', myName, myPassword, gotHTML(htmActivityAll), {event_class: 'page', contributions: '1'});
 }
 
 private function onNetworkTick (evt:*):void {
-//	var id:String = previousId;
-//	previousId = null;
-//	getPersonPanels(id);
 	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword, Watchlist);
-//	HTML.htmlLoader.window.getWatchlist(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchlist', myName, myPassword);
-//	HTML.htmlLoader.window.getWatchers(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword);
+	REST().getPeople(myServer + '/data/people/' + encodeURIComponent(myName) + '/watchers', myName, myPassword, Watchers);
 }
 
 private function onBtnLogout (target:*):void {
@@ -628,7 +633,7 @@ private function keyPressed():void {
 				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="HTML.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmSignalColleagues" focusEnabled="true"></mx:HTML>			
 			</mx:Canvas>
 		</mx:ViewStack>
-		<mx:ToggleButtonBar dataProvider="SignalStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0">
+		<mx:ToggleButtonBar dataProvider="SignalStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0" color="#000000">
 		</mx:ToggleButtonBar>
 		<mx:Button label="Refresh" right="10" bottom="5" visible="false"/>
 		<mx:Button label="Clear" right="75" bottom="5" visible="false"/>
@@ -638,11 +643,6 @@ private function keyPressed():void {
 		<mx:Label text="Password" fontSize="12" textAlign="right" width="72" left="5" top="40"/>
 		<mx:Label text="Server" fontSize="12" textAlign="right" width="72" left="5" bottom="16"/>
 		<mx:Button styleName="LoginButton" tabIndex="3" label="Login" fontSize="11" right="10" y="38" id="Login" click="login()" icon="@Embed(source='icons/connect.gif')"/>
-		<!--
-		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
-		<mx:TextInput text="" tabIndex="2" y="39" width="183" fontSize="11" right="75" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true"/>
-		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
-	-->
 		<mx:TextInput text="" tabIndex="1" y="10" width="248" fontSize="11" right="10" displayAsPassword="false" editable="true" enabled="true" id="InputName" focusEnabled="true"/>
 		<mx:TextInput text="" tabIndex="2" width="163" fontSize="11" right="95" editable="true" enabled="true" id="InputPassword" focusEnabled="true" displayAsPassword="true" top="39"/>
 		<mx:TextInput tabIndex="4" bottom="16" width="248" text="https://www2.socialtext.net" fontSize="11" right="10" editable="true" id="InputServer" focusEnabled="true"/>
@@ -658,12 +658,11 @@ private function keyPressed():void {
 	</mx:Canvas>
 
 	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="NetworkView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
-	
-	<mx:Accordion id="Accordion" creationPolicy="all"    left="10" top="10" bottom="10" right="10" visible="true">
-		<mx:Canvas label="Activities" visible="true" id="PersonActivitiesCanvas" width="100%" height="100%">
+		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="NetworkStack" cornerRadius="3">
+		<mx:Canvas backgroundColor="#ffffff" backgroundAlpha="1" hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="Activities" id="cvsNetworkActivities" cornerRadius="3">
 			<mx:HTML fontSize="12" fontFamily="Arial" location="Loading.html" cornerRadius="5" id="PersonActivities" complete="htmlComplete(PersonActivities)" left="0" top="0" bottom="0" right="0"/>
 		</mx:Canvas>
-		<mx:Canvas label="Network" width="100%" height="100%" id="PersonNetworkCanvas">
+		<mx:Canvas backgroundColor="#ffffff" backgroundAlpha="1" hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="Network" id="cvsNetworkNetwork" cornerRadius="3">
 			<mx:Panel id="NetworkPanelLeft" width="47%" layout="absolute" left="10" top="3" bottom="27" title="Following {PersonWatchlist.length} people" fontSize="15" color="#000000" cornerRadius="10" fontFamily="Arial">
 				<mx:List selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false"	 left="0" top="0" bottom="0" right="0" dataProvider="{PersonWatchlist}" itemRenderer="Person"></mx:List>
 			</mx:Panel>
@@ -713,12 +712,28 @@ else {
 				 id="PersonFollowCheckbox" bottom="0" right="10">
 			</mx:CheckBox>
 		</mx:Canvas>
-		<mx:Canvas label="Profile" visible="true" id="PersonProfileCanvas" width="100%" height="100%">
+		<mx:Canvas backgroundColor="#ffffff" backgroundAlpha="1" hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="Profile" id="cvsNetworkProfile" cornerRadius="3">
 			<mx:HTML fontSize="12" fontFamily="Arial" location="Profile.html" cornerRadius="5" id="PersonProfile" left="10" top="10" bottom="10" right="10"/>
 		</mx:Canvas>
-	</mx:Accordion>
+		</mx:ViewStack>
+		<mx:ToggleButtonBar dataProvider="NetworkStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0" color="#000000">
+		</mx:ToggleButtonBar>
+
 	</mx:Canvas>
 	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="PeopleView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
+		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="PeopleStack" cornerRadius="3">
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="My Colleagues ({Watchlist.length})" id="cvsPeopleWatchlist" cornerRadius="3">
+				<mx:TileList selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false"	 left="0" top="0" bottom="0" right="0" dataProvider="{Watchlist}" itemRenderer="Person"></mx:TileList>
+			</mx:Canvas>
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="My Followers ({Watchers.length})" id="cvsPeopleWatchers" cornerRadius="3">
+				<mx:TileList selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false"	 left="0" top="0" bottom="0" right="0" dataProvider="{Watchers}" itemRenderer="Person"></mx:TileList>
+			</mx:Canvas>
+			<mx:Canvas hideEffect="hideTab" showEffect="showTab" left="0" right="0" top="0" bottom="0" label="All ({(PeopleList.length > 0) ? PeopleList.length : 'loading...'})" id="cvsPeopleAll" cornerRadius="3">
+				<mx:TileList selectionColor="#FFFFFF" rollOverColor="#FFFFFF" useRollOver="false"	 left="0" top="0" bottom="0" right="0" dataProvider="{PeopleList}" itemRenderer="Person"></mx:TileList>
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:ToggleButtonBar dataProvider="PeopleStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0" color="#000000">
+		</mx:ToggleButtonBar>
 	</mx:Canvas>
 	<mx:Canvas visible="false" hideEffect="hideView" showEffect="showEffects" id="ActivityView" styleName="View" left="0" right="0" bottom="0" top="45" cornerRadius="10">
 		<mx:ViewStack creationPolicy="all" selectedIndex="0" left="10" right="10" top="10" bottom="32"  id="ActivityStack" cornerRadius="3">
@@ -735,7 +750,7 @@ else {
 				<mx:HTML horizontalScrollPolicy="auto" verticalScrollPolicy="auto" backgroundColor="#ffffff" location="Loading.html" styleName="HTML" backgroundAlpha="1" left="0" top="0" right="0" bottom="0" enabled="true" id="htmActivityAll" focusEnabled="true"></mx:HTML>			
 			</mx:Canvas>
 		</mx:ViewStack>
-		<mx:ToggleButtonBar dataProvider="ActivityStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0">
+		<mx:ToggleButtonBar dataProvider="ActivityStack" fontFamily="Arial" fontSize="10" paddingBottom="0" paddingTop="0" bottom="8" left="10" fontWeight="normal" rotation="0" color="#000000">
 		</mx:ToggleButtonBar>
 	</mx:Canvas>
 	<mx:Canvas width="23" height="45" top="0" right="0">

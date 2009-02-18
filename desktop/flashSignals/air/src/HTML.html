@@ -21,7 +21,7 @@ function doLogin (url, username, password) {
 function getPeople (url, username, password, container, sync) {
 	getData(url, username, password, function(data) {
 		gotPeople(container, data);
-	}, sync);
+	}, sync, { fields: 'email' });
 }
 
 function getHTML (url, username, password, callback, payload) {
@@ -57,7 +57,7 @@ function getColleagues (url, username, password) {
     });
 }
 
-function getData (url, username, password, callback, sync) {
+function getData (url, username, password, callback, sync, payload) {
     $.ajax({
         url: url.replace(/:\/\//, '://' + encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@'),
         dataType: "json",
@@ -65,6 +65,7 @@ function getData (url, username, password, callback, sync) {
             callback(data);
         },
         async: (sync ? false : true),
+        data: payload,
         type: "GET"
     });
 }
