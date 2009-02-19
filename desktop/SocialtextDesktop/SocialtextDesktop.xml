@@ -14,14 +14,14 @@
 -->
 
 	<!-- The application identifier string, unique to this application. Required. -->
-	<id>Signals</id>
+	<id>SocialtextDesktop</id>
 
 	<!-- Used as the filename for the application. Required. -->
-	<filename>Signals</filename>
+	<filename>SocialtextDesktop</filename>
 
 	<!-- The name that is displayed in the AIR application installer. 
 	     May have multiple values for each language. See samples or xsd schema file. Optional. -->
-	<name>Signals</name>
+	<name>Socialtext Desktop</name>
 
 	<!-- An application version designator (such as "v1", "2.5", or "Alpha 1"). Required. -->
 	<version>0.01</version>
@@ -40,7 +40,7 @@
                 <content>Main.mxml.swf</content>
 		
 		<!-- The title of the main window. Optional. -->
-		<title>Signals</title>
+		<title>Socialtext Desktop</title>
 
 		<!-- The type of system chrome to use (either "standard" or "none"). Optional. Default standard. -->
 		<!-- <systemChrome></systemChrome> -->

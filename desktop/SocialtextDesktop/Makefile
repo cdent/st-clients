@@ -1,4 +1,4 @@
-distfile = Signals.air
+distfile = SocialtextDesktop.air
 
 run = env PATH="${PATH}":/opt/flex/bin
 
@@ -14,11 +14,11 @@ all: check-deps $(objects)
 
 run: $(objects)
 	@rsync -au --delete html js css bin
-	$(run) adl Signals.xml bin
+	$(run) adl SocialtextDesktop.xml bin
 
 dist: $(objects)
 	@rsync -au --delete html js css bin
-	$(run) adt -package -storetype pkcs12 -keystore /etc/selfsigned.p12 $(distfile) Signals.xml -C bin .
+	$(run) adt -package -storetype pkcs12 -keystore /etc/selfsigned.p12 $(distfile) SocialtextDesktop.xml -C bin .
 
 clean:
 	-rm -rf bin

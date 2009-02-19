@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <WindowedApplication xmlns:mx="http://www.adobe.com/2006/mxml" xmlns="http://www.adobe.com/2006/mxml"
-    title="Signals" minWidth="500" minHeight="385" creationComplete="onAppInit()" layout="absolute">
+    title="Socialtext Desktop" minWidth="500" minHeight="385" creationComplete="onAppInit()" layout="absolute">
     <Style source="../css/Main.css" />
     <Script source="../as/Main.as" />
 
