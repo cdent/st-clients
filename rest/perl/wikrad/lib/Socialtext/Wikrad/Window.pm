@@ -279,10 +279,13 @@ sub editor {
     $App->{cui}->status('Editing page');
     $App->{cui}->leave_curses;
     my $r = $App->{rester};
-    my $workspace = $r->workspace;
     my $page = $App->get_page;
     my $server = $r->server;
-    system("wikedit", '-s', $server, '-w', $workspace, @extra_args, $page);
+    system("wikedit", '-s', $server,
+                      '-u', $r->username,
+                      '-p', $r->password,
+                      '-w', $r->workspace,
+                      @extra_args, $page);
     $App->{cui}->reset_curses;
     $App->load_page;
 }
