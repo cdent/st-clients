@@ -1,3 +1,21 @@
+libsocialtext-wikrad-perl (20080603-1212515807) socialtext; urgency=low
+
+  * Change version format
+
+ --  <kevinj@topaz.socialtext.net>  Tue, 24 Mar 2009 16:36:25 -0700
+
+libsocialtext-wikrad-perl (0.06-3) unstable; urgency=low
+
+  * new upstream version
+
+ --  <kevinj@topaz.socialtext.net>  Tue, 24 Mar 2009 16:33:49 -0700
+
+libsocialtext-wikrad-perl (0.06-2) unstable; urgency=low
+
+  * new upstream version
+
+ --  <kevinj@topaz.socialtext.net>  Tue, 24 Mar 2009 16:30:11 -0700
+
 libsocialtext-wikrad-perl (0.06-1) unstable; urgency=low
 
   * new upstream version
