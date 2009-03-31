@@ -93,6 +93,55 @@ sub set_last_tagged_page {
     $self->set_page(shift @pages);
 }
 
+sub download {
+    my $self = shift;
+    my $current_page = $self->{win}{page_box}->text;
+    $self->{cui}->leave_curses;
+
+    my $r = $self->{rester};
+    
+    my $dir = $self->_unique_filename($current_page);
+    mkdir $dir or die "Error creating directory $dir: $!";
+
+    my %ct = (
+        html => 'text/html',
+        wiki => 'text/x.socialtext-wiki',
+    );
+
+    while (my ($ext, $ct) = each %ct) {
+        $r->accept($ct);
+        my $file = "$dir/content.$ext";
+        open my $fh, ">$file" or die "Can't open $file: $!";
+        print $fh $r->get_page($current_page);
+        close $fh or die "Can't open $file: $!";
+    }
+    
+    # Fetch attachments
+    $r->accept('perl_hash');
+    my $attachments = $r->get_page_attachments($current_page);
+
+    for my $a (@$attachments) {
+        my $filename = "$dir/$a->{name}";
+        my $content = $r->get_attachment($a->{id});
+        open my $fh, ">$filename" or die "Can't open $filename: $!\n";
+        print $fh $content;
+        close $fh or die "Error writing to $filename: $!\n";
+        print "Downloaded $filename\n";
+    }
+}
+
+sub _unique_filename {
+    my $self = shift;
+    my $original = shift;
+    my $filename = $original;
+    my $i = 0;
+    while (-e $filename) {
+        $i++;
+        $filename = "$original.$i";
+    }
+    return $filename;
+}
+
 sub set_workspace {
     my $self = shift;
     my $wksp = shift;
