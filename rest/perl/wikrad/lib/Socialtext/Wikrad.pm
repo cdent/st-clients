@@ -122,7 +122,14 @@ sub download {
 
     for my $a (@$attachments) {
         my $filename = "$dir/$a->{name}";
-        my $content = $r->get_attachment($a->{id});
+        my ( $status, $content ) = $r->_request(
+            uri    => $a->{uri},
+            method => 'GET',
+        );
+        if ($status != 200) {
+            warn "Error downloading $filename: $status";
+            next;
+        }
         open my $fh, ">$filename" or die "Can't open $filename: $!\n";
         print $fh $content;
         close $fh or die "Error writing to $filename: $!\n";
